@@ -3,13 +3,6 @@ import { useKPIData } from '../hooks/useKPIData';
 import MindyAvatar from '../components/Mindy/MindyAvatar';
 import ChampionsLeagueTable from '../components/BodyLeasing/ChampionsLeague';
 import AIReportGenerator from '../components/Reports/AIReportGenerator';
-import {
-  TrendLineChart,
-  TeamComparisonChart,
-  PlacementsPieChart,
-  ChampionsPodium,
-  CumulativeChart
-} from '../components/Charts';
 import { RefreshCw, Calendar, Users, TrendingUp, Award, Target, CalendarDays } from 'lucide-react';
 
 const MONTHS_PL = [
@@ -25,11 +18,9 @@ export default function BodyLeasing() {
     monthlyData,
     yearlyData,
     championsData,
-    trendsData,
     allTimePlacements,
     allTimeVerifications,
     availableWeeks,
-    availableMonths: _availableMonths,
     loading,
     error,
     selectedWeek,
@@ -370,19 +361,6 @@ export default function BodyLeasing() {
           </div>
         </div>
       )}
-
-      {/* Charts Row 1 */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <TrendLineChart data={trendsData} />
-        <TeamComparisonChart data={weeklyData} />
-      </div>
-
-      {/* Charts Row 2 */}
-      <div className="grid md:grid-cols-3 gap-4">
-        <PlacementsPieChart data={weeklyData} />
-        <ChampionsPodium data={championsData} />
-        <CumulativeChart data={trendsData} />
-      </div>
 
       {/* Champions League Table */}
       <ChampionsLeagueTable data={championsData} />
