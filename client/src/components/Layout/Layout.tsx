@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { 
-  Users, TrendingUp, Briefcase, Settings, LogOut, Menu, X, 
-  ChevronDown, Home
+import {
+  Users, TrendingUp, Briefcase, Settings, LogOut, Menu, X,
+  ChevronDown
 } from 'lucide-react';
 
 const navigation = [

@@ -8,7 +8,7 @@ import Board from './pages/Board';
 import AdminPanel from './pages/AdminPanel';
 
 function ProtectedRoute({ children, adminOnly = false }: { children: React.ReactNode; adminOnly?: boolean }) {
-  const { isAuthenticated, user, loading } = useAuth();
+  const { user, loading } = useAuth();
 
   if (loading) {
     return (
