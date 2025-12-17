@@ -16,6 +16,18 @@ const db: DatabaseType = new Database(DB_PATH);
 // Enable WAL mode for better performance
 db.pragma('journal_mode = WAL');
 
+// Migration: Add upload_type column to upload_logs if it doesn't exist
+try {
+  const columns = db.prepare("PRAGMA table_info(upload_logs)").all() as { name: string }[];
+  const hasUploadType = columns.some(col => col.name === 'upload_type');
+  if (!hasUploadType) {
+    db.exec("ALTER TABLE upload_logs ADD COLUMN upload_type TEXT DEFAULT 'body-leasing'");
+    console.log('✅ Added upload_type column to upload_logs');
+  }
+} catch (e) {
+  // Table might not exist yet, will be created by init.ts
+}
+
 console.log(`📦 SQLite database: ${DB_PATH}`);
 
 export default db;

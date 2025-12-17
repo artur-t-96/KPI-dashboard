@@ -3,11 +3,12 @@ import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
 import {
   uploadExcel, getUploadHistory,
-  getAllKPIData, deleteWeekData, deleteRecord, deleteAllData
+  getAllKPIData, deleteWeekData, deleteRecord, deleteAllData,
+  UploadType
 } from '../services/api';
 import {
   Upload, FileSpreadsheet, History, Trash2, CheckCircle,
-  XCircle, AlertCircle, Database, RefreshCw
+  XCircle, AlertCircle, Database, RefreshCw, Users, TrendingUp, Building2
 } from 'lucide-react';
 
 interface KPIRecord {
@@ -25,38 +26,61 @@ interface KPIRecord {
   days_worked: number;
 }
 
+interface UploadState {
+  uploading: boolean;
+  result: any;
+}
+
 export default function AdminPanel() {
   const { user } = useAuth();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
   const [activeTab, setActiveTab] = useState<'upload' | 'data' | 'history'>('upload');
-  const [uploading, setUploading] = useState(false);
-  const [uploadResult, setUploadResult] = useState<any>(null);
+  const [uploadStates, setUploadStates] = useState<Record<UploadType, UploadState>>({
+    'body-leasing': { uploading: false, result: null },
+    'sales': { uploading: false, result: null },
+    'supervisory-board': { uploading: false, result: null }
+  });
   const [kpiData, setKpiData] = useState<KPIRecord[]>([]);
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRefs = {
+    'body-leasing': useRef<HTMLInputElement>(null),
+    'sales': useRef<HTMLInputElement>(null),
+    'supervisory-board': useRef<HTMLInputElement>(null)
+  };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: UploadType) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    setUploading(true);
-    setUploadResult(null);
+    setUploadStates(prev => ({
+      ...prev,
+      [type]: { uploading: true, result: null }
+    }));
 
     try {
-      const result = await uploadExcel(file);
-      setUploadResult(result);
+      const result = await uploadExcel(file, type);
+      setUploadStates(prev => ({
+        ...prev,
+        [type]: { uploading: false, result }
+      }));
     } catch (error: any) {
-      setUploadResult({
-        success: false,
-        message: error.response?.data?.error || 'Blad podczas uploadu pliku'
-      });
+      setUploadStates(prev => ({
+        ...prev,
+        [type]: {
+          uploading: false,
+          result: {
+            success: false,
+            message: error.response?.data?.error || 'Blad podczas uploadu pliku'
+          }
+        }
+      }));
     } finally {
-      setUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+      const ref = fileInputRefs[type];
+      if (ref.current) {
+        ref.current.value = '';
       }
     }
   };
@@ -179,75 +203,129 @@ export default function AdminPanel() {
         <div className="p-6">
           {activeTab === 'upload' && (
             <div className="space-y-6">
-              <div
-                className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-                  uploading
-                    ? isDark ? 'border-blue-400 bg-blue-900/20' : 'border-blue-300 bg-blue-50'
-                    : isDark ? 'border-gray-600 hover:border-blue-400' : 'border-gray-300 hover:border-blue-400'
-                }`}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".xlsx,.xls"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                  id="file-upload"
-                  disabled={uploading}
-                />
-                <label htmlFor="file-upload" className="cursor-pointer">
-                  <FileSpreadsheet className={`w-16 h-16 mx-auto mb-4 ${uploading ? 'text-blue-500 animate-pulse' : isDark ? 'text-gray-500' : 'text-gray-400'}`} />
-                  <p className={`text-lg font-medium ${textClass}`}>
-                    {uploading ? 'Przetwarzanie pliku...' : 'Kliknij lub przeciagnij plik Excel'}
-                  </p>
-                  <p className={`text-sm ${mutedTextClass} mt-2`}>Akceptowane formaty: .xlsx, .xls</p>
-                </label>
-              </div>
+              {/* Upload Panel Configuration */}
+              {([
+                {
+                  type: 'body-leasing' as UploadType,
+                  title: 'Body Leasing',
+                  description: 'Upload danych KPI pracownikow rekrutacji',
+                  icon: Users,
+                  color: 'blue' as const,
+                  formatInfo: 'Kolumny: Imie i nazwisko, Stanowisko (Sourcer/Rekruter/TAC), Tydzien od, Tydzien do, Dni pracy, Weryfikacje, CV, Rekomendacje, Interviews, Placements.'
+                },
+                {
+                  type: 'sales' as UploadType,
+                  title: 'Sprzedaz',
+                  description: 'Upload danych dzialu sprzedazy',
+                  icon: TrendingUp,
+                  color: 'green' as const,
+                  formatInfo: 'Format pliku zostanie udostepniony wkrotce. Plik zostanie zapisany do pozniejszego przetworzenia.'
+                },
+                {
+                  type: 'supervisory-board' as UploadType,
+                  title: 'Rada Nadzorcza',
+                  description: 'Upload raportow dla rady nadzorczej',
+                  icon: Building2,
+                  color: 'purple' as const,
+                  formatInfo: 'Format pliku zostanie udostepniony wkrotce. Plik zostanie zapisany do pozniejszego przetworzenia.'
+                }
+              ]).map(({ type, title, description, icon: Icon, color, formatInfo }) => {
+                const state = uploadStates[type];
+                const colorMap = {
+                  blue: {
+                    border: isDark ? 'border-blue-400' : 'border-blue-300',
+                    bg: isDark ? 'bg-blue-900/20' : 'bg-blue-50',
+                    header: 'from-blue-600 to-blue-700',
+                    icon: 'text-blue-500'
+                  },
+                  green: {
+                    border: isDark ? 'border-green-400' : 'border-green-300',
+                    bg: isDark ? 'bg-green-900/20' : 'bg-green-50',
+                    header: 'from-green-600 to-green-700',
+                    icon: 'text-green-500'
+                  },
+                  purple: {
+                    border: isDark ? 'border-purple-400' : 'border-purple-300',
+                    bg: isDark ? 'bg-purple-900/20' : 'bg-purple-50',
+                    header: 'from-purple-600 to-purple-700',
+                    icon: 'text-purple-500'
+                  }
+                };
+                const colorClasses = colorMap[color];
 
-              {uploadResult && (
-                <div className={`p-4 rounded-lg ${
-                  uploadResult.success
-                    ? isDark ? 'bg-green-900/30 border-green-700' : 'bg-green-50 border-green-200'
-                    : isDark ? 'bg-red-900/30 border-red-700' : 'bg-red-50 border-red-200'
-                } border`}>
-                  <div className="flex items-start gap-3">
-                    {uploadResult.success ? (
-                      <CheckCircle className={`w-6 h-6 ${isDark ? 'text-green-400' : 'text-green-500'} flex-shrink-0`} />
-                    ) : (
-                      <XCircle className={`w-6 h-6 ${isDark ? 'text-red-400' : 'text-red-500'} flex-shrink-0`} />
-                    )}
-                    <div>
-                      <p className={`font-medium ${uploadResult.success ? (isDark ? 'text-green-300' : 'text-green-800') : (isDark ? 'text-red-300' : 'text-red-800')}`}>
-                        {uploadResult.message}
-                      </p>
-                      {uploadResult.details && (
-                        <div className="mt-2 text-sm">
-                          <p className={mutedTextClass}>Przetworzono: {uploadResult.details.rowsProcessed} wierszy</p>
-                          <p className={isDark ? 'text-green-400' : 'text-green-600'}>Sukces: {uploadResult.details.rowsSuccess}</p>
-                          {uploadResult.details.rowsFailed > 0 && (
-                            <>
-                              <p className={isDark ? 'text-red-400' : 'text-red-600'}>Bledy: {uploadResult.details.rowsFailed}</p>
-                              <ul className={`mt-2 list-disc list-inside ${isDark ? 'text-red-400' : 'text-red-600'}`}>
-                                {uploadResult.details.errors?.slice(0, 5).map((err: string, i: number) => (
-                                  <li key={i}>{err}</li>
-                                ))}
-                              </ul>
-                            </>
-                          )}
+                return (
+                  <div key={type} className={`border ${borderClass} rounded-xl overflow-hidden`}>
+                    {/* Panel Header */}
+                    <div className={`bg-gradient-to-r ${colorClasses.header} p-4 flex items-center gap-3`}>
+                      <Icon className="w-6 h-6 text-white" />
+                      <div>
+                        <h3 className="font-semibold text-white">{title}</h3>
+                        <p className="text-sm text-white/80">{description}</p>
+                      </div>
+                    </div>
+
+                    {/* Upload Area */}
+                    <div className="p-4">
+                      <div
+                        className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                          state.uploading
+                            ? `${colorClasses.border} ${colorClasses.bg}`
+                            : isDark ? 'border-gray-600 hover:border-gray-500' : 'border-gray-300 hover:border-gray-400'
+                        }`}
+                      >
+                        <input
+                          ref={fileInputRefs[type]}
+                          type="file"
+                          accept=".xlsx,.xls"
+                          onChange={(e) => handleFileUpload(e, type)}
+                          className="hidden"
+                          id={`file-upload-${type}`}
+                          disabled={state.uploading}
+                        />
+                        <label htmlFor={`file-upload-${type}`} className="cursor-pointer">
+                          <FileSpreadsheet className={`w-12 h-12 mx-auto mb-3 ${state.uploading ? `${colorClasses.icon} animate-pulse` : isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+                          <p className={`font-medium ${textClass}`}>
+                            {state.uploading ? 'Przetwarzanie pliku...' : 'Kliknij aby wybrac plik Excel'}
+                          </p>
+                          <p className={`text-xs ${mutedTextClass} mt-1`}>.xlsx, .xls</p>
+                        </label>
+                      </div>
+
+                      {/* Upload Result */}
+                      {state.result && (
+                        <div className={`mt-3 p-3 rounded-lg ${
+                          state.result.success
+                            ? isDark ? 'bg-green-900/30 border-green-700' : 'bg-green-50 border-green-200'
+                            : isDark ? 'bg-red-900/30 border-red-700' : 'bg-red-50 border-red-200'
+                        } border`}>
+                          <div className="flex items-start gap-2">
+                            {state.result.success ? (
+                              <CheckCircle className={`w-5 h-5 ${isDark ? 'text-green-400' : 'text-green-500'} flex-shrink-0`} />
+                            ) : (
+                              <XCircle className={`w-5 h-5 ${isDark ? 'text-red-400' : 'text-red-500'} flex-shrink-0`} />
+                            )}
+                            <div className="text-sm">
+                              <p className={`font-medium ${state.result.success ? (isDark ? 'text-green-300' : 'text-green-800') : (isDark ? 'text-red-300' : 'text-red-800')}`}>
+                                {state.result.message}
+                              </p>
+                              {state.result.details && state.result.details.rowsProcessed > 0 && (
+                                <p className={mutedTextClass}>
+                                  Przetworzono: {state.result.details.rowsSuccess}/{state.result.details.rowsProcessed}
+                                </p>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       )}
+
+                      {/* Format Info */}
+                      <div className={`mt-3 p-3 rounded-lg ${isDark ? 'bg-gray-700/50' : 'bg-gray-50'}`}>
+                        <p className={`text-xs ${mutedTextClass}`}>{formatInfo}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
-
-              <div className={`${isDark ? 'bg-gray-700' : 'bg-gray-50'} rounded-lg p-4`}>
-                <h3 className={`font-medium ${textClass} mb-2`}>Format pliku Excel</h3>
-                <p className={`text-sm ${mutedTextClass}`}>
-                  Kolumny: Imie i nazwisko, Stanowisko (Sourcer/Rekruter/TAC), Tydzien od, Tydzien do, Dni pracy, Weryfikacje, CV, Rekomendacje, Interviews, Placements.
-                  Pracownicy sa tworzeni automatycznie.
-                </p>
-              </div>
+                );
+              })}
             </div>
           )}
 

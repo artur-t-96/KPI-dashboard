@@ -163,9 +163,12 @@ export const getMindyResponse = async (): Promise<MindyResponse> => {
 };
 
 // Admin - Upload
-export const uploadExcel = async (file: File): Promise<UploadResult> => {
+export type UploadType = 'body-leasing' | 'sales' | 'supervisory-board';
+
+export const uploadExcel = async (file: File, type: UploadType = 'body-leasing'): Promise<UploadResult> => {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('type', type);
   const response = await api.post('/admin', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   });

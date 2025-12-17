@@ -55,7 +55,8 @@ CREATE TABLE IF NOT EXISTS upload_logs (
     rows_failed INTEGER,
     errors TEXT,
     uploaded_by INTEGER REFERENCES users(id),
-    uploaded_at TEXT DEFAULT (datetime('now'))
+    uploaded_at TEXT DEFAULT (datetime('now')),
+    upload_type TEXT DEFAULT 'body-leasing'
 );
 
 -- Indexes for performance

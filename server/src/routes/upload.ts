@@ -28,25 +28,56 @@ router.post('/', authenticateToken, requireAdmin, upload.single('file') as any, 
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
-    
+
+    const uploadType = req.body.type || 'body-leasing';
+
+    // Currently only body-leasing is fully implemented
+    if (uploadType !== 'body-leasing') {
+      // Log the upload attempt for other types
+      db.prepare(`
+        INSERT INTO upload_logs (filename, rows_processed, rows_success, rows_failed, errors, uploaded_by, upload_type)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        req.file.originalname,
+        0,
+        0,
+        0,
+        JSON.stringify([`Upload type '${uploadType}' - file stored for future processing`]),
+        req.user!.id,
+        uploadType
+      );
+
+      return res.json({
+        success: true,
+        message: `Plik dla "${uploadType === 'sales' ? 'Sprzedaż' : 'Rada Nadzorcza'}" zostal zapisany. Przetwarzanie danych bedzie dostepne wkrotce.`,
+        details: {
+          rowsProcessed: 0,
+          rowsSuccess: 0,
+          rowsFailed: 0,
+          errors: []
+        }
+      });
+    }
+
     const result = processExcelFile(req.file.buffer, req.user!.id);
-    
+
     db.prepare(`
-      INSERT INTO upload_logs (filename, rows_processed, rows_success, rows_failed, errors, uploaded_by)
-      VALUES (?, ?, ?, ?, ?, ?)
+      INSERT INTO upload_logs (filename, rows_processed, rows_success, rows_failed, errors, uploaded_by, upload_type)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
     `).run(
       req.file.originalname,
       result.rowsProcessed,
       result.rowsSuccess,
       result.rowsFailed,
       JSON.stringify(result.errors),
-      req.user!.id
+      req.user!.id,
+      uploadType
     );
-    
+
     res.json({
       success: result.success,
-      message: result.success 
-        ? `Successfully processed ${result.rowsSuccess} rows` 
+      message: result.success
+        ? `Successfully processed ${result.rowsSuccess} rows`
         : `Processed with errors: ${result.rowsSuccess} success, ${result.rowsFailed} failed`,
       details: result
     });
@@ -58,15 +89,24 @@ router.post('/', authenticateToken, requireAdmin, upload.single('file') as any, 
 
 router.get('/history', authenticateToken, requireAdmin, (req: AuthRequest, res: Response) => {
   try {
-    const rows = db.prepare(`
-      SELECT 
+    const uploadType = req.query.type as string | undefined;
+    let query = `
+      SELECT
         ul.*,
         u.username as uploaded_by_name
       FROM upload_logs ul
       LEFT JOIN users u ON ul.uploaded_by = u.id
-      ORDER BY ul.uploaded_at DESC
-      LIMIT 50
-    `).all();
+    `;
+
+    if (uploadType) {
+      query += ` WHERE ul.upload_type = ?`;
+    }
+
+    query += ` ORDER BY ul.uploaded_at DESC LIMIT 50`;
+
+    const rows = uploadType
+      ? db.prepare(query).all(uploadType)
+      : db.prepare(query).all();
     res.json(rows);
   } catch (error) {
     console.error('Upload history error:', error);
