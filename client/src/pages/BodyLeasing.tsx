@@ -4,7 +4,7 @@ import MindyAvatar from '../components/Mindy/MindyAvatar';
 import ChampionsLeagueTable from '../components/BodyLeasing/ChampionsLeague';
 import AIReportGenerator from '../components/Reports/AIReportGenerator';
 import CollapsibleSection from '../components/CollapsibleSection';
-import { RefreshCw, Calendar, Users, TrendingUp, Award, Target, CalendarDays } from 'lucide-react';
+import { RefreshCw, Calendar, CalendarDays } from 'lucide-react';
 
 const MONTHS_PL = [
   '', 'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
@@ -35,28 +35,6 @@ export default function BodyLeasing() {
 
   // Use appropriate data based on view mode
   const displayData = viewMode === 'week' ? weeklyData : viewMode === 'month' ? monthlyData : yearlyData;
-
-  // Calculate team stats based on view mode
-  const totalPlacements = viewMode === 'week'
-    ? weeklyData.reduce((sum, d) => sum + d.placements, 0)
-    : viewMode === 'month'
-    ? monthlyData.reduce((sum, d) => sum + d.totalPlacements, 0)
-    : yearlyData.reduce((sum, d) => sum + d.totalPlacements, 0);
-  const totalInterviews = viewMode === 'week'
-    ? weeklyData.reduce((sum, d) => sum + d.interviews, 0)
-    : viewMode === 'month'
-    ? monthlyData.reduce((sum, d) => sum + d.totalInterviews, 0)
-    : yearlyData.reduce((sum, d) => sum + d.totalInterviews, 0);
-  const totalVerifications = viewMode === 'week'
-    ? weeklyData.reduce((sum, d) => sum + d.verifications, 0)
-    : viewMode === 'month'
-    ? monthlyData.reduce((sum, d) => sum + d.totalVerifications, 0)
-    : yearlyData.reduce((sum, d) => sum + d.totalVerifications, 0);
-
-  // Calculate average target achievement
-  const avgTargetAchievement = displayData.length > 0
-    ? Math.round(displayData.reduce((sum, d: any) => sum + d.targetAchievement, 0) / displayData.length)
-    : 0;
 
   // Helper functions for unified data access
   const getData = (d: any) => ({
@@ -233,69 +211,6 @@ export default function BodyLeasing() {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             Odswiez
           </button>
-        </div>
-      </div>
-
-      {/* Quick Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="bg-white rounded-xl shadow-sm p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-              <Users className="w-6 h-6 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{weeklyData.length}</p>
-              <p className="text-sm text-gray-500">Pracownikow</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-              <Award className="w-6 h-6 text-green-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{totalPlacements}</p>
-              <p className="text-sm text-gray-500">Placements</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-purple-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{totalInterviews}</p>
-              <p className="text-sm text-gray-500">Interviews</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center">
-              <span className="text-cyan-600 font-bold">W</span>
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{totalVerifications}</p>
-              <p className="text-sm text-gray-500">Weryfikacje</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-xl shadow-sm p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center">
-              <Target className="w-6 h-6 text-amber-600" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold text-gray-900">{avgTargetAchievement}%</p>
-              <p className="text-sm text-gray-500">Sr. target</p>
-            </div>
-          </div>
         </div>
       </div>
 
