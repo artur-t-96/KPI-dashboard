@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { getMindyResponse } from '../../services/api';
 import type { MindyEmotion, WeeklyKPI, MonthlyKPI } from '../../types';
-import type { AllTimeVerifications } from '../../services/api';
+import type { AllTimeVerifications, AllTimePlacement } from '../../services/api';
 import { Sparkles, Users, TrendingUp, Calendar, MessageCircle, X } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -9,6 +9,7 @@ interface Props {
   weeklyData?: WeeklyKPI[];
   monthlyData?: MonthlyKPI[];
   allTimeVerifications?: AllTimeVerifications[];
+  allTimePlacements?: AllTimePlacement[];
   viewMode?: 'week' | 'month' | 'year';
   selectedMonth?: number;
   selectedYear?: number;
@@ -34,6 +35,7 @@ export default function MindyAvatar({
   weeklyData = [],
   monthlyData = [],
   allTimeVerifications = [],
+  allTimePlacements = [],
   viewMode = 'week',
   selectedMonth = new Date().getMonth() + 1,
   selectedYear = new Date().getFullYear()
@@ -98,6 +100,22 @@ export default function MindyAvatar({
     const allTimeVerPerDay = allTimeTotalDays > 0 ? (allTimeTotalVerifications / allTimeTotalDays).toFixed(2) : '0';
     const allTimeCVPerDay = allTimeTotalDays > 0 ? (allTimeTotalCV / allTimeTotalDays).toFixed(2) : '0';
 
+    // All-time placements stats
+    const allTimeTotalPlacements = allTimePlacements.reduce((sum, d) => sum + d.total_placements, 0);
+    // Calculate months worked from first_week to last_week
+    let allTimeMonths = 1;
+    if (allTimePlacements.length > 0) {
+      const allFirstWeeks = allTimePlacements.map(d => new Date(d.first_week).getTime()).filter(t => !isNaN(t));
+      const allLastWeeks = allTimePlacements.map(d => new Date(d.last_week).getTime()).filter(t => !isNaN(t));
+      if (allFirstWeeks.length > 0 && allLastWeeks.length > 0) {
+        const earliestDate = new Date(Math.min(...allFirstWeeks));
+        const latestDate = new Date(Math.max(...allLastWeeks));
+        allTimeMonths = Math.max(1, Math.ceil((latestDate.getTime() - earliestDate.getTime()) / (30 * 24 * 60 * 60 * 1000)));
+      }
+    }
+    const allTimePlacementsPerMonth = allTimeMonths > 0 ? (allTimeTotalPlacements / allTimeMonths).toFixed(2) : '0';
+    const allTimePlacementTarget = weeklyData.length; // 1 per person per month
+
     const overallAchievement = Math.round((verificationAchievement + cvAchievement + placementAchievement) / 3);
 
     return {
@@ -119,7 +137,10 @@ export default function MindyAvatar({
       overallAchievement,
       allTimeTotalDays,
       allTimeVerPerDay,
-      allTimeCVPerDay
+      allTimeCVPerDay,
+      allTimeTotalPlacements,
+      allTimePlacementsPerMonth,
+      allTimePlacementTarget
     };
   };
 
@@ -268,6 +289,17 @@ export default function MindyAvatar({
                     </span>
                     <span className={`text-xs ml-1 ${Number(stats.allTimeCVPerDay) >= 5 ? 'text-green-500' : 'text-orange-500'}`}>
                       (cel: 5)
+                    </span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Placements:</span>
+                  <div className="text-right">
+                    <span className={`text-sm font-bold ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>
+                      {stats.allTimePlacementsPerMonth}/mies.
+                    </span>
+                    <span className={`text-xs ml-1 ${Number(stats.allTimePlacementsPerMonth) >= stats.allTimePlacementTarget ? 'text-green-500' : 'text-orange-500'}`}>
+                      (cel: {stats.allTimePlacementTarget})
                     </span>
                   </div>
                 </div>

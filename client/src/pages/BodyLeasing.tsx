@@ -116,6 +116,7 @@ export default function BodyLeasing() {
         weeklyData={weeklyData}
         monthlyData={monthlyData}
         allTimeVerifications={allTimeVerifications}
+        allTimePlacements={allTimePlacements}
         viewMode={viewMode}
         selectedMonth={selectedMonth}
         selectedYear={selectedYear}
