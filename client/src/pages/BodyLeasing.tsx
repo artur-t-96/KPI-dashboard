@@ -406,10 +406,23 @@ export default function BodyLeasing() {
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
                 <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
                 <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Plac./mies.</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {allTimePlacements.map((d, index) => (
+              {allTimePlacements.map((d, index) => {
+                // Calculate months worked from first_week to last_week
+                let months = 1;
+                if (d.first_week && d.last_week) {
+                  const firstDate = new Date(d.first_week).getTime();
+                  const lastDate = new Date(d.last_week).getTime();
+                  if (!isNaN(firstDate) && !isNaN(lastDate)) {
+                    months = Math.max(1, Math.ceil((lastDate - firstDate) / (30 * 24 * 60 * 60 * 1000)));
+                  }
+                }
+                const placementsPerMonth = (d.total_placements / months).toFixed(2);
+
+                return (
                 <tr key={d.employee_id} className={`hover:bg-gray-50 ${index < 3 ? 'bg-amber-50' : ''}`}>
                   <td className="px-4 py-3 text-center">
                     {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
@@ -429,8 +442,13 @@ export default function BodyLeasing() {
                       {d.total_placements}
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`font-bold ${Number(placementsPerMonth) >= 1 ? 'text-green-600' : 'text-orange-500'}`}>
+                      {placementsPerMonth}
+                    </span>
+                  </td>
                 </tr>
-              ))}
+              );})}
             </tbody>
           </table>
         </CollapsibleSection>
