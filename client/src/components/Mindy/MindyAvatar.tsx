@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { getMindyResponse } from '../../services/api';
-import type { MindyEmotion, MindyResponse, WeeklyKPI, MonthlyKPI } from '../../types';
+import type { MindyEmotion, WeeklyKPI, MonthlyKPI } from '../../types';
 import type { AllTimeVerifications } from '../../services/api';
-import { RefreshCw, Sparkles, Users, TrendingUp, Calendar } from 'lucide-react';
+import { Sparkles, Users, TrendingUp, Calendar, MessageCircle, X } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface Props {
@@ -14,15 +14,15 @@ interface Props {
   selectedYear?: number;
 }
 
-const emotionConfig: Record<MindyEmotion, { color: string; bgColor: string; bgColorDark: string; animation: string; eyes: string }> = {
-  ecstatic: { color: '#FFD700', bgColor: 'bg-yellow-50', bgColorDark: 'bg-yellow-900/20', animation: 'animate-bounce', eyes: '^_^' },
-  happy: { color: '#22C55E', bgColor: 'bg-green-50', bgColorDark: 'bg-green-900/20', animation: '', eyes: '^u^' },
-  satisfied: { color: '#86EFAC', bgColor: 'bg-green-50', bgColorDark: 'bg-green-900/20', animation: '', eyes: '^_^' },
-  neutral: { color: '#3B82F6', bgColor: 'bg-blue-50', bgColorDark: 'bg-blue-900/20', animation: '', eyes: '• •' },
-  concerned: { color: '#EAB308', bgColor: 'bg-yellow-50', bgColorDark: 'bg-yellow-900/20', animation: '', eyes: 'o o' },
-  worried: { color: '#F97316', bgColor: 'bg-orange-50', bgColorDark: 'bg-orange-900/20', animation: '', eyes: '>_<' },
-  sad: { color: '#EF4444', bgColor: 'bg-red-50', bgColorDark: 'bg-red-900/20', animation: '', eyes: 'T_T' },
-  motivated: { color: '#8B5CF6', bgColor: 'bg-purple-50', bgColorDark: 'bg-purple-900/20', animation: '', eyes: '*_*' }
+const emotionConfig: Record<MindyEmotion, { color: string; bgColor: string; bgColorDark: string; animation: string }> = {
+  ecstatic: { color: '#FFD700', bgColor: 'bg-yellow-50', bgColorDark: 'bg-yellow-900/20', animation: 'animate-bounce' },
+  happy: { color: '#22C55E', bgColor: 'bg-green-50', bgColorDark: 'bg-green-900/20', animation: '' },
+  satisfied: { color: '#86EFAC', bgColor: 'bg-green-50', bgColorDark: 'bg-green-900/20', animation: '' },
+  neutral: { color: '#3B82F6', bgColor: 'bg-blue-50', bgColorDark: 'bg-blue-900/20', animation: '' },
+  concerned: { color: '#EAB308', bgColor: 'bg-yellow-50', bgColorDark: 'bg-yellow-900/20', animation: '' },
+  worried: { color: '#F97316', bgColor: 'bg-orange-50', bgColorDark: 'bg-orange-900/20', animation: '' },
+  sad: { color: '#EF4444', bgColor: 'bg-red-50', bgColorDark: 'bg-red-900/20', animation: '' },
+  motivated: { color: '#8B5CF6', bgColor: 'bg-purple-50', bgColorDark: 'bg-purple-900/20', animation: '' }
 };
 
 const MONTHS_PL = [
@@ -38,26 +38,21 @@ export default function MindyAvatar({
   selectedMonth = new Date().getMonth() + 1,
   selectedYear = new Date().getFullYear()
 }: Props) {
-  const [mindyData, setMindyData] = useState<MindyResponse | null>(null);
+  const [mindyTip, setMindyTip] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
+  const [showTip, setShowTip] = useState(false);
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  const fetchMindy = async () => {
+  const fetchMindyTip = async () => {
     setLoading(true);
+    setShowTip(true);
     try {
       const data = await getMindyResponse();
-      setMindyData(data);
-      setHasLoaded(true);
+      setMindyTip(data.tip);
     } catch (error) {
-      console.error('Failed to fetch Mindy data:', error);
-      setMindyData({
-        emotion: 'neutral',
-        tip: 'Przepraszam, nie moglam pobrac danych. Sprobuj ponownie.',
-        stats: { avgTargetAchievement: 0, topPerformer: '-', totalPlacements: 0, alertsCount: 0 }
-      });
-      setHasLoaded(true);
+      console.error('Failed to fetch Mindy tip:', error);
+      setMindyTip('Przepraszam, nie moglam pobrac rady. Sprobuj ponownie.');
     } finally {
       setLoading(false);
     }
@@ -65,7 +60,6 @@ export default function MindyAvatar({
 
   // Calculate team stats
   const calculateTeamStats = () => {
-    // Count employees by position
     const sourcers = weeklyData.filter(d => d.position === 'Sourcer');
     const recruiters = weeklyData.filter(d => d.position === 'Rekruter');
     const tacs = weeklyData.filter(d => d.position === 'TAC');
@@ -83,10 +77,7 @@ export default function MindyAvatar({
     const totalInterviews = currentData.reduce((sum, d: any) =>
       sum + (viewMode === 'week' ? d.interviews : d.totalInterviews), 0);
 
-    // Calculate targets for current period
-    // Sourcers: 4 verifications/day each
-    // Recruiters: 5 CV/day each
-    // Everyone: 1 placement/month
+    // Targets
     const sourcerDays = sourcers.reduce((sum, d: any) =>
       sum + (viewMode === 'week' ? d.daysWorked : (monthlyData.find(m => m.employeeId === d.employeeId)?.totalDaysWorked || 0)), 0);
     const recruiterDays = recruiters.reduce((sum, d: any) =>
@@ -94,20 +85,19 @@ export default function MindyAvatar({
 
     const verificationTarget = sourcerDays * 4;
     const cvTarget = recruiterDays * 5;
-    const placementTarget = weeklyData.length; // 1 per person per month
+    const placementTarget = weeklyData.length;
 
     const verificationAchievement = verificationTarget > 0 ? Math.round((totalVerifications / verificationTarget) * 100) : 0;
     const cvAchievement = cvTarget > 0 ? Math.round((totalCV / cvTarget) * 100) : 0;
     const placementAchievement = placementTarget > 0 ? Math.round((totalPlacements / placementTarget) * 100) : 0;
 
-    // All-time stats (per working day)
+    // All-time stats
     const allTimeTotalDays = allTimeVerifications.reduce((sum, d) => sum + d.totalDaysWorked, 0);
     const allTimeTotalVerifications = allTimeVerifications.reduce((sum, d) => sum + d.totalVerifications, 0);
     const allTimeTotalCV = allTimeVerifications.reduce((sum, d) => sum + d.totalCvAdded, 0);
     const allTimeVerPerDay = allTimeTotalDays > 0 ? (allTimeTotalVerifications / allTimeTotalDays).toFixed(2) : '0';
     const allTimeCVPerDay = allTimeTotalDays > 0 ? (allTimeTotalCV / allTimeTotalDays).toFixed(2) : '0';
 
-    // Overall team target achievement
     const overallAchievement = Math.round((verificationAchievement + cvAchievement + placementAchievement) / 3);
 
     return {
@@ -134,11 +124,11 @@ export default function MindyAvatar({
   };
 
   const stats = calculateTeamStats();
-  const emotion = mindyData?.emotion || (stats.overallAchievement >= 100 ? 'happy' : stats.overallAchievement >= 70 ? 'satisfied' : stats.overallAchievement >= 50 ? 'neutral' : 'concerned');
+  const emotion: MindyEmotion = stats.overallAchievement >= 100 ? 'happy' : stats.overallAchievement >= 70 ? 'satisfied' : stats.overallAchievement >= 50 ? 'neutral' : 'concerned';
   const config = emotionConfig[emotion];
 
   // Full body robot SVG
-  const MindyRobot = ({ size = 120 }: { size?: number }) => (
+  const MindyRobot = ({ size = 100 }: { size?: number }) => (
     <svg width={size} height={size * 1.5} viewBox="0 0 120 180" className="drop-shadow-lg">
       {/* Antenna */}
       <line x1="60" y1="12" x2="60" y2="0" stroke={config.color} strokeWidth="3" strokeLinecap="round">
@@ -191,124 +181,62 @@ export default function MindyAvatar({
       {/* Arms */}
       <rect x="5" y="85" width="18" height="45" rx="8" fill={config.color} />
       <rect x="97" y="85" width="18" height="45" rx="8" fill={config.color} />
-      {/* Hands */}
       <circle cx="14" cy="135" r="10" fill={config.color} />
       <circle cx="106" cy="135" r="10" fill={config.color} />
 
       {/* Legs */}
       <rect x="35" y="142" width="18" height="30" rx="6" fill={config.color} />
       <rect x="67" y="142" width="18" height="30" rx="6" fill={config.color} />
-      {/* Feet */}
       <rect x="30" y="168" width="28" height="12" rx="4" fill={config.color} />
       <rect x="62" y="168" width="28" height="12" rx="4" fill={config.color} />
     </svg>
   );
-
-  // Initial state - button to trigger Mindy
-  if (!hasLoaded && !loading) {
-    return (
-      <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg p-6 border-2 border-dashed ${isDark ? 'border-gray-600' : 'border-gray-300'}`}>
-        <div className="flex items-start gap-6">
-          {/* Robot */}
-          <div className="flex-shrink-0 opacity-50">
-            <MindyRobot size={100} />
-          </div>
-
-          {/* Content */}
-          <div className="flex-1">
-            <h2 className={`text-xl font-bold ${isDark ? 'text-gray-300' : 'text-gray-700'} mb-2`}>
-              Mindy - Asystent KPI Zespolu
-            </h2>
-            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'} mb-4`}>
-              Kliknij aby zobaczyc statystyki zespolu i otrzymac analize AI
-            </p>
-
-            {/* Team composition preview */}
-            <div className="flex gap-3 mb-4 flex-wrap">
-              <span className={`text-xs px-3 py-1.5 rounded-full ${isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-800'}`}>
-                <Users className="w-3 h-3 inline mr-1" />
-                {stats.teamSize} osob
-              </span>
-              <span className={`text-xs px-3 py-1.5 rounded-full ${isDark ? 'bg-cyan-900/50 text-cyan-300' : 'bg-cyan-100 text-cyan-800'}`}>
-                {stats.sourcers} Sourcer
-              </span>
-              <span className={`text-xs px-3 py-1.5 rounded-full ${isDark ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-800'}`}>
-                {stats.recruiters} Rekruter
-              </span>
-              <span className={`text-xs px-3 py-1.5 rounded-full ${isDark ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-800'}`}>
-                {stats.tacs} TAC
-              </span>
-            </div>
-
-            <button
-              onClick={fetchMindy}
-              className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all shadow-md text-sm font-medium"
-            >
-              <Sparkles className="w-4 h-4" />
-              Aktywuj Mindy
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Loading state
-  if (loading) {
-    return (
-      <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-2xl shadow-lg p-6`}>
-        <div className="flex items-center gap-6">
-          <div className={`w-24 h-36 ${isDark ? 'bg-gray-700' : 'bg-gray-200'} rounded-xl animate-pulse flex items-center justify-center`}>
-            <RefreshCw className="w-10 h-10 text-blue-500 animate-spin" />
-          </div>
-          <div className="flex-1">
-            <div className={`h-6 ${isDark ? 'bg-gray-700' : 'bg-gray-200'} rounded w-3/4 animate-pulse mb-3`}></div>
-            <div className={`h-4 ${isDark ? 'bg-gray-700' : 'bg-gray-200'} rounded w-1/2 animate-pulse mb-2`}></div>
-            <div className={`h-4 ${isDark ? 'bg-gray-700' : 'bg-gray-200'} rounded w-2/3 animate-pulse`}></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  const tip = mindyData?.tip || 'Czesc! Jestem Mindy, Twoja asystentka KPI!';
 
   return (
     <div className={`${isDark ? config.bgColorDark : config.bgColor} rounded-2xl shadow-lg p-6 border-2`} style={{ borderColor: config.color }}>
       <div className="flex items-start gap-6">
         {/* Mindy Robot */}
         <div className={`flex-shrink-0 ${config.animation}`}>
-          <MindyRobot size={100} />
+          <MindyRobot size={90} />
         </div>
 
         {/* Content */}
         <div className="flex-1 min-w-0">
           {/* Header */}
           <div className="flex items-center gap-2 mb-3">
-            <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Mindy</h2>
-            <span className="text-xs px-2 py-0.5 rounded-full text-white" style={{ backgroundColor: config.color }}>
-              {emotion === 'ecstatic' ? 'Super!' :
-               emotion === 'happy' ? 'Dobrze!' :
-               emotion === 'satisfied' ? 'OK' :
-               emotion === 'neutral' ? 'Neutralnie' :
-               emotion === 'concerned' ? 'Uwaga' :
-               emotion === 'worried' ? 'Martwię się' :
-               emotion === 'sad' ? 'Smutno' :
-               'Zmotywowana!'}
-            </span>
+            <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-800'}`}>Mindy - Statystyki Zespolu</h2>
             <button
-              onClick={fetchMindy}
-              className={`ml-auto p-1.5 rounded-lg ${isDark ? 'hover:bg-gray-700' : 'hover:bg-white/50'} transition-colors`}
-              title="Odswież analize"
+              onClick={fetchMindyTip}
+              disabled={loading}
+              className={`ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                loading
+                  ? 'bg-gray-300 text-gray-500 cursor-wait'
+                  : 'bg-gradient-to-r from-purple-500 to-indigo-500 text-white hover:from-purple-600 hover:to-indigo-600 shadow-sm'
+              }`}
+              title="Poproś Mindy o radę"
             >
-              <RefreshCw className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
+              <MessageCircle className={`w-4 h-4 ${loading ? 'animate-pulse' : ''}`} />
+              {loading ? 'Myślę...' : 'Porada AI'}
             </button>
           </div>
 
-          {/* AI Tip */}
-          <div className={`${isDark ? 'bg-gray-700/50' : 'bg-white/70'} rounded-xl p-3 mb-4 shadow-sm`}>
-            <p className={`${isDark ? 'text-gray-200' : 'text-gray-700'} text-sm leading-relaxed`}>{tip}</p>
-          </div>
+          {/* AI Tip (shown when requested) */}
+          {showTip && (
+            <div className={`${isDark ? 'bg-purple-900/30 border-purple-500' : 'bg-purple-50 border-purple-300'} border rounded-xl p-3 mb-4 relative`}>
+              <button
+                onClick={() => setShowTip(false)}
+                className={`absolute top-2 right-2 p-1 rounded-full ${isDark ? 'hover:bg-purple-800' : 'hover:bg-purple-100'}`}
+              >
+                <X className={`w-4 h-4 ${isDark ? 'text-purple-300' : 'text-purple-600'}`} />
+              </button>
+              <div className="flex items-start gap-2 pr-6">
+                <Sparkles className={`w-4 h-4 mt-0.5 flex-shrink-0 ${isDark ? 'text-purple-300' : 'text-purple-600'}`} />
+                <p className={`${isDark ? 'text-purple-200' : 'text-purple-800'} text-sm leading-relaxed`}>
+                  {loading ? 'Analizuję dane zespołu...' : mindyTip}
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Stats Grid */}
           <div className="grid grid-cols-2 gap-4">
@@ -323,15 +251,25 @@ export default function MindyAvatar({
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
                   <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Weryfikacje:</span>
-                  <span className={`text-sm font-bold ${isDark ? 'text-cyan-300' : 'text-cyan-700'}`}>
-                    {stats.allTimeVerPerDay}/dzien
-                  </span>
+                  <div className="text-right">
+                    <span className={`text-sm font-bold ${isDark ? 'text-cyan-300' : 'text-cyan-700'}`}>
+                      {stats.allTimeVerPerDay}/dzien
+                    </span>
+                    <span className={`text-xs ml-1 ${Number(stats.allTimeVerPerDay) >= 4 ? 'text-green-500' : 'text-orange-500'}`}>
+                      (cel: 4)
+                    </span>
+                  </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>CV dodane:</span>
-                  <span className={`text-sm font-bold ${isDark ? 'text-green-300' : 'text-green-700'}`}>
-                    {stats.allTimeCVPerDay}/dzien
-                  </span>
+                  <div className="text-right">
+                    <span className={`text-sm font-bold ${isDark ? 'text-green-300' : 'text-green-700'}`}>
+                      {stats.allTimeCVPerDay}/dzien
+                    </span>
+                    <span className={`text-xs ml-1 ${Number(stats.allTimeCVPerDay) >= 5 ? 'text-green-500' : 'text-orange-500'}`}>
+                      (cel: 5)
+                    </span>
+                  </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Dni pracy:</span>
@@ -380,10 +318,10 @@ export default function MindyAvatar({
               {stats.teamSize} osob
             </span>
             <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-cyan-900/50 text-cyan-300' : 'bg-cyan-100 text-cyan-800'}`}>
-              {stats.sourcers}x Sourcer (target: {stats.sourcers * 4} wer./dz.)
+              {stats.sourcers}x Sourcer (4 wer./dz.)
             </span>
             <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-800'}`}>
-              {stats.recruiters}x Rekruter (target: {stats.recruiters * 5} CV/dz.)
+              {stats.recruiters}x Rekruter (5 CV/dz.)
             </span>
             <span className={`text-xs px-2 py-1 rounded-full ${isDark ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-800'}`}>
               Interviews: {stats.totalInterviews}
