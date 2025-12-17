@@ -24,7 +24,7 @@ export default function BodyLeasing() {
     trendsData,
     weeklyByPosition,
     availableWeeks,
-    availableMonths,
+    availableMonths: _availableMonths,
     loading,
     error,
     selectedWeek,

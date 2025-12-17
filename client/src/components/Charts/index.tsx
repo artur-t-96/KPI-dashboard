@@ -136,7 +136,7 @@ export function PlacementsPieChart({ data }: { data: WeeklyKPI[] }) {
 }
 
 // Target Progress Gauge
-export function TargetGauge({ value, target, label, color }: { value: number; target: number; label: string; color: string }) {
+export function TargetGauge({ value, target, label, color: _color }: { value: number; target: number; label: string; color: string }) {
   const percentage = Math.min((value / target) * 100, 150);
   const displayPercentage = Math.round(percentage);
   
