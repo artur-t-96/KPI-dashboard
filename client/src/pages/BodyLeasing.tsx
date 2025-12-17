@@ -1,10 +1,11 @@
 import { useKPIData } from '../hooks/useKPIData';
 import MindyAvatar from '../components/Mindy/MindyAvatar';
 import ChampionsLeagueTable from '../components/BodyLeasing/ChampionsLeague';
-import { 
-  TrendLineChart, 
-  TeamComparisonChart, 
-  PlacementsPieChart, 
+import AIReportGenerator from '../components/Reports/AIReportGenerator';
+import {
+  TrendLineChart,
+  TeamComparisonChart,
+  PlacementsPieChart,
   TargetGauge,
   ChampionsPodium,
   CumulativeChart
@@ -362,6 +363,9 @@ export default function BodyLeasing() {
           </div>
         </div>
       )}
+
+      {/* AI Report Generator */}
+      <AIReportGenerator />
     </div>
   );
 }

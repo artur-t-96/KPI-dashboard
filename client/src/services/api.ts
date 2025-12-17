@@ -163,4 +163,45 @@ export const deleteEmployee = async (id: number) => {
   return response.data;
 };
 
+// Reports
+export interface ReportResponse {
+  type: 'question' | 'report';
+  content: string;
+  reportTitle?: string;
+  reportId?: string;
+  expiresAt?: string;
+}
+
+export interface SavedReport {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string;
+  expiresAt: string;
+  remainingMinutes: number;
+}
+
+export const generateReport = async (
+  query: string,
+  conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>
+): Promise<ReportResponse> => {
+  const response = await api.post('/reports/generate', { query, conversationHistory });
+  return response.data;
+};
+
+export const getReports = async (): Promise<SavedReport[]> => {
+  const response = await api.get('/reports');
+  return response.data;
+};
+
+export const getReport = async (id: string): Promise<SavedReport> => {
+  const response = await api.get(`/reports/${id}`);
+  return response.data;
+};
+
+export const deleteReport = async (id: string) => {
+  const response = await api.delete(`/reports/${id}`);
+  return response.data;
+};
+
 export default api;
