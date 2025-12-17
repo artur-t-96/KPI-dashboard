@@ -23,7 +23,7 @@ const upload = multer({
   }
 });
 
-router.post('/', authenticateToken, requireAdmin, upload.single('file'), (req: AuthRequest, res: Response) => {
+router.post('/', authenticateToken, requireAdmin, upload.single('file') as any, (req: AuthRequest, res: Response) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
