@@ -134,7 +134,14 @@ export default function BodyLeasing() {
   return (
     <div className="space-y-4">
       {/* Mindy Section */}
-      <MindyAvatar />
+      <MindyAvatar
+        weeklyData={weeklyData}
+        monthlyData={monthlyData}
+        allTimeVerifications={allTimeVerifications}
+        viewMode={viewMode}
+        selectedMonth={selectedMonth}
+        selectedYear={selectedYear}
+      />
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm p-4">
