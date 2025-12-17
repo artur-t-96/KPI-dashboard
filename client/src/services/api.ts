@@ -1,0 +1,156 @@
+import axios from 'axios';
+import type { 
+  WeeklyKPI, 
+  MonthlyKPI, 
+  ChampionEntry, 
+  MindyResponse, 
+  Employee,
+  TrendData,
+  SummaryData,
+  UploadResult
+} from '../types';
+
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
+const api = axios.create({
+  baseURL: `${API_BASE}/api`,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
+// Add auth token to requests
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// Handle auth errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Auth
+export const login = async (username: string, password: string) => {
+  const response = await api.post('/auth/login', { username, password });
+  return response.data;
+};
+
+export const getMe = async () => {
+  const response = await api.get('/auth/me');
+  return response.data;
+};
+
+// KPI Data
+export const getWeeklyKPI = async (week?: string): Promise<WeeklyKPI[]> => {
+  const params = week ? { week } : {};
+  const response = await api.get('/kpi/weekly', { params });
+  return response.data;
+};
+
+export const getMonthlyKPI = async (year?: number, month?: number): Promise<MonthlyKPI[]> => {
+  const params: any = {};
+  if (year) params.year = year;
+  if (month) params.month = month;
+  const response = await api.get('/kpi/monthly', { params });
+  return response.data;
+};
+
+export const getChampionsLeague = async (year?: number, month?: number): Promise<ChampionEntry[]> => {
+  const params: any = {};
+  if (year) params.year = year;
+  if (month) params.month = month;
+  const response = await api.get('/kpi/champions', { params });
+  return response.data;
+};
+
+export const getTrends = async (weeks: number = 12): Promise<TrendData[]> => {
+  const response = await api.get('/kpi/trends', { params: { weeks } });
+  return response.data;
+};
+
+export const getSummary = async (): Promise<SummaryData> => {
+  const response = await api.get('/kpi/summary');
+  return response.data;
+};
+
+export const getEmployees = async (): Promise<Employee[]> => {
+  const response = await api.get('/kpi/employees');
+  return response.data;
+};
+
+export const getAvailableWeeks = async () => {
+  const response = await api.get('/kpi/weeks');
+  return response.data;
+};
+
+export const getAvailableMonths = async () => {
+  const response = await api.get('/kpi/months');
+  return response.data;
+};
+
+// Mindy
+export const getMindyResponse = async (): Promise<MindyResponse> => {
+  const response = await api.get('/mindy');
+  return response.data;
+};
+
+// Admin - Upload
+export const uploadExcel = async (file: File): Promise<UploadResult> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const response = await api.post('/admin', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  });
+  return response.data;
+};
+
+export const getUploadHistory = async () => {
+  const response = await api.get('/admin/history');
+  return response.data;
+};
+
+// Admin - Data Management
+export const deleteWeekData = async (weekStart: string) => {
+  const response = await api.delete(`/admin/week/${weekStart}`);
+  return response.data;
+};
+
+export const deleteRecord = async (id: number) => {
+  const response = await api.delete(`/admin/record/${id}`);
+  return response.data;
+};
+
+export const updateRecord = async (id: number, data: Partial<WeeklyKPI>) => {
+  const response = await api.put(`/admin/record/${id}`, data);
+  return response.data;
+};
+
+// Admin - Employees
+export const addEmployee = async (name: string, position: string) => {
+  const response = await api.post('/admin/employee', { name, position });
+  return response.data;
+};
+
+export const updateEmployee = async (id: number, data: Partial<Employee>) => {
+  const response = await api.put(`/admin/employee/${id}`, data);
+  return response.data;
+};
+
+export const deleteEmployee = async (id: number) => {
+  const response = await api.delete(`/admin/employee/${id}`);
+  return response.data;
+};
+
+export default api;

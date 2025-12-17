@@ -1,0 +1,123 @@
+import { readFileSync } from 'fs';
+import { join } from 'path';
+import db from './connection';
+import bcrypt from 'bcryptjs';
+
+async function initDatabase() {
+  console.log('🚀 Initializing SQLite database...');
+  
+  try {
+    // Read and execute schema
+    const schemaPath = join(__dirname, 'schema.sql');
+    const schema = readFileSync(schemaPath, 'utf-8');
+    
+    // Execute each statement separately
+    const statements = schema.split(';').filter(s => s.trim());
+    for (const statement of statements) {
+      if (statement.trim()) {
+        db.exec(statement);
+      }
+    }
+    
+    console.log('✅ Database schema created successfully');
+    
+    // Check if admin exists
+    const adminExists = db.prepare('SELECT id FROM users WHERE username = ?').get('admin');
+    
+    if (!adminExists) {
+      // Create admin user
+      const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+      const passwordHash = await bcrypt.hash(adminPassword, 10);
+      
+      db.prepare('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)').run(
+        'admin', passwordHash, 'admin'
+      );
+      
+      console.log(`👤 Admin user created (username: admin, password: ${adminPassword})`);
+    } else {
+      console.log('👤 Admin user already exists');
+    }
+    
+    // Insert sample employees if not exist
+    const employees = [
+      ['Anna Kowalska', 'Sourcer'],
+      ['Jan Nowak', 'Sourcer'],
+      ['Michał Lewandowski', 'Sourcer'],
+      ['Maria Wiśniewska', 'Rekruter'],
+      ['Piotr Zieliński', 'Rekruter'],
+      ['Karolina Wójcik', 'Rekruter'],
+      ['Katarzyna Dąbrowska', 'TAC'],
+      ['Tomasz Kamiński', 'TAC'],
+    ];
+    
+    const insertEmployee = db.prepare('INSERT OR IGNORE INTO employees (name, position) VALUES (?, ?)');
+    
+    for (const [name, position] of employees) {
+      insertEmployee.run(name, position);
+    }
+    
+    console.log('👥 Sample employees added');
+    
+    // Insert sample KPI data
+    const sampleKPI = [
+      // Week 2 (Jan 6-12, 2025)
+      { name: 'Anna Kowalska', week_start: '2025-01-06', week_end: '2025-01-12', days: 5, verifications: 19, cv: 0, recommendations: 4, interviews: 1, placements: 0 },
+      { name: 'Jan Nowak', week_start: '2025-01-06', week_end: '2025-01-12', days: 5, verifications: 21, cv: 0, recommendations: 4, interviews: 2, placements: 0 },
+      { name: 'Michał Lewandowski', week_start: '2025-01-06', week_end: '2025-01-12', days: 4, verifications: 16, cv: 0, recommendations: 3, interviews: 1, placements: 0 },
+      { name: 'Maria Wiśniewska', week_start: '2025-01-06', week_end: '2025-01-12', days: 5, verifications: 0, cv: 26, recommendations: 6, interviews: 3, placements: 0 },
+      { name: 'Piotr Zieliński', week_start: '2025-01-06', week_end: '2025-01-12', days: 5, verifications: 0, cv: 27, recommendations: 5, interviews: 2, placements: 1 },
+      { name: 'Karolina Wójcik', week_start: '2025-01-06', week_end: '2025-01-12', days: 5, verifications: 0, cv: 24, recommendations: 4, interviews: 2, placements: 0 },
+      { name: 'Katarzyna Dąbrowska', week_start: '2025-01-06', week_end: '2025-01-12', days: 5, verifications: 0, cv: 0, recommendations: 7, interviews: 4, placements: 0 },
+      { name: 'Tomasz Kamiński', week_start: '2025-01-06', week_end: '2025-01-12', days: 5, verifications: 0, cv: 0, recommendations: 5, interviews: 4, placements: 1 },
+      
+      // Week 3 (Jan 13-19, 2025)
+      { name: 'Anna Kowalska', week_start: '2025-01-13', week_end: '2025-01-19', days: 5, verifications: 22, cv: 0, recommendations: 5, interviews: 2, placements: 0 },
+      { name: 'Jan Nowak', week_start: '2025-01-13', week_end: '2025-01-19', days: 4, verifications: 18, cv: 0, recommendations: 3, interviews: 1, placements: 0 },
+      { name: 'Michał Lewandowski', week_start: '2025-01-13', week_end: '2025-01-19', days: 5, verifications: 20, cv: 0, recommendations: 4, interviews: 2, placements: 1 },
+      { name: 'Maria Wiśniewska', week_start: '2025-01-13', week_end: '2025-01-19', days: 5, verifications: 0, cv: 28, recommendations: 7, interviews: 4, placements: 1 },
+      { name: 'Piotr Zieliński', week_start: '2025-01-13', week_end: '2025-01-19', days: 5, verifications: 0, cv: 25, recommendations: 4, interviews: 2, placements: 0 },
+      { name: 'Karolina Wójcik', week_start: '2025-01-13', week_end: '2025-01-19', days: 4, verifications: 0, cv: 22, recommendations: 5, interviews: 3, placements: 0 },
+      { name: 'Katarzyna Dąbrowska', week_start: '2025-01-13', week_end: '2025-01-19', days: 5, verifications: 0, cv: 0, recommendations: 8, interviews: 5, placements: 1 },
+      { name: 'Tomasz Kamiński', week_start: '2025-01-13', week_end: '2025-01-19', days: 4, verifications: 0, cv: 0, recommendations: 6, interviews: 3, placements: 0 },
+    ];
+    
+    const getEmployee = db.prepare('SELECT id FROM employees WHERE name = ?');
+    const insertKPI = db.prepare(`
+      INSERT OR REPLACE INTO weekly_kpi 
+      (employee_id, week_start, week_end, year, week_number, month, verifications, cv_added, recommendations, interviews, placements, days_worked)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+    
+    for (const kpi of sampleKPI) {
+      const emp = getEmployee.get(kpi.name) as { id: number } | undefined;
+      if (emp) {
+        const weekStart = new Date(kpi.week_start);
+        const year = weekStart.getFullYear();
+        const month = weekStart.getMonth() + 1;
+        const weekNumber = getWeekNumber(weekStart);
+        
+        insertKPI.run(
+          emp.id, kpi.week_start, kpi.week_end, year, weekNumber, month,
+          kpi.verifications, kpi.cv, kpi.recommendations, kpi.interviews, kpi.placements, kpi.days
+        );
+      }
+    }
+    
+    console.log('📊 Sample KPI data added');
+    console.log('✨ Database initialization complete!');
+    
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error);
+    throw error;
+  }
+}
+
+function getWeekNumber(date: Date): number {
+  const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+}
+
+initDatabase();
