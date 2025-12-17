@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { useTheme } from '../../contexts/ThemeContext';
 import {
   Users, TrendingUp, Briefcase, Settings, LogOut, Menu, X,
-  ChevronDown
+  ChevronDown, Sun, Moon
 } from 'lucide-react';
 
 const navigation = [
@@ -14,6 +15,7 @@ const navigation = [
 
 export default function Layout() {
   const { user, logout, isAuthenticated } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -24,10 +26,12 @@ export default function Layout() {
     navigate('/login');
   };
 
+  const isDark = theme === 'dark';
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
       {/* Header */}
-      <header className="bg-white shadow-sm sticky top-0 z-50">
+      <header className={`${isDark ? 'bg-gray-800' : 'bg-white'} shadow-sm sticky top-0 z-50`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -41,8 +45,8 @@ export default function Layout() {
                   </svg>
                 </div>
                 <div className="hidden sm:block">
-                  <h1 className="text-lg font-bold text-gray-900">KPI Dashboard</h1>
-                  <p className="text-xs text-gray-500">B2B Network</p>
+                  <h1 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>KPI Dashboard</h1>
+                  <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>B2B Network</p>
                 </div>
               </Link>
             </div>
@@ -57,9 +61,9 @@ export default function Layout() {
                     key={item.name}
                     to={item.href}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      isActive 
-                        ? 'bg-blue-50 text-blue-600' 
-                        : 'text-gray-600 hover:bg-gray-100'
+                      isActive
+                        ? isDark ? 'bg-blue-900 text-blue-400' : 'bg-blue-50 text-blue-600'
+                        : isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'
                     }`}
                   >
                     <Icon className={`w-4 h-4 ${isActive ? item.color : ''}`} />
@@ -71,13 +75,24 @@ export default function Layout() {
 
             {/* Right side */}
             <div className="flex items-center gap-3">
+              {/* Theme Toggle */}
+              <button
+                onClick={toggleTheme}
+                className={`p-2 rounded-lg transition-colors ${
+                  isDark ? 'hover:bg-gray-700 text-yellow-400' : 'hover:bg-gray-100 text-gray-600'
+                }`}
+                title={isDark ? 'Tryb dzienny' : 'Tryb nocny'}
+              >
+                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+
               {isAuthenticated && user?.role === 'admin' && (
                 <Link
                   to="/admin"
                   className={`hidden sm:flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                     location.pathname === '/admin'
-                      ? 'bg-purple-50 text-purple-600'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? isDark ? 'bg-purple-900 text-purple-400' : 'bg-purple-50 text-purple-600'
+                      : isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'
                   }`}
                 >
                   <Settings className="w-4 h-4" />
@@ -90,32 +105,38 @@ export default function Layout() {
                 <div className="relative">
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+                      isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                    }`}
                   >
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold text-sm">
                       {user?.username?.charAt(0).toUpperCase()}
                     </div>
-                    <span className="hidden sm:block text-sm font-medium text-gray-700">
+                    <span className={`hidden sm:block text-sm font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                       {user?.username}
                     </span>
-                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                    <ChevronDown className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
                   </button>
 
                   {userMenuOpen && (
                     <>
-                      <div 
-                        className="fixed inset-0 z-10" 
+                      <div
+                        className="fixed inset-0 z-10"
                         onClick={() => setUserMenuOpen(false)}
                       />
-                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border z-20">
-                        <div className="p-3 border-b">
-                          <p className="font-medium text-gray-900">{user?.username}</p>
-                          <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+                      <div className={`absolute right-0 mt-2 w-48 rounded-lg shadow-lg border z-20 ${
+                        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                      }`}>
+                        <div className={`p-3 border-b ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+                          <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.username}</p>
+                          <p className={`text-xs capitalize ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{user?.role}</p>
                         </div>
                         {user?.role === 'admin' && (
                           <Link
                             to="/admin"
-                            className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 sm:hidden"
+                            className={`flex items-center gap-2 px-3 py-2 text-sm sm:hidden ${
+                              isDark ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-700 hover:bg-gray-50'
+                            }`}
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <Settings className="w-4 h-4" />
@@ -124,7 +145,9 @@ export default function Layout() {
                         )}
                         <button
                           onClick={handleLogout}
-                          className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+                          className={`flex items-center gap-2 w-full px-3 py-2 text-sm ${
+                            isDark ? 'text-red-400 hover:bg-red-900/20' : 'text-red-600 hover:bg-red-50'
+                          }`}
                         >
                           <LogOut className="w-4 h-4" />
                           Wyloguj się
@@ -145,12 +168,12 @@ export default function Layout() {
               {/* Mobile menu button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden p-2 rounded-lg hover:bg-gray-100"
+                className={`md:hidden p-2 rounded-lg ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}
               >
                 {mobileMenuOpen ? (
-                  <X className="w-6 h-6 text-gray-600" />
+                  <X className={`w-6 h-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`} />
                 ) : (
-                  <Menu className="w-6 h-6 text-gray-600" />
+                  <Menu className={`w-6 h-6 ${isDark ? 'text-gray-300' : 'text-gray-600'}`} />
                 )}
               </button>
             </div>
@@ -159,7 +182,7 @@ export default function Layout() {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t bg-white">
+          <div className={`md:hidden border-t ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
             <div className="px-4 py-2 space-y-1">
               {navigation.map((item) => {
                 const Icon = item.icon;
@@ -170,9 +193,9 @@ export default function Layout() {
                     to={item.href}
                     onClick={() => setMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium ${
-                      isActive 
-                        ? 'bg-blue-50 text-blue-600' 
-                        : 'text-gray-600'
+                      isActive
+                        ? isDark ? 'bg-blue-900 text-blue-400' : 'bg-blue-50 text-blue-600'
+                        : isDark ? 'text-gray-300' : 'text-gray-600'
                     }`}
                   >
                     <Icon className={`w-5 h-5 ${isActive ? item.color : ''}`} />
@@ -191,12 +214,12 @@ export default function Layout() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-white border-t mt-auto">
+      <footer className={`${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-t mt-auto`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-2 text-sm text-gray-500">
+          <div className={`flex flex-col sm:flex-row justify-between items-center gap-2 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
             <p>© 2025 B2B Network S.A. Wszystkie prawa zastrzeżone.</p>
             <p className="flex items-center gap-1">
-              Powered by <span className="font-semibold text-blue-600">Mindy AI</span> 🤖
+              Powered by <span className="font-semibold text-blue-600">Mindy AI</span>
             </p>
           </div>
         </div>

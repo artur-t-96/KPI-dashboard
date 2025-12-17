@@ -121,6 +121,16 @@ export const getUploadHistory = async () => {
   return response.data;
 };
 
+export const getAllKPIData = async () => {
+  const response = await api.get('/admin/data');
+  return response.data;
+};
+
+export const deleteAllData = async () => {
+  const response = await api.delete('/admin/all-data');
+  return response.data;
+};
+
 // Admin - Data Management
 export const deleteWeekData = async (weekStart: string) => {
   const response = await api.delete(`/admin/week/${weekStart}`);

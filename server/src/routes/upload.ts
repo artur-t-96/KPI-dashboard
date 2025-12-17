@@ -74,6 +74,39 @@ router.get('/history', authenticateToken, requireAdmin, (req: AuthRequest, res: 
   }
 });
 
+// Get all KPI data for management
+router.get('/data', authenticateToken, requireAdmin, (req: AuthRequest, res: Response) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        w.*,
+        e.name,
+        e.position
+      FROM weekly_kpi w
+      JOIN employees e ON w.employee_id = e.id
+      ORDER BY w.week_start DESC, e.position, e.name
+    `).all();
+    res.json(rows);
+  } catch (error) {
+    console.error('Get data error:', error);
+    res.status(500).json({ error: 'Failed to fetch KPI data' });
+  }
+});
+
+// Delete all data
+router.delete('/all-data', authenticateToken, requireAdmin, (req: AuthRequest, res: Response) => {
+  try {
+    const result = db.prepare('DELETE FROM weekly_kpi').run();
+    res.json({
+      success: true,
+      message: `Deleted ${result.changes} records`
+    });
+  } catch (error) {
+    console.error('Delete all data error:', error);
+    res.status(500).json({ error: 'Failed to delete all data' });
+  }
+});
+
 router.delete('/week/:weekStart', authenticateToken, requireAdmin, (req: AuthRequest, res: Response) => {
   try {
     const { weekStart } = req.params;
