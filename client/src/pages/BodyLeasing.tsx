@@ -18,11 +18,12 @@ const MONTHS_PL = [
 ];
 
 export default function BodyLeasing() {
-  const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
+  const [viewMode, setViewMode] = useState<'week' | 'month' | 'year'>('week');
 
   const {
     weeklyData,
     monthlyData,
+    yearlyData,
     championsData,
     trendsData,
     allTimePlacements,
@@ -40,18 +41,24 @@ export default function BodyLeasing() {
   } = useKPIData();
 
   // Use appropriate data based on view mode
-  const displayData = viewMode === 'week' ? weeklyData : monthlyData;
+  const displayData = viewMode === 'week' ? weeklyData : viewMode === 'month' ? monthlyData : yearlyData;
 
   // Calculate team stats based on view mode
   const totalPlacements = viewMode === 'week'
     ? weeklyData.reduce((sum, d) => sum + d.placements, 0)
-    : monthlyData.reduce((sum, d) => sum + d.totalPlacements, 0);
+    : viewMode === 'month'
+    ? monthlyData.reduce((sum, d) => sum + d.totalPlacements, 0)
+    : yearlyData.reduce((sum, d) => sum + d.totalPlacements, 0);
   const totalInterviews = viewMode === 'week'
     ? weeklyData.reduce((sum, d) => sum + d.interviews, 0)
-    : monthlyData.reduce((sum, d) => sum + d.totalInterviews, 0);
+    : viewMode === 'month'
+    ? monthlyData.reduce((sum, d) => sum + d.totalInterviews, 0)
+    : yearlyData.reduce((sum, d) => sum + d.totalInterviews, 0);
   const totalVerifications = viewMode === 'week'
     ? weeklyData.reduce((sum, d) => sum + d.verifications, 0)
-    : monthlyData.reduce((sum, d) => sum + d.totalVerifications, 0);
+    : viewMode === 'month'
+    ? monthlyData.reduce((sum, d) => sum + d.totalVerifications, 0)
+    : yearlyData.reduce((sum, d) => sum + d.totalVerifications, 0);
 
   // Calculate average target achievement
   const avgTargetAchievement = displayData.length > 0
@@ -73,6 +80,13 @@ export default function BodyLeasing() {
     cvPerDay: d.cvPerDay,
     targetAchievement: d.targetAchievement
   });
+
+  // Get period label for summary
+  const getPeriodLabel = () => {
+    if (viewMode === 'week') return 'tygodnia';
+    if (viewMode === 'month') return `miesiaca: ${MONTHS_PL[selectedMonth]} ${selectedYear}`;
+    return `roku: ${selectedYear}`;
+  };
 
   // Calculate activity target for each employee
   // Sourcer: 4 verifications/day, Recruiter: 5 CV/day, All: 1 placement/month
@@ -156,6 +170,17 @@ export default function BodyLeasing() {
               <CalendarDays className="w-4 h-4" />
               Miesiac
             </button>
+            <button
+              onClick={() => setViewMode('year')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'year'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <CalendarDays className="w-4 h-4" />
+              Rok
+            </button>
           </div>
 
           {/* Week selector - only visible in week mode */}
@@ -187,15 +212,17 @@ export default function BodyLeasing() {
                 <option key={y} value={y}>{y}</option>
               ))}
             </select>
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(Number(e.target.value))}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              {MONTHS_PL.slice(1).map((m, i) => (
-                <option key={i + 1} value={i + 1}>{m}</option>
-              ))}
-            </select>
+            {viewMode !== 'year' && (
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {MONTHS_PL.slice(1).map((m, i) => (
+                  <option key={i + 1} value={i + 1}>{m}</option>
+                ))}
+              </select>
+            )}
           </div>
 
           <button
@@ -277,10 +304,10 @@ export default function BodyLeasing() {
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
             <h3 className="font-semibold">
-              📊 Podsumowanie {viewMode === 'week' ? 'tygodnia' : `miesiaca: ${MONTHS_PL[selectedMonth]} ${selectedYear}`}
+              📊 Podsumowanie {getPeriodLabel()}
             </h3>
             <p className="text-blue-100 text-sm">
-              Targety: Sourcer 4 wer./dzien | Rekruter 5 CV/dzien | Wszyscy 1 placement/mies.
+              Targety: Sourcer 4 wer./dzien | Rekruter 5 CV/dzien | Wszyscy {viewMode === 'year' ? '12 placements/rok' : '1 placement/mies.'}
             </p>
           </div>
           <div className="overflow-x-auto">

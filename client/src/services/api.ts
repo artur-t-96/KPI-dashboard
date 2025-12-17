@@ -117,6 +117,29 @@ export const getAllTimePlacements = async (): Promise<AllTimePlacement[]> => {
   return response.data;
 };
 
+export interface YearlyKPI {
+  employeeId: number;
+  name: string;
+  position: string;
+  year: number;
+  totalVerifications: number;
+  totalCvAdded: number;
+  totalRecommendations: number;
+  totalInterviews: number;
+  totalPlacements: number;
+  totalDaysWorked: number;
+  verificationsPerDay: number;
+  cvPerDay: number;
+  targetAchievement: number;
+}
+
+export const getYearlyKPI = async (year?: number): Promise<YearlyKPI[]> => {
+  const params: any = {};
+  if (year) params.year = year;
+  const response = await api.get('/kpi/yearly', { params });
+  return response.data;
+};
+
 // Mindy
 export const getMindyResponse = async (): Promise<MindyResponse> => {
   const response = await api.get('/mindy');

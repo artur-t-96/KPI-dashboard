@@ -2,19 +2,22 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   getWeeklyKPI,
   getMonthlyKPI,
+  getYearlyKPI,
   getChampionsLeague,
   getTrends,
   getSummary,
   getAvailableWeeks,
   getAvailableMonths,
   getAllTimePlacements,
-  AllTimePlacement
+  AllTimePlacement,
+  YearlyKPI
 } from '../services/api';
 import type { WeeklyKPI, MonthlyKPI, ChampionEntry, TrendData, SummaryData } from '../types';
 
 export function useKPIData() {
   const [weeklyData, setWeeklyData] = useState<WeeklyKPI[]>([]);
   const [monthlyData, setMonthlyData] = useState<MonthlyKPI[]>([]);
+  const [yearlyData, setYearlyData] = useState<YearlyKPI[]>([]);
   const [championsData, setChampionsData] = useState<ChampionEntry[]>([]);
   const [trendsData, setTrendsData] = useState<TrendData[]>([]);
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
@@ -31,11 +34,12 @@ export function useKPIData() {
   const fetchAllData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      const [weekly, monthly, champions, trends, summary, allTime, weeks, months] = await Promise.all([
+      const [weekly, monthly, yearly, champions, trends, summary, allTime, weeks, months] = await Promise.all([
         getWeeklyKPI(selectedWeek),
         getMonthlyKPI(selectedYear, selectedMonth),
+        getYearlyKPI(selectedYear),
         getChampionsLeague(selectedYear, selectedMonth),
         getTrends(), // Fetch all trend data
         getSummary(),
@@ -46,6 +50,7 @@ export function useKPIData() {
 
       setWeeklyData(weekly);
       setMonthlyData(monthly);
+      setYearlyData(yearly);
       setChampionsData(champions);
       setTrendsData(trends);
       setSummaryData(summary);
@@ -91,6 +96,7 @@ export function useKPIData() {
   return {
     weeklyData,
     monthlyData,
+    yearlyData,
     championsData,
     trendsData,
     summaryData,

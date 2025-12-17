@@ -188,6 +188,70 @@ router.get('/summary', (req: Request, res: Response) => {
   }
 });
 
+// Yearly KPI data
+router.get('/yearly', (req: Request, res: Response) => {
+  try {
+    const { year } = req.query;
+    const targetYear = year ? parseInt(year as string) : new Date().getFullYear();
+
+    const rows = db.prepare(`
+      SELECT
+        e.id as employee_id,
+        e.name,
+        e.position,
+        ? as year,
+        COALESCE(SUM(w.verifications), 0) as total_verifications,
+        COALESCE(SUM(w.cv_added), 0) as total_cv_added,
+        COALESCE(SUM(w.recommendations), 0) as total_recommendations,
+        COALESCE(SUM(w.interviews), 0) as total_interviews,
+        COALESCE(SUM(w.placements), 0) as total_placements,
+        COALESCE(SUM(w.days_worked), 0) as total_days_worked
+      FROM employees e
+      LEFT JOIN weekly_kpi w ON e.id = w.employee_id AND w.year = ?
+      WHERE e.is_active = 1
+      GROUP BY e.id, e.name, e.position
+      ORDER BY e.position, e.name
+    `).all(targetYear, targetYear) as any[];
+
+    const result = rows.map(row => {
+      const daysWorked = row.total_days_worked || 1;
+      let targetAchievement = 0;
+
+      if (row.position === 'Sourcer') {
+        const target = daysWorked * 4;
+        targetAchievement = target > 0 ? Math.round((row.total_verifications / target) * 100) : 0;
+      } else if (row.position === 'Rekruter') {
+        const target = daysWorked * 5;
+        targetAchievement = target > 0 ? Math.round((row.total_cv_added / target) * 100) : 0;
+      } else {
+        // TAC - 1 placement per month, so 12 per year
+        targetAchievement = row.total_placements >= 12 ? 100 : Math.round((row.total_placements / 12) * 100);
+      }
+
+      return {
+        employeeId: row.employee_id,
+        name: row.name,
+        position: row.position,
+        year: row.year,
+        totalVerifications: row.total_verifications,
+        totalCvAdded: row.total_cv_added,
+        totalRecommendations: row.total_recommendations,
+        totalInterviews: row.total_interviews,
+        totalPlacements: row.total_placements,
+        totalDaysWorked: row.total_days_worked,
+        verificationsPerDay: daysWorked > 0 ? Number((row.total_verifications / daysWorked).toFixed(2)) : 0,
+        cvPerDay: daysWorked > 0 ? Number((row.total_cv_added / daysWorked).toFixed(2)) : 0,
+        targetAchievement
+      };
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error('Yearly KPI error:', error);
+    res.status(500).json({ error: 'Failed to fetch yearly KPI data' });
+  }
+});
+
 // All-time placements leaderboard
 router.get('/all-time-placements', (req: Request, res: Response) => {
   try {
