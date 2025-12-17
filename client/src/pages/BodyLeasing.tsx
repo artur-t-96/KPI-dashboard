@@ -446,7 +446,6 @@ export default function BodyLeasing() {
               <tr>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
                 <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Interviews</th>
                 <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
               </tr>
             </thead>
@@ -465,7 +464,6 @@ export default function BodyLeasing() {
                         {d.position}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center text-purple-600">{d.totalInterviews}</td>
                     <td className="px-4 py-3 text-center">
                       <span className={`font-bold text-lg ${d.totalPlacements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
                         {d.totalPlacements}
