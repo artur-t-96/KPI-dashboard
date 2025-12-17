@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useKPIData } from '../hooks/useKPIData';
 import MindyAvatar from '../components/Mindy/MindyAvatar';
 import ChampionsLeagueTable from '../components/BodyLeasing/ChampionsLeague';
@@ -9,7 +10,7 @@ import {
   ChampionsPodium,
   CumulativeChart
 } from '../components/Charts';
-import { RefreshCw, Calendar, Users, TrendingUp, Award, Target } from 'lucide-react';
+import { RefreshCw, Calendar, Users, TrendingUp, Award, Target, CalendarDays } from 'lucide-react';
 
 const MONTHS_PL = [
   '', 'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
@@ -17,6 +18,8 @@ const MONTHS_PL = [
 ];
 
 export default function BodyLeasing() {
+  const [viewMode, setViewMode] = useState<'week' | 'month'>('week');
+
   const {
     weeklyData,
     monthlyData,
@@ -36,33 +39,60 @@ export default function BodyLeasing() {
     refreshData
   } = useKPIData();
 
-  // Calculate team stats
-  const totalPlacements = weeklyData.reduce((sum, d) => sum + d.placements, 0);
-  const totalInterviews = weeklyData.reduce((sum, d) => sum + d.interviews, 0);
-  const totalVerifications = weeklyData.reduce((sum, d) => sum + d.verifications, 0);
+  // Use appropriate data based on view mode
+  const displayData = viewMode === 'week' ? weeklyData : monthlyData;
+
+  // Calculate team stats based on view mode
+  const totalPlacements = viewMode === 'week'
+    ? weeklyData.reduce((sum, d) => sum + d.placements, 0)
+    : monthlyData.reduce((sum, d) => sum + d.totalPlacements, 0);
+  const totalInterviews = viewMode === 'week'
+    ? weeklyData.reduce((sum, d) => sum + d.interviews, 0)
+    : monthlyData.reduce((sum, d) => sum + d.totalInterviews, 0);
+  const totalVerifications = viewMode === 'week'
+    ? weeklyData.reduce((sum, d) => sum + d.verifications, 0)
+    : monthlyData.reduce((sum, d) => sum + d.totalVerifications, 0);
 
   // Calculate average target achievement
-  const avgTargetAchievement = weeklyData.length > 0
-    ? Math.round(weeklyData.reduce((sum, d) => sum + d.targetAchievement, 0) / weeklyData.length)
+  const avgTargetAchievement = displayData.length > 0
+    ? Math.round(displayData.reduce((sum, d: any) => sum + d.targetAchievement, 0) / displayData.length)
     : 0;
+
+  // Helper functions for unified data access
+  const getData = (d: any) => ({
+    employeeId: d.employeeId,
+    name: d.name,
+    position: d.position,
+    daysWorked: viewMode === 'week' ? d.daysWorked : d.totalDaysWorked,
+    verifications: viewMode === 'week' ? d.verifications : d.totalVerifications,
+    cvAdded: viewMode === 'week' ? d.cvAdded : d.totalCvAdded,
+    recommendations: viewMode === 'week' ? d.recommendations : d.totalRecommendations,
+    interviews: viewMode === 'week' ? d.interviews : d.totalInterviews,
+    placements: viewMode === 'week' ? d.placements : d.totalPlacements,
+    verificationsPerDay: d.verificationsPerDay,
+    cvPerDay: d.cvPerDay,
+    targetAchievement: d.targetAchievement
+  });
 
   // Calculate activity target for each employee
   // Sourcer: 4 verifications/day, Recruiter: 5 CV/day, All: 1 placement/month
-  const getActivityTarget = (d: typeof weeklyData[0]) => {
-    if (d.position === 'Sourcer') {
-      const target = d.daysWorked * 4;
-      return target > 0 ? Math.round((d.verifications / target) * 100) : 0;
-    } else if (d.position === 'Rekruter') {
-      const target = d.daysWorked * 5;
-      return target > 0 ? Math.round((d.cvAdded / target) * 100) : 0;
+  const getActivityTarget = (d: any) => {
+    const data = getData(d);
+    if (data.position === 'Sourcer') {
+      const target = data.daysWorked * 4;
+      return target > 0 ? Math.round((data.verifications / target) * 100) : 0;
+    } else if (data.position === 'Rekruter') {
+      const target = data.daysWorked * 5;
+      return target > 0 ? Math.round((data.cvAdded / target) * 100) : 0;
     }
     return 100; // TAC doesn't have daily activity target
   };
 
-  const getActivityValue = (d: typeof weeklyData[0]) => {
-    if (d.position === 'Sourcer') return d.verifications;
-    if (d.position === 'Rekruter') return d.cvAdded;
-    return d.recommendations;
+  const getActivityValue = (d: any) => {
+    const data = getData(d);
+    if (data.position === 'Sourcer') return data.verifications;
+    if (data.position === 'Rekruter') return data.cvAdded;
+    return data.recommendations;
   };
 
   const getActivityLabel = (position: string) => {
@@ -71,10 +101,11 @@ export default function BodyLeasing() {
     return 'Rekomendacje';
   };
 
-  const getActivityPerDay = (d: typeof weeklyData[0]) => {
-    if (d.position === 'Sourcer') return d.verificationsPerDay;
-    if (d.position === 'Rekruter') return d.cvPerDay;
-    return d.daysWorked > 0 ? Number((d.recommendations / d.daysWorked).toFixed(2)) : 0;
+  const getActivityPerDay = (d: any) => {
+    const data = getData(d);
+    if (data.position === 'Sourcer') return data.verificationsPerDay;
+    if (data.position === 'Rekruter') return data.cvPerDay;
+    return data.daysWorked > 0 ? Number((data.recommendations / data.daysWorked).toFixed(2)) : 0;
   };
 
   if (error) {
@@ -101,22 +132,51 @@ export default function BodyLeasing() {
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm p-4">
         <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-gray-500" />
-            <select 
-              value={selectedWeek || ''}
-              onChange={(e) => setSelectedWeek(e.target.value || undefined)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          {/* View Mode Toggle */}
+          <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('week')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'week'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
             >
-              <option value="">Najnowszy tydzień</option>
-              {availableWeeks.map((w: any) => (
-                <option key={w.week_start} value={w.week_start}>
-                  {w.year}-W{w.week_number} ({new Date(w.week_start).toLocaleDateString('pl-PL')})
-                </option>
-              ))}
-            </select>
+              <Calendar className="w-4 h-4" />
+              Tydzien
+            </button>
+            <button
+              onClick={() => setViewMode('month')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'month'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <CalendarDays className="w-4 h-4" />
+              Miesiac
+            </button>
           </div>
 
+          {/* Week selector - only visible in week mode */}
+          {viewMode === 'week' && (
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedWeek || ''}
+                onChange={(e) => setSelectedWeek(e.target.value || undefined)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Najnowszy tydzien</option>
+                {availableWeeks.map((w: any) => (
+                  <option key={w.week_start} value={w.week_start}>
+                    {w.year}-W{w.week_number} ({new Date(w.week_start).toLocaleDateString('pl-PL')})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Month/Year selector */}
           <div className="flex items-center gap-2">
             <select
               value={selectedYear}
@@ -138,13 +198,13 @@ export default function BodyLeasing() {
             </select>
           </div>
 
-          <button 
+          <button
             onClick={refreshData}
             disabled={loading}
             className="ml-auto flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Odśwież
+            Odswiez
           </button>
         </div>
       </div>
@@ -212,11 +272,13 @@ export default function BodyLeasing() {
         </div>
       </div>
 
-      {/* Combined Weekly Summary Table */}
-      {weeklyData.length > 0 && (
+      {/* Combined Summary Table */}
+      {displayData.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
           <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
-            <h3 className="font-semibold">📊 Podsumowanie tygodnia</h3>
+            <h3 className="font-semibold">
+              📊 Podsumowanie {viewMode === 'week' ? 'tygodnia' : `miesiaca: ${MONTHS_PL[selectedMonth]} ${selectedYear}`}
+            </h3>
             <p className="text-blue-100 text-sm">
               Targety: Sourcer 4 wer./dzien | Rekruter 5 CV/dzien | Wszyscy 1 placement/mies.
             </p>
@@ -236,24 +298,25 @@ export default function BodyLeasing() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {weeklyData.map((d) => {
+                {displayData.map((d: any) => {
+                  const data = getData(d);
                   const activityTarget = getActivityTarget(d);
                   return (
-                    <tr key={d.employeeId} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">{d.name}</td>
+                    <tr key={data.employeeId} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-900">{data.name}</td>
                       <td className="px-4 py-3 text-center">
                         <span className={`text-xs px-2 py-1 rounded-full ${
-                          d.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
-                          d.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
+                          data.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
+                          data.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
                           'bg-purple-100 text-purple-800'
                         }`}>
-                          {d.position}
+                          {data.position}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center text-gray-600">{d.daysWorked}</td>
+                      <td className="px-4 py-3 text-center text-gray-600">{data.daysWorked}</td>
                       <td className="px-4 py-3 text-center">
                         <span className="font-semibold">{getActivityValue(d)}</span>
-                        <span className="text-xs text-gray-400 ml-1">{getActivityLabel(d.position).slice(0, 3)}</span>
+                        <span className="text-xs text-gray-400 ml-1">{getActivityLabel(data.position).slice(0, 3)}</span>
                       </td>
                       <td className="px-4 py-3 text-center font-medium text-gray-700">{getActivityPerDay(d)}</td>
                       <td className="px-4 py-3 text-center">
@@ -265,10 +328,10 @@ export default function BodyLeasing() {
                           {activityTarget}%
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-center text-purple-600 font-medium">{d.interviews}</td>
+                      <td className="px-4 py-3 text-center text-purple-600 font-medium">{data.interviews}</td>
                       <td className="px-4 py-3 text-center">
-                        <span className={`font-bold ${d.placements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
-                          {d.placements}
+                        <span className={`font-bold ${data.placements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                          {data.placements}
                         </span>
                       </td>
                     </tr>
