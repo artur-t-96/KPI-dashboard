@@ -9,7 +9,9 @@ import {
   getAvailableWeeks,
   getAvailableMonths,
   getAllTimePlacements,
+  getAllTimeVerifications,
   AllTimePlacement,
+  AllTimeVerifications,
   YearlyKPI
 } from '../services/api';
 import type { WeeklyKPI, MonthlyKPI, ChampionEntry, TrendData, SummaryData } from '../types';
@@ -22,6 +24,7 @@ export function useKPIData() {
   const [trendsData, setTrendsData] = useState<TrendData[]>([]);
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
   const [allTimePlacements, setAllTimePlacements] = useState<AllTimePlacement[]>([]);
+  const [allTimeVerifications, setAllTimeVerifications] = useState<AllTimeVerifications[]>([]);
   const [availableWeeks, setAvailableWeeks] = useState<any[]>([]);
   const [availableMonths, setAvailableMonths] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +39,7 @@ export function useKPIData() {
     setError(null);
 
     try {
-      const [weekly, monthly, yearly, champions, trends, summary, allTime, weeks, months] = await Promise.all([
+      const [weekly, monthly, yearly, champions, trends, summary, allTime, allTimeVer, weeks, months] = await Promise.all([
         getWeeklyKPI(selectedWeek),
         getMonthlyKPI(selectedYear, selectedMonth),
         getYearlyKPI(selectedYear),
@@ -44,6 +47,7 @@ export function useKPIData() {
         getTrends(), // Fetch all trend data
         getSummary(),
         getAllTimePlacements(),
+        getAllTimeVerifications(),
         getAvailableWeeks(),
         getAvailableMonths()
       ]);
@@ -55,6 +59,7 @@ export function useKPIData() {
       setTrendsData(trends);
       setSummaryData(summary);
       setAllTimePlacements(allTime);
+      setAllTimeVerifications(allTimeVer);
       setAvailableWeeks(weeks);
       setAvailableMonths(months);
     } catch (err: any) {
@@ -101,6 +106,7 @@ export function useKPIData() {
     trendsData,
     summaryData,
     allTimePlacements,
+    allTimeVerifications,
     weeklyByPosition,
     monthlyByPosition,
     teamAverages,

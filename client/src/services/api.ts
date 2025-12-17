@@ -117,6 +117,22 @@ export const getAllTimePlacements = async (): Promise<AllTimePlacement[]> => {
   return response.data;
 };
 
+export interface AllTimeVerifications {
+  employeeId: number;
+  name: string;
+  position: string;
+  totalVerifications: number;
+  totalCvAdded: number;
+  totalDaysWorked: number;
+  verificationsPerDay: number;
+  cvPerDay: number;
+}
+
+export const getAllTimeVerifications = async (): Promise<AllTimeVerifications[]> => {
+  const response = await api.get('/kpi/all-time-verifications');
+  return response.data;
+};
+
 export interface YearlyKPI {
   employeeId: number;
   name: string;

@@ -27,6 +27,7 @@ export default function BodyLeasing() {
     championsData,
     trendsData,
     allTimePlacements,
+    allTimeVerifications,
     availableWeeks,
     availableMonths: _availableMonths,
     loading,
@@ -534,6 +535,60 @@ export default function BodyLeasing() {
           </div>
         </div>
       </div>
+
+      {/* All-Time Verifications per Working Day */}
+      {allTimeVerifications.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white p-4">
+            <h3 className="font-semibold">📈 Weryfikacje/dzien - Od poczatku</h3>
+            <p className="text-cyan-100 text-sm">Srednia ilosc weryfikacji na dzien pracy (dane niezalezne od wybranego okresu)</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">#</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Dni pracy</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Weryfikacje</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Wer./dzien</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {allTimeVerifications.map((d, index) => (
+                  <tr key={d.employeeId} className={`hover:bg-gray-50 ${index < 3 ? 'bg-cyan-50' : ''}`}>
+                    <td className="px-4 py-3 text-center">
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                    </td>
+                    <td className="px-4 py-3 font-medium">{d.name}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        d.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
+                        d.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
+                        'bg-purple-100 text-purple-800'
+                      }`}>
+                        {d.position}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center text-gray-600">{d.totalDaysWorked}</td>
+                    <td className="px-4 py-3 text-center text-gray-600">{d.totalVerifications}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`font-bold text-lg ${
+                        d.verificationsPerDay >= 4 ? 'text-green-600' :
+                        d.verificationsPerDay >= 3 ? 'text-yellow-600' :
+                        'text-red-600'
+                      }`}>
+                        {d.verificationsPerDay}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* AI Report Generator */}
       <AIReportGenerator />

@@ -278,4 +278,46 @@ router.get('/all-time-placements', (req: Request, res: Response) => {
   }
 });
 
+// All-time verifications per working day
+router.get('/all-time-verifications', (req: Request, res: Response) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        e.id as employee_id,
+        e.name,
+        e.position,
+        COALESCE(SUM(w.verifications), 0) as total_verifications,
+        COALESCE(SUM(w.cv_added), 0) as total_cv_added,
+        COALESCE(SUM(w.days_worked), 0) as total_days_worked
+      FROM employees e
+      LEFT JOIN weekly_kpi w ON e.id = w.employee_id
+      WHERE e.is_active = 1
+      GROUP BY e.id, e.name, e.position
+      ORDER BY e.position, e.name
+    `).all() as any[];
+
+    const result = rows.map(row => {
+      const daysWorked = row.total_days_worked || 1;
+      return {
+        employeeId: row.employee_id,
+        name: row.name,
+        position: row.position,
+        totalVerifications: row.total_verifications,
+        totalCvAdded: row.total_cv_added,
+        totalDaysWorked: row.total_days_worked,
+        verificationsPerDay: daysWorked > 0 ? Number((row.total_verifications / daysWorked).toFixed(2)) : 0,
+        cvPerDay: daysWorked > 0 ? Number((row.total_cv_added / daysWorked).toFixed(2)) : 0
+      };
+    });
+
+    // Sort by verifications per day descending
+    result.sort((a, b) => b.verificationsPerDay - a.verificationsPerDay);
+
+    res.json(result);
+  } catch (error) {
+    console.error('All-time verifications error:', error);
+    res.status(500).json({ error: 'Failed to fetch all-time verifications' });
+  }
+});
+
 export default router;
