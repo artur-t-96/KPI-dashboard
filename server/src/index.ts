@@ -10,6 +10,7 @@ import mindyRoutes from './routes/mindy';
 
 // Initialize database on startup
 import './db/connection';
+import './db/init';
 
 dotenv.config();
 
