@@ -4,7 +4,11 @@ import { generateReport, getReports, deleteReport, SavedReport, ReportResponse }
 import { Send, Loader2, FileText, Trash2, Download, Clock, MessageSquare } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
-export default function AIReportGenerator() {
+interface Props {
+  embedded?: boolean;
+}
+
+export default function AIReportGenerator({ embedded = false }: Props) {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
@@ -132,14 +136,16 @@ export default function AIReportGenerator() {
     ? 'bg-gray-700 border-gray-600 text-white placeholder-gray-400'
     : 'bg-white border-gray-300 text-gray-900 placeholder-gray-500';
 
-  return (
-    <div className="space-y-4">
+  const content = (
+    <div className={embedded ? 'p-4' : 'space-y-4'}>
       {/* Report Input */}
-      <div className={`${cardClass} rounded-xl shadow-sm p-4`}>
-        <div className="flex items-center gap-2 mb-3">
-          <FileText className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
-          <h3 className={`font-semibold ${textClass}`}>Generator Raportow AI</h3>
-        </div>
+      <div className={embedded ? '' : `${cardClass} rounded-xl shadow-sm p-4`}>
+        {!embedded && (
+          <div className="flex items-center gap-2 mb-3">
+            <FileText className={`w-5 h-5 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+            <h3 className={`font-semibold ${textClass}`}>Generator Raportow AI</h3>
+          </div>
+        )}
 
         {/* Conversation */}
         {conversation.length > 0 && (
@@ -191,7 +197,7 @@ export default function AIReportGenerator() {
 
       {/* Saved Reports */}
       {reports.length > 0 && (
-        <div className={`${cardClass} rounded-xl shadow-sm p-4`}>
+        <div className={embedded ? 'mt-4' : `${cardClass} rounded-xl shadow-sm p-4`}>
           <h3 className={`font-semibold ${textClass} mb-3 flex items-center gap-2`}>
             <MessageSquare className="w-5 h-5" />
             Wygenerowane raporty ({reports.length})
@@ -278,4 +284,6 @@ export default function AIReportGenerator() {
       )}
     </div>
   );
+
+  return content;
 }

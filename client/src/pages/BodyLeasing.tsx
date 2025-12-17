@@ -3,6 +3,7 @@ import { useKPIData } from '../hooks/useKPIData';
 import MindyAvatar from '../components/Mindy/MindyAvatar';
 import ChampionsLeagueTable from '../components/BodyLeasing/ChampionsLeague';
 import AIReportGenerator from '../components/Reports/AIReportGenerator';
+import CollapsibleSection from '../components/CollapsibleSection';
 import { RefreshCw, Calendar, Users, TrendingUp, Award, Target, CalendarDays } from 'lucide-react';
 
 const MONTHS_PL = [
@@ -118,12 +119,12 @@ export default function BodyLeasing() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="bg-white rounded-xl shadow-lg p-8 text-center">
-          <p className="text-red-600 text-lg mb-4">❌ Błąd: {error}</p>
-          <button 
+          <p className="text-red-600 text-lg mb-4">Blad: {error}</p>
+          <button
             onClick={refreshData}
             className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
-            Spróbuj ponownie
+            Sprobuj ponownie
           </button>
         </div>
       </div>
@@ -131,7 +132,7 @@ export default function BodyLeasing() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Mindy Section */}
       <MindyAvatar />
 
@@ -293,101 +294,159 @@ export default function BodyLeasing() {
 
       {/* Combined Summary Table */}
       {displayData.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
-            <h3 className="font-semibold">
-              📊 Podsumowanie {getPeriodLabel()}
-            </h3>
-            <p className="text-blue-100 text-sm">
-              Targety: Sourcer 4 wer./dzien | Rekruter 5 CV/dzien | Wszyscy {viewMode === 'year' ? '12 placements/rok' : '1 placement/mies.'}
-            </p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Dni</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Aktywnosc</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">/dzien</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Target %</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Interviews</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {displayData.map((d: any) => {
-                  const data = getData(d);
-                  const activityTarget = getActivityTarget(d);
-                  return (
-                    <tr key={data.employeeId} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-900">{data.name}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          data.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
-                          data.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
-                          'bg-purple-100 text-purple-800'
-                        }`}>
-                          {data.position}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-center text-gray-600">{data.daysWorked}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className="font-semibold">{getActivityValue(d)}</span>
-                        <span className="text-xs text-gray-400 ml-1">{getActivityLabel(data.position).slice(0, 3)}</span>
-                      </td>
-                      <td className="px-4 py-3 text-center font-medium text-gray-700">{getActivityPerDay(d)}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`font-bold ${
-                          activityTarget >= 100 ? 'text-green-600' :
-                          activityTarget >= 70 ? 'text-yellow-600' :
-                          'text-red-600'
-                        }`}>
-                          {activityTarget}%
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-center text-purple-600 font-medium">{data.interviews}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`font-bold ${data.placements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
-                          {data.placements}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <CollapsibleSection
+          title={`Podsumowanie ${getPeriodLabel()}`}
+          subtitle={`Targety: Sourcer 4 wer./dzien | Rekruter 5 CV/dzien | Wszyscy ${viewMode === 'year' ? '12 placements/rok' : '1 placement/mies.'}`}
+          icon="📊"
+          headerClassName="bg-gradient-to-r from-blue-600 to-purple-600 text-white"
+          defaultOpen={true}
+        >
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Dni</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Aktywnosc</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">/dzien</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Target %</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Interviews</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {displayData.map((d: any) => {
+                const data = getData(d);
+                const activityTarget = getActivityTarget(d);
+                return (
+                  <tr key={data.employeeId} className="hover:bg-gray-50">
+                    <td className="px-4 py-3 font-medium text-gray-900">{data.name}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        data.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
+                        data.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
+                        'bg-purple-100 text-purple-800'
+                      }`}>
+                        {data.position}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center text-gray-600">{data.daysWorked}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span className="font-semibold">{getActivityValue(d)}</span>
+                      <span className="text-xs text-gray-400 ml-1">{getActivityLabel(data.position).slice(0, 3)}</span>
+                    </td>
+                    <td className="px-4 py-3 text-center font-medium text-gray-700">{getActivityPerDay(d)}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`font-bold ${
+                        activityTarget >= 100 ? 'text-green-600' :
+                        activityTarget >= 70 ? 'text-yellow-600' :
+                        'text-red-600'
+                      }`}>
+                        {activityTarget}%
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center text-purple-600 font-medium">{data.interviews}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`font-bold ${data.placements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                        {data.placements}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </CollapsibleSection>
       )}
 
       {/* Champions League Table */}
-      <ChampionsLeagueTable data={championsData} />
+      <CollapsibleSection
+        title={`Liga Mistrzow - ${MONTHS_PL[selectedMonth]} ${selectedYear}`}
+        subtitle="Punkty: Placement 100pkt | Interview 20pkt | Rekomendacja 10pkt"
+        icon="🏆"
+        headerClassName="bg-gradient-to-r from-yellow-500 to-amber-600 text-white"
+      >
+        <ChampionsLeagueTable data={championsData} embedded />
+      </CollapsibleSection>
 
       {/* Monthly Data Table */}
       {monthlyData.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="bg-gray-800 text-white p-4">
-            <h3 className="font-semibold">📅 Podsumowanie miesiąca: {MONTHS_PL[selectedMonth]} {selectedYear}</h3>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Dni pracy</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Weryfikacje</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">CV</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Rekomendacje</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Interviews</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Target %</th>
+        <CollapsibleSection
+          title={`Podsumowanie miesiaca: ${MONTHS_PL[selectedMonth]} ${selectedYear}`}
+          icon="📅"
+          headerClassName="bg-gray-800 text-white"
+        >
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Dni pracy</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Weryfikacje</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">CV</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Rekomendacje</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Interviews</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Target %</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {monthlyData.map((d) => (
+                <tr key={d.employeeId} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 font-medium">{d.name}</td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      d.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
+                      d.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
+                      'bg-purple-100 text-purple-800'
+                    }`}>
+                      {d.position}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">{d.totalDaysWorked}</td>
+                  <td className="px-4 py-3 text-center">{d.totalVerifications}</td>
+                  <td className="px-4 py-3 text-center">{d.totalCvAdded}</td>
+                  <td className="px-4 py-3 text-center">{d.totalRecommendations}</td>
+                  <td className="px-4 py-3 text-center">{d.totalInterviews}</td>
+                  <td className="px-4 py-3 text-center font-bold text-green-600">{d.totalPlacements}</td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`font-bold ${
+                      d.targetAchievement >= 100 ? 'text-green-600' :
+                      d.targetAchievement >= 70 ? 'text-yellow-600' :
+                      'text-red-600'
+                    }`}>
+                      {d.targetAchievement}%
+                    </span>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {monthlyData.map((d) => (
+              ))}
+            </tbody>
+          </table>
+        </CollapsibleSection>
+      )}
+
+      {/* Placements Tables */}
+      <div className="grid md:grid-cols-2 gap-4">
+        {/* Monthly Placements */}
+        <CollapsibleSection
+          title={`Placements - ${MONTHS_PL[selectedMonth]} ${selectedYear}`}
+          subtitle="Target: 1 placement/miesiac na osobe"
+          icon="🏆"
+          headerClassName="bg-green-600 text-white"
+        >
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Interviews</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {[...monthlyData]
+                .sort((a, b) => b.totalPlacements - a.totalPlacements)
+                .map((d) => (
                   <tr key={d.employeeId} className="hover:bg-gray-50">
                     <td className="px-4 py-3 font-medium">{d.name}</td>
                     <td className="px-4 py-3 text-center">
@@ -399,177 +458,125 @@ export default function BodyLeasing() {
                         {d.position}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-center">{d.totalDaysWorked}</td>
-                    <td className="px-4 py-3 text-center">{d.totalVerifications}</td>
-                    <td className="px-4 py-3 text-center">{d.totalCvAdded}</td>
-                    <td className="px-4 py-3 text-center">{d.totalRecommendations}</td>
-                    <td className="px-4 py-3 text-center">{d.totalInterviews}</td>
-                    <td className="px-4 py-3 text-center font-bold text-green-600">{d.totalPlacements}</td>
+                    <td className="px-4 py-3 text-center text-purple-600">{d.totalInterviews}</td>
                     <td className="px-4 py-3 text-center">
-                      <span className={`font-bold ${
-                        d.targetAchievement >= 100 ? 'text-green-600' :
-                        d.targetAchievement >= 70 ? 'text-yellow-600' :
-                        'text-red-600'
-                      }`}>
-                        {d.targetAchievement}%
+                      <span className={`font-bold text-lg ${d.totalPlacements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                        {d.totalPlacements}
                       </span>
+                      {d.totalPlacements >= 1 && <span className="ml-1">✅</span>}
                     </td>
                   </tr>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-
-      {/* Placements Tables */}
-      <div className="grid md:grid-cols-2 gap-4">
-        {/* Monthly Placements */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="bg-green-600 text-white p-4">
-            <h3 className="font-semibold">🏆 Placements - {MONTHS_PL[selectedMonth]} {selectedYear}</h3>
-            <p className="text-green-100 text-sm">Target: 1 placement/miesiac na osobe</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Interviews</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {monthlyData
-                  .sort((a, b) => b.totalPlacements - a.totalPlacements)
-                  .map((d) => (
-                    <tr key={d.employeeId} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium">{d.name}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`text-xs px-2 py-1 rounded-full ${
-                          d.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
-                          d.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
-                          'bg-purple-100 text-purple-800'
-                        }`}>
-                          {d.position}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-center text-purple-600">{d.totalInterviews}</td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`font-bold text-lg ${d.totalPlacements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
-                          {d.totalPlacements}
-                        </span>
-                        {d.totalPlacements >= 1 && <span className="ml-1">✅</span>}
-                      </td>
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+            </tbody>
+          </table>
+        </CollapsibleSection>
 
         {/* All-Time Placements */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-amber-500 to-orange-600 text-white p-4">
-            <h3 className="font-semibold">🥇 Placements - Od poczatku</h3>
-            <p className="text-amber-100 text-sm">Ranking wszystkich pracownikow</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">#</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
+        <CollapsibleSection
+          title="Placements - Od poczatku"
+          subtitle="Ranking wszystkich pracownikow"
+          icon="🥇"
+          headerClassName="bg-gradient-to-r from-amber-500 to-orange-600 text-white"
+        >
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">#</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {allTimePlacements.map((d, index) => (
+                <tr key={d.employee_id} className={`hover:bg-gray-50 ${index < 3 ? 'bg-amber-50' : ''}`}>
+                  <td className="px-4 py-3 text-center">
+                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                  </td>
+                  <td className="px-4 py-3 font-medium">{d.name}</td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      d.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
+                      d.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
+                      'bg-purple-100 text-purple-800'
+                    }`}>
+                      {d.position}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`font-bold text-lg ${d.total_placements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                      {d.total_placements}
+                    </span>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {allTimePlacements.map((d, index) => (
-                  <tr key={d.employee_id} className={`hover:bg-gray-50 ${index < 3 ? 'bg-amber-50' : ''}`}>
-                    <td className="px-4 py-3 text-center">
-                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
-                    </td>
-                    <td className="px-4 py-3 font-medium">{d.name}</td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        d.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
-                        d.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
-                        'bg-purple-100 text-purple-800'
-                      }`}>
-                        {d.position}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={`font-bold text-lg ${d.total_placements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
-                        {d.total_placements}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              ))}
+            </tbody>
+          </table>
+        </CollapsibleSection>
       </div>
 
       {/* All-Time Verifications per Working Day */}
       {allTimeVerifications.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="bg-gradient-to-r from-cyan-600 to-blue-600 text-white p-4">
-            <h3 className="font-semibold">📈 Weryfikacje/dzien - Od poczatku</h3>
-            <p className="text-cyan-100 text-sm">Srednia ilosc weryfikacji na dzien pracy (dane niezalezne od wybranego okresu)</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">#</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Dni pracy</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Weryfikacje</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Wer./dzien</th>
+        <CollapsibleSection
+          title="Weryfikacje/dzien - Od poczatku"
+          subtitle="Srednia ilosc weryfikacji na dzien pracy (dane niezalezne od wybranego okresu)"
+          icon="📈"
+          headerClassName="bg-gradient-to-r from-cyan-600 to-blue-600 text-white"
+        >
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">#</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Dni pracy</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Weryfikacje</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Wer./dzien</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {allTimeVerifications.map((d, index) => (
+                <tr key={d.employeeId} className={`hover:bg-gray-50 ${index < 3 ? 'bg-cyan-50' : ''}`}>
+                  <td className="px-4 py-3 text-center">
+                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                  </td>
+                  <td className="px-4 py-3 font-medium">{d.name}</td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`text-xs px-2 py-1 rounded-full ${
+                      d.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
+                      d.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
+                      'bg-purple-100 text-purple-800'
+                    }`}>
+                      {d.position}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center text-gray-600">{d.totalDaysWorked}</td>
+                  <td className="px-4 py-3 text-center text-gray-600">{d.totalVerifications}</td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`font-bold text-lg ${
+                      d.verificationsPerDay >= 4 ? 'text-green-600' :
+                      d.verificationsPerDay >= 3 ? 'text-yellow-600' :
+                      'text-red-600'
+                    }`}>
+                      {d.verificationsPerDay}
+                    </span>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {allTimeVerifications.map((d, index) => (
-                  <tr key={d.employeeId} className={`hover:bg-gray-50 ${index < 3 ? 'bg-cyan-50' : ''}`}>
-                    <td className="px-4 py-3 text-center">
-                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
-                    </td>
-                    <td className="px-4 py-3 font-medium">{d.name}</td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        d.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
-                        d.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
-                        'bg-purple-100 text-purple-800'
-                      }`}>
-                        {d.position}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-center text-gray-600">{d.totalDaysWorked}</td>
-                    <td className="px-4 py-3 text-center text-gray-600">{d.totalVerifications}</td>
-                    <td className="px-4 py-3 text-center">
-                      <span className={`font-bold text-lg ${
-                        d.verificationsPerDay >= 4 ? 'text-green-600' :
-                        d.verificationsPerDay >= 3 ? 'text-yellow-600' :
-                        'text-red-600'
-                      }`}>
-                        {d.verificationsPerDay}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+              ))}
+            </tbody>
+          </table>
+        </CollapsibleSection>
       )}
 
       {/* AI Report Generator */}
-      <AIReportGenerator />
+      <CollapsibleSection
+        title="Generator Raportow AI"
+        subtitle="Zapytaj o dane lub wygeneruj raport"
+        icon="🤖"
+        headerClassName="bg-gradient-to-r from-indigo-600 to-purple-600 text-white"
+      >
+        <AIReportGenerator embedded />
+      </CollapsibleSection>
     </div>
   );
 }
