@@ -75,8 +75,9 @@ export const getChampionsLeague = async (year?: number, month?: number): Promise
   return response.data;
 };
 
-export const getTrends = async (weeks: number = 12): Promise<TrendData[]> => {
-  const response = await api.get('/kpi/trends', { params: { weeks } });
+export const getTrends = async (): Promise<TrendData[]> => {
+  // Fetch all trend data without week limit
+  const response = await api.get('/kpi/trends');
   return response.data;
 };
 
@@ -97,6 +98,22 @@ export const getAvailableWeeks = async () => {
 
 export const getAvailableMonths = async () => {
   const response = await api.get('/kpi/months');
+  return response.data;
+};
+
+export interface AllTimePlacement {
+  employee_id: number;
+  name: string;
+  position: string;
+  total_placements: number;
+  total_interviews: number;
+  total_recommendations: number;
+  first_week: string;
+  last_week: string;
+}
+
+export const getAllTimePlacements = async (): Promise<AllTimePlacement[]> => {
+  const response = await api.get('/kpi/all-time-placements');
   return response.data;
 };
 

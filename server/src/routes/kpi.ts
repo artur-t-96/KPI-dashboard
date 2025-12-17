@@ -53,7 +53,8 @@ router.get('/champions', (req: Request, res: Response) => {
 router.get('/trends', (req: Request, res: Response) => {
   try {
     const { weeks } = req.query;
-    const data = getTrends(weeks ? parseInt(weeks as string) : 12);
+    // If weeks is specified, limit; otherwise fetch all data
+    const data = getTrends(weeks ? parseInt(weeks as string) : undefined);
     res.json(data);
   } catch (error) {
     console.error('Trends error:', error);
@@ -184,6 +185,32 @@ router.get('/summary', (req: Request, res: Response) => {
   } catch (error) {
     console.error('Summary error:', error);
     res.status(500).json({ error: 'Failed to fetch summary data' });
+  }
+});
+
+// All-time placements leaderboard
+router.get('/all-time-placements', (req: Request, res: Response) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        e.id as employee_id,
+        e.name,
+        e.position,
+        COALESCE(SUM(w.placements), 0) as total_placements,
+        COALESCE(SUM(w.interviews), 0) as total_interviews,
+        COALESCE(SUM(w.recommendations), 0) as total_recommendations,
+        MIN(w.week_start) as first_week,
+        MAX(w.week_start) as last_week
+      FROM employees e
+      LEFT JOIN weekly_kpi w ON e.id = w.employee_id
+      WHERE e.is_active = 1
+      GROUP BY e.id, e.name, e.position
+      ORDER BY total_placements DESC, total_interviews DESC
+    `).all();
+    res.json(rows);
+  } catch (error) {
+    console.error('All-time placements error:', error);
+    res.status(500).json({ error: 'Failed to fetch all-time placements' });
   }
 });
 

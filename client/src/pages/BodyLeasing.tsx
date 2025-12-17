@@ -6,7 +6,6 @@ import {
   TrendLineChart,
   TeamComparisonChart,
   PlacementsPieChart,
-  TargetGauge,
   ChampionsPodium,
   CumulativeChart
 } from '../components/Charts';
@@ -18,12 +17,12 @@ const MONTHS_PL = [
 ];
 
 export default function BodyLeasing() {
-  const { 
+  const {
     weeklyData,
     monthlyData,
     championsData,
     trendsData,
-    weeklyByPosition,
+    allTimePlacements,
     availableWeeks,
     availableMonths: _availableMonths,
     loading,
@@ -38,20 +37,45 @@ export default function BodyLeasing() {
   } = useKPIData();
 
   // Calculate team stats
-  const sourcerStats = weeklyByPosition.Sourcer;
-  const recruiterStats = weeklyByPosition.Rekruter;
-  const tacStats = weeklyByPosition.TAC;
-
-  const avgSourcerTarget = sourcerStats.length > 0 
-    ? Math.round(sourcerStats.reduce((sum, s) => sum + s.targetAchievement, 0) / sourcerStats.length)
-    : 0;
-  
-  const avgRecruiterTarget = recruiterStats.length > 0
-    ? Math.round(recruiterStats.reduce((sum, s) => sum + s.targetAchievement, 0) / recruiterStats.length)
-    : 0;
-
   const totalPlacements = weeklyData.reduce((sum, d) => sum + d.placements, 0);
   const totalInterviews = weeklyData.reduce((sum, d) => sum + d.interviews, 0);
+  const totalVerifications = weeklyData.reduce((sum, d) => sum + d.verifications, 0);
+
+  // Calculate average target achievement
+  const avgTargetAchievement = weeklyData.length > 0
+    ? Math.round(weeklyData.reduce((sum, d) => sum + d.targetAchievement, 0) / weeklyData.length)
+    : 0;
+
+  // Calculate activity target for each employee
+  // Sourcer: 4 verifications/day, Recruiter: 5 CV/day, All: 1 placement/month
+  const getActivityTarget = (d: typeof weeklyData[0]) => {
+    if (d.position === 'Sourcer') {
+      const target = d.daysWorked * 4;
+      return target > 0 ? Math.round((d.verifications / target) * 100) : 0;
+    } else if (d.position === 'Rekruter') {
+      const target = d.daysWorked * 5;
+      return target > 0 ? Math.round((d.cvAdded / target) * 100) : 0;
+    }
+    return 100; // TAC doesn't have daily activity target
+  };
+
+  const getActivityValue = (d: typeof weeklyData[0]) => {
+    if (d.position === 'Sourcer') return d.verifications;
+    if (d.position === 'Rekruter') return d.cvAdded;
+    return d.recommendations;
+  };
+
+  const getActivityLabel = (position: string) => {
+    if (position === 'Sourcer') return 'Weryfikacje';
+    if (position === 'Rekruter') return 'CV';
+    return 'Rekomendacje';
+  };
+
+  const getActivityPerDay = (d: typeof weeklyData[0]) => {
+    if (d.position === 'Sourcer') return d.verificationsPerDay;
+    if (d.position === 'Rekruter') return d.cvPerDay;
+    return d.daysWorked > 0 ? Number((d.recommendations / d.daysWorked).toFixed(2)) : 0;
+  };
 
   if (error) {
     return (
@@ -126,7 +150,7 @@ export default function BodyLeasing() {
       </div>
 
       {/* Quick Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div className="bg-white rounded-xl shadow-sm p-4">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -134,7 +158,7 @@ export default function BodyLeasing() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{weeklyData.length}</p>
-              <p className="text-sm text-gray-500">Pracowników</p>
+              <p className="text-sm text-gray-500">Pracownikow</p>
             </div>
           </div>
         </div>
@@ -146,7 +170,7 @@ export default function BodyLeasing() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{totalPlacements}</p>
-              <p className="text-sm text-gray-500">Placements (tydzień)</p>
+              <p className="text-sm text-gray-500">Placements</p>
             </div>
           </div>
         </div>
@@ -158,7 +182,19 @@ export default function BodyLeasing() {
             </div>
             <div>
               <p className="text-2xl font-bold text-gray-900">{totalInterviews}</p>
-              <p className="text-sm text-gray-500">Interviews (tydzień)</p>
+              <p className="text-sm text-gray-500">Interviews</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center">
+              <span className="text-cyan-600 font-bold">W</span>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-gray-900">{totalVerifications}</p>
+              <p className="text-sm text-gray-500">Weryfikacje</p>
             </div>
           </div>
         </div>
@@ -169,127 +205,80 @@ export default function BodyLeasing() {
               <Target className="w-6 h-6 text-amber-600" />
             </div>
             <div>
-              <p className="text-2xl font-bold text-gray-900">
-                {Math.round((avgSourcerTarget + avgRecruiterTarget) / 2)}%
-              </p>
-              <p className="text-sm text-gray-500">Śr. realizacja targetu</p>
+              <p className="text-2xl font-bold text-gray-900">{avgTargetAchievement}%</p>
+              <p className="text-sm text-gray-500">Sr. target</p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Position Stats */}
-      <div className="grid md:grid-cols-3 gap-4">
-        {/* Sourcers */}
+      {/* Combined Weekly Summary Table */}
+      {weeklyData.length > 0 && (
         <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="bg-blue-600 text-white p-4">
-            <h3 className="font-semibold">👀 Sourcerzy</h3>
-            <p className="text-blue-100 text-sm">Target: 4 weryfikacje/dzień</p>
+          <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4">
+            <h3 className="font-semibold">📊 Podsumowanie tygodnia</h3>
+            <p className="text-blue-100 text-sm">
+              Targety: Sourcer 4 wer./dzien | Rekruter 5 CV/dzien | Wszyscy 1 placement/mies.
+            </p>
           </div>
-          <div className="p-4">
-            {sourcerStats.length > 0 ? (
-              <div className="space-y-3">
-                {sourcerStats.map(s => (
-                  <div key={s.employeeId} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900">{s.name}</p>
-                      <p className="text-xs text-gray-500">{s.daysWorked} dni pracy</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-blue-600">{s.verifications}</p>
-                      <p className="text-xs text-gray-500">{s.verificationsPerDay}/dzień</p>
-                    </div>
-                    <div className={`text-right ${s.targetAchievement >= 100 ? 'text-green-600' : s.targetAchievement >= 70 ? 'text-yellow-600' : 'text-red-600'}`}>
-                      <p className="font-bold">{s.targetAchievement}%</p>
-                    </div>
-                  </div>
-                ))}
-                <div className="pt-2 border-t">
-                  <TargetGauge 
-                    value={avgSourcerTarget} 
-                    target={100} 
-                    label="Średnia zespołu" 
-                    color="#3B82F6" 
-                  />
-                </div>
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-4">Brak danych</p>
-            )}
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Dni</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Aktywnosc</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">/dzien</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Target %</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Interviews</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {weeklyData.map((d) => {
+                  const activityTarget = getActivityTarget(d);
+                  return (
+                    <tr key={d.employeeId} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium text-gray-900">{d.name}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          d.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
+                          d.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
+                          'bg-purple-100 text-purple-800'
+                        }`}>
+                          {d.position}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center text-gray-600">{d.daysWorked}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className="font-semibold">{getActivityValue(d)}</span>
+                        <span className="text-xs text-gray-400 ml-1">{getActivityLabel(d.position).slice(0, 3)}</span>
+                      </td>
+                      <td className="px-4 py-3 text-center font-medium text-gray-700">{getActivityPerDay(d)}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`font-bold ${
+                          activityTarget >= 100 ? 'text-green-600' :
+                          activityTarget >= 70 ? 'text-yellow-600' :
+                          'text-red-600'
+                        }`}>
+                          {activityTarget}%
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center text-purple-600 font-medium">{d.interviews}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`font-bold ${d.placements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                          {d.placements}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
-
-        {/* Recruiters */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="bg-green-600 text-white p-4">
-            <h3 className="font-semibold">📋 Rekruterzy</h3>
-            <p className="text-green-100 text-sm">Target: 5 CV/dzień</p>
-          </div>
-          <div className="p-4">
-            {recruiterStats.length > 0 ? (
-              <div className="space-y-3">
-                {recruiterStats.map(s => (
-                  <div key={s.employeeId} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900">{s.name}</p>
-                      <p className="text-xs text-gray-500">{s.daysWorked} dni pracy</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-green-600">{s.cvAdded}</p>
-                      <p className="text-xs text-gray-500">{s.cvPerDay}/dzień</p>
-                    </div>
-                    <div className={`text-right ${s.targetAchievement >= 100 ? 'text-green-600' : s.targetAchievement >= 70 ? 'text-yellow-600' : 'text-red-600'}`}>
-                      <p className="font-bold">{s.targetAchievement}%</p>
-                    </div>
-                  </div>
-                ))}
-                <div className="pt-2 border-t">
-                  <TargetGauge 
-                    value={avgRecruiterTarget} 
-                    target={100} 
-                    label="Średnia zespołu" 
-                    color="#22C55E" 
-                  />
-                </div>
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-4">Brak danych</p>
-            )}
-          </div>
-        </div>
-
-        {/* TAC */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="bg-purple-600 text-white p-4">
-            <h3 className="font-semibold">🤝 TAC</h3>
-            <p className="text-purple-100 text-sm">Target: 1 placement/miesiąc</p>
-          </div>
-          <div className="p-4">
-            {tacStats.length > 0 ? (
-              <div className="space-y-3">
-                {tacStats.map(s => (
-                  <div key={s.employeeId} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-gray-900">{s.name}</p>
-                      <p className="text-xs text-gray-500">{s.daysWorked} dni pracy</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-purple-600">{s.recommendations}</p>
-                      <p className="text-xs text-gray-500">rekomendacji</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-green-600">{s.placements}</p>
-                      <p className="text-xs text-gray-500">placements</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-gray-500 text-center py-4">Brak danych</p>
-            )}
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Charts Row 1 */}
       <div className="grid md:grid-cols-2 gap-4">
@@ -363,6 +352,98 @@ export default function BodyLeasing() {
           </div>
         </div>
       )}
+
+      {/* Placements Tables */}
+      <div className="grid md:grid-cols-2 gap-4">
+        {/* Monthly Placements */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="bg-green-600 text-white p-4">
+            <h3 className="font-semibold">🏆 Placements - {MONTHS_PL[selectedMonth]} {selectedYear}</h3>
+            <p className="text-green-100 text-sm">Target: 1 placement/miesiac na osobe</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Interviews</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {monthlyData
+                  .sort((a, b) => b.totalPlacements - a.totalPlacements)
+                  .map((d) => (
+                    <tr key={d.employeeId} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 font-medium">{d.name}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          d.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
+                          d.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
+                          'bg-purple-100 text-purple-800'
+                        }`}>
+                          {d.position}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-center text-purple-600">{d.totalInterviews}</td>
+                      <td className="px-4 py-3 text-center">
+                        <span className={`font-bold text-lg ${d.totalPlacements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                          {d.totalPlacements}
+                        </span>
+                        {d.totalPlacements >= 1 && <span className="ml-1">✅</span>}
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* All-Time Placements */}
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+          <div className="bg-gradient-to-r from-amber-500 to-orange-600 text-white p-4">
+            <h3 className="font-semibold">🥇 Placements - Od poczatku</h3>
+            <p className="text-amber-100 text-sm">Ranking wszystkich pracownikow</p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">#</th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {allTimePlacements.map((d, index) => (
+                  <tr key={d.employee_id} className={`hover:bg-gray-50 ${index < 3 ? 'bg-amber-50' : ''}`}>
+                    <td className="px-4 py-3 text-center">
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                    </td>
+                    <td className="px-4 py-3 font-medium">{d.name}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        d.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
+                        d.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
+                        'bg-purple-100 text-purple-800'
+                      }`}>
+                        {d.position}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`font-bold text-lg ${d.total_placements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                        {d.total_placements}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
 
       {/* AI Report Generator */}
       <AIReportGenerator />

@@ -2,14 +2,13 @@ import { useState, useRef } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../contexts/ThemeContext';
 import {
-  uploadExcel, getUploadHistory, getEmployees, deleteEmployee,
+  uploadExcel, getUploadHistory,
   getAllKPIData, deleteWeekData, deleteRecord, deleteAllData
 } from '../services/api';
 import {
-  Upload, FileSpreadsheet, Users, History, Trash2, CheckCircle,
+  Upload, FileSpreadsheet, History, Trash2, CheckCircle,
   XCircle, AlertCircle, Database, RefreshCw
 } from 'lucide-react';
-import type { Employee } from '../types';
 
 interface KPIRecord {
   id: number;
@@ -31,10 +30,9 @@ export default function AdminPanel() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
 
-  const [activeTab, setActiveTab] = useState<'upload' | 'employees' | 'data' | 'history'>('upload');
+  const [activeTab, setActiveTab] = useState<'upload' | 'data' | 'history'>('upload');
   const [uploading, setUploading] = useState(false);
   const [uploadResult, setUploadResult] = useState<any>(null);
-  const [employees, setEmployees] = useState<Employee[]>([]);
   const [kpiData, setKpiData] = useState<KPIRecord[]>([]);
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -63,18 +61,6 @@ export default function AdminPanel() {
     }
   };
 
-  const loadEmployees = async () => {
-    setLoading(true);
-    try {
-      const data = await getEmployees();
-      setEmployees(data);
-    } catch (error) {
-      console.error('Failed to load employees:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const loadKPIData = async () => {
     setLoading(true);
     try {
@@ -96,17 +82,6 @@ export default function AdminPanel() {
       console.error('Failed to load history:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleDeleteEmployee = async (id: number, name: string) => {
-    if (!confirm(`Czy na pewno chcesz dezaktywowac pracownika ${name}?`)) return;
-
-    try {
-      await deleteEmployee(id);
-      loadEmployees();
-    } catch (error) {
-      alert('Blad dezaktywacji pracownika');
     }
   };
 
@@ -145,9 +120,8 @@ export default function AdminPanel() {
     }
   };
 
-  const handleTabChange = (tab: 'upload' | 'employees' | 'data' | 'history') => {
+  const handleTabChange = (tab: 'upload' | 'data' | 'history') => {
     setActiveTab(tab);
-    if (tab === 'employees') loadEmployees();
     if (tab === 'data') loadKPIData();
     if (tab === 'history') loadHistory();
   };
@@ -184,7 +158,6 @@ export default function AdminPanel() {
         <div className={`flex border-b ${borderClass}`}>
           {[
             { id: 'upload', label: 'Upload Excel', icon: Upload },
-            { id: 'employees', label: 'Pracownicy', icon: Users },
             { id: 'data', label: 'Dane KPI', icon: Database },
             { id: 'history', label: 'Historia', icon: History },
           ].map(tab => (
@@ -275,68 +248,6 @@ export default function AdminPanel() {
                   Pracownicy sa tworzeni automatycznie.
                 </p>
               </div>
-            </div>
-          )}
-
-          {activeTab === 'employees' && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className={`text-sm ${mutedTextClass}`}>Pracownicy sa automatycznie tworzeni podczas uploadu pliku Excel</p>
-                <button onClick={loadEmployees} className={`p-2 rounded-lg ${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'}`}>
-                  <RefreshCw className={`w-5 h-5 ${mutedTextClass}`} />
-                </button>
-              </div>
-
-              {loading ? (
-                <div className={`text-center py-8 ${mutedTextClass}`}>Ladowanie...</div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className={isDark ? 'bg-gray-700' : 'bg-gray-50'}>
-                      <tr>
-                        <th className={`px-4 py-3 text-left text-xs font-semibold ${mutedTextClass}`}>ID</th>
-                        <th className={`px-4 py-3 text-left text-xs font-semibold ${mutedTextClass}`}>Imie i nazwisko</th>
-                        <th className={`px-4 py-3 text-left text-xs font-semibold ${mutedTextClass}`}>Stanowisko</th>
-                        <th className={`px-4 py-3 text-left text-xs font-semibold ${mutedTextClass}`}>Status</th>
-                        <th className={`px-4 py-3 text-left text-xs font-semibold ${mutedTextClass}`}>Akcje</th>
-                      </tr>
-                    </thead>
-                    <tbody className={`divide-y ${borderClass}`}>
-                      {employees.map((emp) => (
-                        <tr key={emp.id} className={`${isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'} ${!emp.is_active ? 'opacity-50' : ''}`}>
-                          <td className={`px-4 py-3 ${mutedTextClass}`}>{emp.id}</td>
-                          <td className={`px-4 py-3 font-medium ${textClass}`}>{emp.name}</td>
-                          <td className="px-4 py-3">
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              emp.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
-                              emp.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
-                              'bg-purple-100 text-purple-800'
-                            }`}>{emp.position}</span>
-                          </td>
-                          <td className="px-4 py-3">
-                            <span className={`text-xs px-2 py-1 rounded-full ${
-                              emp.is_active
-                                ? isDark ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-800'
-                                : isDark ? 'bg-gray-600 text-gray-300' : 'bg-gray-100 text-gray-800'
-                            }`}>{emp.is_active ? 'Aktywny' : 'Nieaktywny'}</span>
-                          </td>
-                          <td className="px-4 py-3">
-                            {emp.is_active && (
-                              <button
-                                onClick={() => handleDeleteEmployee(emp.id, emp.name)}
-                                className={isDark ? 'text-red-400 hover:text-red-300' : 'text-red-600 hover:text-red-800'}
-                                title="Dezaktywuj"
-                              >
-                                <Trash2 className="w-5 h-5" />
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
             </div>
           )}
 

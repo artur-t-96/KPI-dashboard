@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  getWeeklyKPI, 
-  getMonthlyKPI, 
-  getChampionsLeague, 
+import {
+  getWeeklyKPI,
+  getMonthlyKPI,
+  getChampionsLeague,
   getTrends,
   getSummary,
   getAvailableWeeks,
-  getAvailableMonths
+  getAvailableMonths,
+  getAllTimePlacements,
+  AllTimePlacement
 } from '../services/api';
 import type { WeeklyKPI, MonthlyKPI, ChampionEntry, TrendData, SummaryData } from '../types';
 
@@ -16,6 +18,7 @@ export function useKPIData() {
   const [championsData, setChampionsData] = useState<ChampionEntry[]>([]);
   const [trendsData, setTrendsData] = useState<TrendData[]>([]);
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
+  const [allTimePlacements, setAllTimePlacements] = useState<AllTimePlacement[]>([]);
   const [availableWeeks, setAvailableWeeks] = useState<any[]>([]);
   const [availableMonths, setAvailableMonths] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,21 +33,23 @@ export function useKPIData() {
     setError(null);
     
     try {
-      const [weekly, monthly, champions, trends, summary, weeks, months] = await Promise.all([
+      const [weekly, monthly, champions, trends, summary, allTime, weeks, months] = await Promise.all([
         getWeeklyKPI(selectedWeek),
         getMonthlyKPI(selectedYear, selectedMonth),
         getChampionsLeague(selectedYear, selectedMonth),
-        getTrends(12),
+        getTrends(), // Fetch all trend data
         getSummary(),
+        getAllTimePlacements(),
         getAvailableWeeks(),
         getAvailableMonths()
       ]);
-      
+
       setWeeklyData(weekly);
       setMonthlyData(monthly);
       setChampionsData(champions);
       setTrendsData(trends);
       setSummaryData(summary);
+      setAllTimePlacements(allTime);
       setAvailableWeeks(weeks);
       setAvailableMonths(months);
     } catch (err: any) {
@@ -89,6 +94,7 @@ export function useKPIData() {
     championsData,
     trendsData,
     summaryData,
+    allTimePlacements,
     weeklyByPosition,
     monthlyByPosition,
     teamAverages,

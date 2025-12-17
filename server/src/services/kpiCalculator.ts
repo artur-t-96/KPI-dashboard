@@ -193,29 +193,50 @@ export function getChampionsLeague(year?: number, month?: number) {
   }));
 }
 
-export function getTrends(weeks: number = 12) {
-  const query = `
-    SELECT 
-      w.week_start,
-      w.week_number,
-      w.year,
-      e.position,
-      SUM(w.verifications) as total_verifications,
-      SUM(w.cv_added) as total_cv_added,
-      SUM(w.recommendations) as total_recommendations,
-      SUM(w.interviews) as total_interviews,
-      SUM(w.placements) as total_placements,
-      SUM(w.days_worked) as total_days_worked,
-      COUNT(DISTINCT e.id) as employee_count
-    FROM weekly_kpi w
-    JOIN employees e ON w.employee_id = e.id
-    WHERE e.is_active = 1
-    AND w.week_start >= date((SELECT MAX(week_start) FROM weekly_kpi), '-' || ? || ' weeks')
-    GROUP BY w.week_start, w.week_number, w.year, e.position
-    ORDER BY w.week_start, e.position
-  `;
-  
-  return db.prepare(query).all(weeks);
+export function getTrends(weeks?: number) {
+  // If no weeks specified, fetch all available data
+  const query = weeks
+    ? `
+      SELECT
+        w.week_start,
+        w.week_number,
+        w.year,
+        e.position,
+        SUM(w.verifications) as total_verifications,
+        SUM(w.cv_added) as total_cv_added,
+        SUM(w.recommendations) as total_recommendations,
+        SUM(w.interviews) as total_interviews,
+        SUM(w.placements) as total_placements,
+        SUM(w.days_worked) as total_days_worked,
+        COUNT(DISTINCT e.id) as employee_count
+      FROM weekly_kpi w
+      JOIN employees e ON w.employee_id = e.id
+      WHERE e.is_active = 1
+      AND w.week_start >= date((SELECT MAX(week_start) FROM weekly_kpi), '-' || ? || ' weeks')
+      GROUP BY w.week_start, w.week_number, w.year, e.position
+      ORDER BY w.week_start, e.position
+    `
+    : `
+      SELECT
+        w.week_start,
+        w.week_number,
+        w.year,
+        e.position,
+        SUM(w.verifications) as total_verifications,
+        SUM(w.cv_added) as total_cv_added,
+        SUM(w.recommendations) as total_recommendations,
+        SUM(w.interviews) as total_interviews,
+        SUM(w.placements) as total_placements,
+        SUM(w.days_worked) as total_days_worked,
+        COUNT(DISTINCT e.id) as employee_count
+      FROM weekly_kpi w
+      JOIN employees e ON w.employee_id = e.id
+      WHERE e.is_active = 1
+      GROUP BY w.week_start, w.week_number, w.year, e.position
+      ORDER BY w.week_start, e.position
+    `;
+
+  return weeks ? db.prepare(query).all(weeks) : db.prepare(query).all();
 }
 
 export function getAvailableWeeks() {
