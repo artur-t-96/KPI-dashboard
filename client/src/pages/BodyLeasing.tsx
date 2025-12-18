@@ -1116,22 +1116,33 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                     <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">#</th>
                     <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Pracownik</th>
                     <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">Int.</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">Int./dzien</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {[...allTimePlacements]
                     .sort((a, b) => b.total_interviews - a.total_interviews)
-                    .map((d, index) => (
-                      <tr key={d.employee_id} className={`hover:bg-gray-50 ${index < 3 ? 'bg-red-50' : ''}`}>
-                        <td className="px-3 py-2 text-center text-sm">
-                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
-                        </td>
-                        <td className="px-3 py-2 font-medium text-sm">{d.name}</td>
-                        <td className="px-3 py-2 text-center">
-                          <span className="font-bold text-gray-700">{d.total_interviews}</span>
-                        </td>
-                      </tr>
-                    ))}
+                    .map((d, index) => {
+                      const verData = allTimeVerifications.find(v => v.employeeId === d.employee_id);
+                      const daysWorked = verData?.totalDaysWorked || 1;
+                      const intPerDay = daysWorked > 0 ? (d.total_interviews / daysWorked).toFixed(2) : '0';
+                      return (
+                        <tr key={d.employee_id} className={`hover:bg-gray-50 ${index < 3 ? 'bg-red-50' : ''}`}>
+                          <td className="px-3 py-2 text-center text-sm">
+                            {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                          </td>
+                          <td className="px-3 py-2 font-medium text-sm">{d.name}</td>
+                          <td className="px-3 py-2 text-center">
+                            <span className="font-bold text-gray-700">{d.total_interviews}</span>
+                          </td>
+                          <td className="px-3 py-2 text-center">
+                            <span className={`font-bold ${Number(intPerDay) >= 0.5 ? 'text-green-600' : Number(intPerDay) > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
+                              {intPerDay}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                 </tbody>
               </table>
             </CollapsibleSection>
@@ -1151,12 +1162,16 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
           >
             <div className="p-4">
               {/* Employee Selector */}
-              <div className="flex items-center gap-4 mb-6">
+              <div className="flex items-center gap-4 mb-6" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center gap-2">
                   <User className="w-5 h-5 text-gray-500" />
                   <select
                     value={selectedEmployeeId || ''}
-                    onChange={(e) => setSelectedEmployeeId(e.target.value ? Number(e.target.value) : null)}
+                    onChange={(e) => {
+                      e.stopPropagation();
+                      setSelectedEmployeeId(e.target.value ? Number(e.target.value) : null);
+                    }}
+                    onClick={(e) => e.stopPropagation()}
                     className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 min-w-[200px]"
                   >
                     <option value="">Wybierz pracownika...</option>
@@ -1171,7 +1186,10 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                 </div>
                 {employeeTrendData && (
                   <button
-                    onClick={handleAiAnalysis}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAiAnalysis();
+                    }}
                     disabled={loadingAiAnalysis}
                     className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 transition-all"
                   >
