@@ -5,6 +5,7 @@ import ChampionsLeagueTable from '../components/BodyLeasing/ChampionsLeague';
 import AIReportGenerator from '../components/Reports/AIReportGenerator';
 import CollapsibleSection from '../components/CollapsibleSection';
 import { RefreshCw, Calendar, CalendarDays, GripVertical } from 'lucide-react';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 const MONTHS_PL = [
   '', 'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
@@ -18,6 +19,7 @@ const DEFAULT_SECTION_ORDER = [
   'monthly-summary',
   'placements-grid',
   'cv-grid',
+  'weekly-verification-trend',
   'verifications-per-placement',
   'monthly-trend',
   'all-time-verifications',
@@ -95,6 +97,7 @@ export default function BodyLeasing() {
     allTimePlacements,
     allTimeVerifications,
     monthlyTrendData,
+    weeklyVerificationTrend,
     availableWeeks,
     loading,
     error,
@@ -689,6 +692,100 @@ export default function BodyLeasing() {
           </table>
         </CollapsibleSection>
       </div>
+      </DraggableSection>
+
+      {/* Weekly Verification Trend Chart */}
+      <DraggableSection id="weekly-verification-trend">
+      {weeklyVerificationTrend.length > 0 && (
+        <CollapsibleSection
+          title="Trend weryfikacji - tygodniowo"
+          subtitle="Ilosc weryfikacji zespolu od poczatku (niezalezne od wybranego okresu)"
+          icon="📈"
+          headerClassName="bg-gradient-to-r from-blue-500 to-cyan-600 text-white"
+        >
+          <div className="p-4">
+            <ResponsiveContainer width="100%" height={350}>
+              <LineChart
+                data={weeklyVerificationTrend.map(d => ({
+                  ...d,
+                  label: `W${d.weekNumber}/${d.year}`
+                }))}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                <XAxis
+                  dataKey="label"
+                  tick={{ fontSize: 11 }}
+                  interval={Math.max(0, Math.floor(weeklyVerificationTrend.length / 10) - 1)}
+                />
+                <YAxis
+                  yAxisId="left"
+                  tick={{ fontSize: 11 }}
+                  label={{ value: 'Total', angle: -90, position: 'insideLeft', fontSize: 12 }}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  tick={{ fontSize: 11 }}
+                  label={{ value: 'Avg/osoba', angle: 90, position: 'insideRight', fontSize: 12 }}
+                />
+                <Tooltip
+                  contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                  labelStyle={{ fontWeight: 'bold', marginBottom: '4px' }}
+                  formatter={(value: number, name: string) => [
+                    value.toLocaleString(),
+                    name === 'totalVerifications' ? 'Weryfikacje total' : 'Srednia/osoba'
+                  ]}
+                />
+                <Legend
+                  formatter={(value) => value === 'totalVerifications' ? 'Weryfikacje total' : 'Srednia na osobe'}
+                />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="totalVerifications"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dot={{ fill: '#3b82f6', r: 3 }}
+                  activeDot={{ r: 6 }}
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="avgVerificationsPerPerson"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  dot={{ fill: '#10b981', r: 3 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+            <div className="mt-4 grid grid-cols-3 gap-4 text-center">
+              <div className="bg-blue-50 rounded-lg p-3">
+                <div className="text-xs text-gray-500">Ostatni tydzien</div>
+                <div className="text-xl font-bold text-blue-600">
+                  {weeklyVerificationTrend[weeklyVerificationTrend.length - 1]?.totalVerifications || 0}
+                </div>
+                <div className="text-xs text-gray-500">weryfikacji</div>
+              </div>
+              <div className="bg-green-50 rounded-lg p-3">
+                <div className="text-xs text-gray-500">Srednia/osoba</div>
+                <div className="text-xl font-bold text-green-600">
+                  {weeklyVerificationTrend[weeklyVerificationTrend.length - 1]?.avgVerificationsPerPerson || 0}
+                </div>
+                <div className="text-xs text-gray-500">ostatni tydzien</div>
+              </div>
+              <div className="bg-purple-50 rounded-lg p-3">
+                <div className="text-xs text-gray-500">Liczba tygodni</div>
+                <div className="text-xl font-bold text-purple-600">
+                  {weeklyVerificationTrend.length}
+                </div>
+                <div className="text-xs text-gray-500">w danych</div>
+              </div>
+            </div>
+          </div>
+        </CollapsibleSection>
+      )}
       </DraggableSection>
 
       {/* Verifications per Placement */}

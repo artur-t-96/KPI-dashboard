@@ -225,6 +225,39 @@ router.get('/monthly-trend', (req: Request, res: Response) => {
   }
 });
 
+// Weekly verification trend data (all-time)
+router.get('/weekly-verification-trend', (req: Request, res: Response) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        week_start,
+        year,
+        week_number,
+        COALESCE(SUM(verifications), 0) as total_verifications,
+        COUNT(DISTINCT employee_id) as employee_count
+      FROM weekly_kpi
+      GROUP BY week_start, year, week_number
+      ORDER BY week_start ASC
+    `).all() as any[];
+
+    const result = rows.map(row => ({
+      weekStart: row.week_start,
+      year: row.year,
+      weekNumber: row.week_number,
+      totalVerifications: row.total_verifications,
+      employeeCount: row.employee_count,
+      avgVerificationsPerPerson: row.employee_count > 0
+        ? Number((row.total_verifications / row.employee_count).toFixed(1))
+        : 0
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error('Weekly verification trend error:', error);
+    res.status(500).json({ error: 'Failed to fetch weekly verification trend data' });
+  }
+});
+
 // Yearly KPI data
 router.get('/yearly', (req: Request, res: Response) => {
   try {

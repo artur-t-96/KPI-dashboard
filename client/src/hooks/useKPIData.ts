@@ -11,9 +11,11 @@ import {
   getAllTimePlacements,
   getAllTimeVerifications,
   getMonthlyTrend,
+  getWeeklyVerificationTrend,
   AllTimePlacement,
   AllTimeVerifications,
   MonthlyTrend,
+  WeeklyVerificationTrend,
   YearlyKPI
 } from '../services/api';
 import type { WeeklyKPI, MonthlyKPI, ChampionEntry, TrendData, SummaryData } from '../types';
@@ -28,6 +30,7 @@ export function useKPIData() {
   const [allTimePlacements, setAllTimePlacements] = useState<AllTimePlacement[]>([]);
   const [allTimeVerifications, setAllTimeVerifications] = useState<AllTimeVerifications[]>([]);
   const [monthlyTrendData, setMonthlyTrendData] = useState<MonthlyTrend[]>([]);
+  const [weeklyVerificationTrend, setWeeklyVerificationTrend] = useState<WeeklyVerificationTrend[]>([]);
   const [availableWeeks, setAvailableWeeks] = useState<any[]>([]);
   const [availableMonths, setAvailableMonths] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +45,7 @@ export function useKPIData() {
     setError(null);
 
     try {
-      const [weekly, monthly, yearly, champions, trends, summary, allTime, allTimeVer, monthlyTrend, weeks, months] = await Promise.all([
+      const [weekly, monthly, yearly, champions, trends, summary, allTime, allTimeVer, monthlyTrend, weeklyVerTrend, weeks, months] = await Promise.all([
         getWeeklyKPI(selectedWeek),
         getMonthlyKPI(selectedYear, selectedMonth),
         getYearlyKPI(selectedYear),
@@ -52,6 +55,7 @@ export function useKPIData() {
         getAllTimePlacements(),
         getAllTimeVerifications(),
         getMonthlyTrend(),
+        getWeeklyVerificationTrend(),
         getAvailableWeeks(),
         getAvailableMonths()
       ]);
@@ -65,6 +69,7 @@ export function useKPIData() {
       setAllTimePlacements(allTime);
       setAllTimeVerifications(allTimeVer);
       setMonthlyTrendData(monthlyTrend);
+      setWeeklyVerificationTrend(weeklyVerTrend);
       setAvailableWeeks(weeks);
       setAvailableMonths(months);
     } catch (err: any) {
@@ -113,6 +118,7 @@ export function useKPIData() {
     allTimePlacements,
     allTimeVerifications,
     monthlyTrendData,
+    weeklyVerificationTrend,
     weeklyByPosition,
     monthlyByPosition,
     teamAverages,

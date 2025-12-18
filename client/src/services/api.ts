@@ -171,6 +171,20 @@ export const getMonthlyTrend = async (): Promise<MonthlyTrend[]> => {
   return response.data;
 };
 
+export interface WeeklyVerificationTrend {
+  weekStart: string;
+  year: number;
+  weekNumber: number;
+  totalVerifications: number;
+  employeeCount: number;
+  avgVerificationsPerPerson: number;
+}
+
+export const getWeeklyVerificationTrend = async (): Promise<WeeklyVerificationTrend[]> => {
+  const response = await api.get('/kpi/weekly-verification-trend');
+  return response.data;
+};
+
 // Mindy
 export const getMindyResponse = async (): Promise<MindyResponse> => {
   const response = await api.get('/mindy');
