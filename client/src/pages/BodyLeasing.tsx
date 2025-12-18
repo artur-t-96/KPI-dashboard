@@ -459,6 +459,193 @@ export default function BodyLeasing() {
         </CollapsibleSection>
       </div>
 
+      {/* CV Added Tables */}
+      <div className="grid md:grid-cols-3 gap-4">
+        {/* Weekly CV */}
+        <CollapsibleSection
+          title={`CV dodane - Tydzien ${selectedWeek}`}
+          subtitle="CV dodane w wybranym tygodniu"
+          icon="📄"
+          headerClassName="bg-gradient-to-r from-violet-500 to-purple-600 text-white"
+        >
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">#</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">CV</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {[...weeklyData]
+                .sort((a, b) => b.cvAdded - a.cvAdded)
+                .map((d, index) => (
+                  <tr key={d.employeeId} className={`hover:bg-gray-50 ${index < 3 ? 'bg-violet-50' : ''}`}>
+                    <td className="px-3 py-2 text-center text-sm">
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                    </td>
+                    <td className="px-3 py-2 font-medium text-sm">{d.name}</td>
+                    <td className="px-3 py-2 text-center">
+                      <span className={`font-bold ${d.cvAdded >= 5 ? 'text-green-600' : d.cvAdded > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
+                        {d.cvAdded}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </CollapsibleSection>
+
+        {/* Monthly CV */}
+        <CollapsibleSection
+          title={`CV dodane - ${MONTHS_PL[selectedMonth]}`}
+          subtitle="CV dodane w wybranym miesiacu"
+          icon="📋"
+          headerClassName="bg-gradient-to-r from-purple-500 to-pink-600 text-white"
+        >
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">#</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">CV</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {[...monthlyData]
+                .sort((a, b) => b.totalCvAdded - a.totalCvAdded)
+                .map((d, index) => (
+                  <tr key={d.employeeId} className={`hover:bg-gray-50 ${index < 3 ? 'bg-purple-50' : ''}`}>
+                    <td className="px-3 py-2 text-center text-sm">
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                    </td>
+                    <td className="px-3 py-2 font-medium text-sm">{d.name}</td>
+                    <td className="px-3 py-2 text-center">
+                      <span className={`font-bold ${d.totalCvAdded >= 20 ? 'text-green-600' : d.totalCvAdded > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
+                        {d.totalCvAdded}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </CollapsibleSection>
+
+        {/* All-Time CV */}
+        <CollapsibleSection
+          title="CV dodane - Od poczatku"
+          subtitle="Lacznie wszystkie CV"
+          icon="📚"
+          headerClassName="bg-gradient-to-r from-pink-500 to-rose-600 text-white"
+        >
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">#</th>
+                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">CV</th>
+                <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">CV/dzien</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {[...allTimeVerifications]
+                .sort((a, b) => b.totalCvAdded - a.totalCvAdded)
+                .map((d, index) => (
+                  <tr key={d.employeeId} className={`hover:bg-gray-50 ${index < 3 ? 'bg-pink-50' : ''}`}>
+                    <td className="px-3 py-2 text-center text-sm">
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                    </td>
+                    <td className="px-3 py-2 font-medium text-sm">{d.name}</td>
+                    <td className="px-3 py-2 text-center">
+                      <span className="font-bold text-gray-700">
+                        {d.totalCvAdded}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 text-center">
+                      <span className={`font-bold ${d.cvPerDay >= 5 ? 'text-green-600' : d.cvPerDay >= 3 ? 'text-yellow-600' : 'text-red-600'}`}>
+                        {d.cvPerDay}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </CollapsibleSection>
+      </div>
+
+      {/* Verifications per Placement */}
+      {allTimeVerifications.length > 0 && allTimePlacements.length > 0 && (
+        <CollapsibleSection
+          title="Weryfikacje na Placement"
+          subtitle="Ile weryfikacji potrzeba aby zrobic jeden placement"
+          icon="🎯"
+          headerClassName="bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
+        >
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">#</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Weryfikacje</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Wer./Plac.</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {[...allTimeVerifications]
+                .map(v => {
+                  const placement = allTimePlacements.find(p => p.employee_id === v.employeeId);
+                  const totalPlacements = placement?.total_placements || 0;
+                  const verificationsPerPlacement = totalPlacements > 0
+                    ? (v.totalVerifications / totalPlacements).toFixed(1)
+                    : '∞';
+                  return {
+                    ...v,
+                    totalPlacements,
+                    verificationsPerPlacement,
+                    sortValue: totalPlacements > 0 ? v.totalVerifications / totalPlacements : Infinity
+                  };
+                })
+                .sort((a, b) => a.sortValue - b.sortValue)
+                .map((d, index) => (
+                  <tr key={d.employeeId} className={`hover:bg-gray-50 ${index < 3 && d.totalPlacements > 0 ? 'bg-emerald-50' : ''}`}>
+                    <td className="px-4 py-3 text-center">
+                      {d.totalPlacements > 0 ? (index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1) : '-'}
+                    </td>
+                    <td className="px-4 py-3 font-medium">{d.name}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        d.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
+                        d.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
+                        'bg-purple-100 text-purple-800'
+                      }`}>
+                        {d.position}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center text-gray-600">{d.totalVerifications}</td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`font-bold ${d.totalPlacements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                        {d.totalPlacements}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className={`font-bold text-lg ${
+                        d.totalPlacements === 0 ? 'text-gray-400' :
+                        d.sortValue <= 50 ? 'text-green-600' :
+                        d.sortValue <= 100 ? 'text-yellow-600' :
+                        'text-red-600'
+                      }`}>
+                        {d.verificationsPerPlacement}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+            </tbody>
+          </table>
+        </CollapsibleSection>
+      )}
+
       {/* All-Time Verifications per Working Day */}
       {allTimeVerifications.length > 0 && (
         <CollapsibleSection
