@@ -804,9 +804,9 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
         </Category>
       </DraggableSection>
 
-      {/* ===== CATEGORY 4: CV & WERYFIKACJE & INTERVIEWS ===== */}
+      {/* ===== CATEGORY 4: CV, WERYFIKACJE, INTERVIEWS & REKOMENDACJE ===== */}
       <DraggableSection id="category-cv-weryfikacje">
-        <Category id="category-cv-weryfikacje" title="CV, Weryfikacje & Interviews" icon="📄" color="bg-gradient-to-r from-violet-500 to-purple-600">
+        <Category id="category-cv-weryfikacje" title="CV, Weryfikacje, Interviews & Rekomendacje" icon="📄" color="bg-gradient-to-r from-violet-500 to-purple-600">
           {/* CV Tables Grid */}
           <div className="grid md:grid-cols-3 gap-4">
             {/* Weekly CV */}
@@ -1138,6 +1138,123 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                           <td className="px-3 py-2 text-center">
                             <span className={`font-bold ${Number(intPerDay) >= 0.5 ? 'text-green-600' : Number(intPerDay) > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
                               {intPerDay}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                </tbody>
+              </table>
+            </CollapsibleSection>
+          </div>
+
+          {/* Recommendations Tables Grid */}
+          <div className="grid md:grid-cols-3 gap-4">
+            {/* Weekly Recommendations */}
+            <CollapsibleSection
+              title={`Rekomendacje - Tydzien`}
+              subtitle="Rekomendacje w wybranym tygodniu"
+              icon="📤"
+              headerClassName="bg-gradient-to-r from-teal-500 to-emerald-600 text-white"
+            >
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">#</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">Rek.</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[...weeklyData]
+                    .sort((a, b) => b.recommendations - a.recommendations)
+                    .map((d, index) => (
+                      <tr key={d.employeeId} className={`hover:bg-gray-50 ${index < 3 ? 'bg-teal-50' : ''}`}>
+                        <td className="px-3 py-2 text-center text-sm">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                        </td>
+                        <td className="px-3 py-2 font-medium text-sm">{d.name}</td>
+                        <td className="px-3 py-2 text-center">
+                          <span className={`font-bold ${d.recommendations >= 5 ? 'text-green-600' : d.recommendations > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
+                            {d.recommendations}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </CollapsibleSection>
+
+            {/* Monthly Recommendations */}
+            <CollapsibleSection
+              title={`Rekomendacje - ${MONTHS_PL[selectedMonth]}`}
+              subtitle="Rekomendacje w wybranym miesiacu"
+              icon="📤"
+              headerClassName="bg-gradient-to-r from-emerald-500 to-green-600 text-white"
+            >
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">#</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">Rek.</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[...monthlyData]
+                    .sort((a, b) => b.totalRecommendations - a.totalRecommendations)
+                    .map((d, index) => (
+                      <tr key={d.employeeId} className={`hover:bg-gray-50 ${index < 3 ? 'bg-emerald-50' : ''}`}>
+                        <td className="px-3 py-2 text-center text-sm">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                        </td>
+                        <td className="px-3 py-2 font-medium text-sm">{d.name}</td>
+                        <td className="px-3 py-2 text-center">
+                          <span className={`font-bold ${d.totalRecommendations >= 15 ? 'text-green-600' : d.totalRecommendations > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
+                            {d.totalRecommendations}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </CollapsibleSection>
+
+            {/* All-Time Recommendations */}
+            <CollapsibleSection
+              title="Rekomendacje - Od poczatku"
+              subtitle="Lacznie wszystkie rekomendacje"
+              icon="📤"
+              headerClassName="bg-gradient-to-r from-green-500 to-lime-600 text-white"
+            >
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">#</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">Rek.</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">Rek./dzien</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[...allTimePlacements]
+                    .sort((a, b) => b.total_recommendations - a.total_recommendations)
+                    .map((d, index) => {
+                      const verData = allTimeVerifications.find(v => v.employeeId === d.employee_id);
+                      const daysWorked = verData?.totalDaysWorked || 1;
+                      const rekPerDay = daysWorked > 0 ? (d.total_recommendations / daysWorked).toFixed(2) : '0';
+                      return (
+                        <tr key={d.employee_id} className={`hover:bg-gray-50 ${index < 3 ? 'bg-green-50' : ''}`}>
+                          <td className="px-3 py-2 text-center text-sm">
+                            {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                          </td>
+                          <td className="px-3 py-2 font-medium text-sm">{d.name}</td>
+                          <td className="px-3 py-2 text-center">
+                            <span className="font-bold text-gray-700">{d.total_recommendations}</span>
+                          </td>
+                          <td className="px-3 py-2 text-center">
+                            <span className={`font-bold ${Number(rekPerDay) >= 1 ? 'text-green-600' : Number(rekPerDay) > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
+                              {rekPerDay}
                             </span>
                           </td>
                         </tr>
