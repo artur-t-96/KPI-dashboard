@@ -1,18 +1,91 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useKPIData } from '../hooks/useKPIData';
 import MindyAvatar from '../components/Mindy/MindyAvatar';
 import ChampionsLeagueTable from '../components/BodyLeasing/ChampionsLeague';
 import AIReportGenerator from '../components/Reports/AIReportGenerator';
 import CollapsibleSection from '../components/CollapsibleSection';
-import { RefreshCw, Calendar, CalendarDays } from 'lucide-react';
+import { RefreshCw, Calendar, CalendarDays, GripVertical } from 'lucide-react';
 
 const MONTHS_PL = [
   '', 'Styczeń', 'Luty', 'Marzec', 'Kwiecień', 'Maj', 'Czerwiec',
   'Lipiec', 'Sierpień', 'Wrzesień', 'Październik', 'Listopad', 'Grudzień'
 ];
 
+// Section IDs for ordering
+const DEFAULT_SECTION_ORDER = [
+  'weekly-summary',
+  'champions-league',
+  'monthly-summary',
+  'placements-grid',
+  'cv-grid',
+  'verifications-per-placement',
+  'monthly-trend',
+  'all-time-verifications',
+  'ai-reports'
+];
+
 export default function BodyLeasing() {
   const [viewMode, setViewMode] = useState<'week' | 'month' | 'year'>('week');
+
+  // Drag and drop state
+  const [sectionOrder, setSectionOrder] = useState<string[]>(() => {
+    const saved = localStorage.getItem('bodyLeasing-sectionOrder');
+    return saved ? JSON.parse(saved) : DEFAULT_SECTION_ORDER;
+  });
+  const [draggedSection, setDraggedSection] = useState<string | null>(null);
+  const [dragOverSection, setDragOverSection] = useState<string | null>(null);
+
+  // Save order to localStorage
+  useEffect(() => {
+    localStorage.setItem('bodyLeasing-sectionOrder', JSON.stringify(sectionOrder));
+  }, [sectionOrder]);
+
+  const handleDragStart = useCallback((e: React.DragEvent, sectionId: string) => {
+    setDraggedSection(sectionId);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', sectionId);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, sectionId: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (draggedSection && sectionId !== draggedSection) {
+      setDragOverSection(sectionId);
+    }
+  }, [draggedSection]);
+
+  const handleDragLeave = useCallback(() => {
+    setDragOverSection(null);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent, targetSectionId: string) => {
+    e.preventDefault();
+    if (!draggedSection || draggedSection === targetSectionId) return;
+
+    setSectionOrder(prev => {
+      const newOrder = [...prev];
+      const draggedIndex = newOrder.indexOf(draggedSection);
+      const targetIndex = newOrder.indexOf(targetSectionId);
+
+      if (draggedIndex !== -1 && targetIndex !== -1) {
+        newOrder.splice(draggedIndex, 1);
+        newOrder.splice(targetIndex, 0, draggedSection);
+      }
+      return newOrder;
+    });
+
+    setDraggedSection(null);
+    setDragOverSection(null);
+  }, [draggedSection]);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedSection(null);
+    setDragOverSection(null);
+  }, []);
+
+  const resetOrder = useCallback(() => {
+    setSectionOrder(DEFAULT_SECTION_ORDER);
+  }, []);
 
   const {
     weeklyData,
@@ -94,6 +167,29 @@ export default function BodyLeasing() {
     return data.daysWorked > 0 ? Number((data.recommendations / data.daysWorked).toFixed(2)) : 0;
   };
 
+  // Draggable section wrapper
+  const DraggableSection = ({ id, children }: { id: string; children: React.ReactNode }) => (
+    <div
+      draggable
+      onDragStart={(e) => handleDragStart(e, id)}
+      onDragOver={(e) => handleDragOver(e, id)}
+      onDragLeave={handleDragLeave}
+      onDrop={(e) => handleDrop(e, id)}
+      onDragEnd={handleDragEnd}
+      style={{ order: sectionOrder.indexOf(id) }}
+      className={`relative group transition-all duration-200 ${
+        draggedSection === id ? 'opacity-50 scale-[0.98]' : ''
+      } ${
+        dragOverSection === id ? 'ring-2 ring-blue-500 ring-offset-2 rounded-xl' : ''
+      }`}
+    >
+      <div className="absolute left-0 top-4 -translate-x-6 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing z-10">
+        <GripVertical className="w-5 h-5 text-gray-400" />
+      </div>
+      {children}
+    </div>
+  );
+
   if (error) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -111,8 +207,8 @@ export default function BodyLeasing() {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Mindy Section */}
+    <div className="flex flex-col gap-4 pl-6">
+      {/* Mindy Section - not draggable, always on top */}
       <MindyAvatar
         weeklyData={weeklyData}
         monthlyData={monthlyData}
@@ -213,10 +309,22 @@ export default function BodyLeasing() {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             Odswiez
           </button>
+          <button
+            onClick={resetOrder}
+            className="flex items-center gap-2 px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm"
+            title="Resetuj kolejnosc sekcji"
+          >
+            <GripVertical className="w-4 h-4" />
+            Reset
+          </button>
         </div>
       </div>
 
+      {/* Draggable sections container */}
+      <div className="flex flex-col gap-4">
+
       {/* Combined Summary Table */}
+      <DraggableSection id="weekly-summary">
       {displayData.length > 0 && (
         <CollapsibleSection
           title={`Podsumowanie ${getPeriodLabel()}`}
@@ -282,8 +390,10 @@ export default function BodyLeasing() {
           </table>
         </CollapsibleSection>
       )}
+      </DraggableSection>
 
       {/* Champions League Table */}
+      <DraggableSection id="champions-league">
       <CollapsibleSection
         title={`Liga Mistrzow - ${MONTHS_PL[selectedMonth]} ${selectedYear}`}
         subtitle="Punkty: Placement 100pkt | Interview 20pkt | Rekomendacja 10pkt"
@@ -292,8 +402,10 @@ export default function BodyLeasing() {
       >
         <ChampionsLeagueTable data={championsData} embedded />
       </CollapsibleSection>
+      </DraggableSection>
 
       {/* Monthly Data Table */}
+      <DraggableSection id="monthly-summary">
       {monthlyData.length > 0 && (
         <CollapsibleSection
           title={`Podsumowanie miesiaca: ${MONTHS_PL[selectedMonth]} ${selectedYear}`}
@@ -348,8 +460,10 @@ export default function BodyLeasing() {
           </table>
         </CollapsibleSection>
       )}
+      </DraggableSection>
 
       {/* Placements Tables */}
+      <DraggableSection id="placements-grid">
       <div className="grid md:grid-cols-2 gap-4">
         {/* Monthly Placements */}
         <CollapsibleSection
@@ -459,8 +573,10 @@ export default function BodyLeasing() {
           </table>
         </CollapsibleSection>
       </div>
+      </DraggableSection>
 
       {/* CV Added Tables */}
+      <DraggableSection id="cv-grid">
       <div className="grid md:grid-cols-3 gap-4">
         {/* Weekly CV */}
         <CollapsibleSection
@@ -573,8 +689,10 @@ export default function BodyLeasing() {
           </table>
         </CollapsibleSection>
       </div>
+      </DraggableSection>
 
       {/* Verifications per Placement */}
+      <DraggableSection id="verifications-per-placement">
       {allTimeVerifications.length > 0 && allTimePlacements.length > 0 && (
         <CollapsibleSection
           title="Weryfikacje na Placement"
@@ -646,8 +764,10 @@ export default function BodyLeasing() {
           </table>
         </CollapsibleSection>
       )}
+      </DraggableSection>
 
       {/* Monthly Conversion Trend */}
+      <DraggableSection id="monthly-trend">
       {monthlyTrendData.length > 0 && (
         <CollapsibleSection
           title="Trend konwersji miesiecznie"
@@ -705,8 +825,10 @@ export default function BodyLeasing() {
           </table>
         </CollapsibleSection>
       )}
+      </DraggableSection>
 
       {/* All-Time Verifications per Working Day */}
+      <DraggableSection id="all-time-verifications">
       {allTimeVerifications.length > 0 && (
         <CollapsibleSection
           title="Weryfikacje/dzien - Od poczatku"
@@ -758,8 +880,10 @@ export default function BodyLeasing() {
           </table>
         </CollapsibleSection>
       )}
+      </DraggableSection>
 
       {/* AI Report Generator */}
+      <DraggableSection id="ai-reports">
       <CollapsibleSection
         title="Generator Raportow AI"
         subtitle="Zapytaj o dane lub wygeneruj raport"
@@ -768,6 +892,9 @@ export default function BodyLeasing() {
       >
         <AIReportGenerator embedded />
       </CollapsibleSection>
+      </DraggableSection>
+
+      </div>
     </div>
   );
 }
