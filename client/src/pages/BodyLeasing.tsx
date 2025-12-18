@@ -405,6 +405,7 @@ export default function BodyLeasing() {
                 <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">#</th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600">Pracownik</th>
                 <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Dni pracy</th>
                 <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
                 <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Plac./mies.</th>
               </tr>
@@ -421,6 +422,9 @@ export default function BodyLeasing() {
                   }
                 }
                 const placementsPerMonth = (d.total_placements / months).toFixed(2);
+                // Get days worked from allTimeVerifications
+                const verificationData = allTimeVerifications.find(v => v.employeeId === d.employee_id);
+                const daysWorked = verificationData?.totalDaysWorked || 0;
 
                 return (
                 <tr key={d.employee_id} className={`hover:bg-gray-50 ${index < 3 ? 'bg-amber-50' : ''}`}>
@@ -437,6 +441,7 @@ export default function BodyLeasing() {
                       {d.position}
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-center text-gray-600">{daysWorked}</td>
                   <td className="px-4 py-3 text-center">
                     <span className={`font-bold text-lg ${d.total_placements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
                       {d.total_placements}
