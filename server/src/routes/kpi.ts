@@ -124,23 +124,71 @@ router.get('/employee/:id', (req: Request, res: Response) => {
     const { id } = req.params;
     const { weeks } = req.query;
     const weeksCount = weeks ? parseInt(weeks as string) : 12;
-    
+
     const employee = db.prepare('SELECT * FROM employees WHERE id = ?').get(id);
     if (!employee) {
       return res.status(404).json({ error: 'Employee not found' });
     }
-    
+
     const kpiData = db.prepare(`
       SELECT * FROM weekly_kpi
       WHERE employee_id = ?
       ORDER BY week_start DESC
       LIMIT ?
     `).all(id, weeksCount);
-    
+
     res.json({ employee, kpiData });
   } catch (error) {
     console.error('Employee KPI error:', error);
     res.status(500).json({ error: 'Failed to fetch employee KPI data' });
+  }
+});
+
+// Individual employee trend data (all time)
+router.get('/employee/:id/trends', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const employee = db.prepare('SELECT * FROM employees WHERE id = ?').get(id);
+    if (!employee) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    const kpiData = db.prepare(`
+      SELECT
+        week_start,
+        week_end,
+        year,
+        week_number,
+        month,
+        verifications,
+        cv_added,
+        recommendations,
+        interviews,
+        placements,
+        days_worked
+      FROM weekly_kpi
+      WHERE employee_id = ?
+      ORDER BY week_start ASC
+    `).all(id);
+
+    // Calculate team averages for comparison
+    const teamAverages = db.prepare(`
+      SELECT
+        week_start,
+        AVG(verifications) as avg_verifications,
+        AVG(cv_added) as avg_cv,
+        AVG(interviews) as avg_interviews,
+        AVG(placements) as avg_placements
+      FROM weekly_kpi
+      GROUP BY week_start
+      ORDER BY week_start ASC
+    `).all();
+
+    res.json({ employee, kpiData, teamAverages });
+  } catch (error) {
+    console.error('Employee trends error:', error);
+    res.status(500).json({ error: 'Failed to fetch employee trend data' });
   }
 });
 

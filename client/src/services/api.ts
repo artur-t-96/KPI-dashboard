@@ -216,6 +216,41 @@ export const getWeeklyVerificationTrend = async (): Promise<WeeklyVerificationTr
   return response.data;
 };
 
+// Individual Employee Trends
+export interface EmployeeTrendData {
+  employee: {
+    id: number;
+    name: string;
+    position: string;
+    is_active: number;
+  };
+  kpiData: Array<{
+    week_start: string;
+    week_end: string;
+    year: number;
+    week_number: number;
+    month: number;
+    verifications: number;
+    cv_added: number;
+    recommendations: number;
+    interviews: number;
+    placements: number;
+    days_worked: number;
+  }>;
+  teamAverages: Array<{
+    week_start: string;
+    avg_verifications: number;
+    avg_cv: number;
+    avg_interviews: number;
+    avg_placements: number;
+  }>;
+}
+
+export const getEmployeeTrends = async (employeeId: number): Promise<EmployeeTrendData> => {
+  const response = await api.get(`/kpi/employee/${employeeId}/trends`);
+  return response.data;
+};
+
 // Mindy
 export const getMindyResponse = async (): Promise<MindyResponse> => {
   const response = await api.get('/mindy');

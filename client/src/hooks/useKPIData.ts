@@ -14,6 +14,7 @@ import {
   getAllTimeVerifications,
   getMonthlyTrend,
   getWeeklyVerificationTrend,
+  getEmployees,
   AllTimePlacement,
   AllTimeVerifications,
   MonthlyTrend,
@@ -21,7 +22,7 @@ import {
   YearlyKPI,
   ChampionEntryPerDay
 } from '../services/api';
-import type { WeeklyKPI, MonthlyKPI, ChampionEntry, TrendData, SummaryData } from '../types';
+import type { WeeklyKPI, MonthlyKPI, ChampionEntry, TrendData, SummaryData, Employee } from '../types';
 
 export function useKPIData() {
   const [weeklyData, setWeeklyData] = useState<WeeklyKPI[]>([]);
@@ -36,6 +37,7 @@ export function useKPIData() {
   const [allTimeVerifications, setAllTimeVerifications] = useState<AllTimeVerifications[]>([]);
   const [monthlyTrendData, setMonthlyTrendData] = useState<MonthlyTrend[]>([]);
   const [weeklyVerificationTrend, setWeeklyVerificationTrend] = useState<WeeklyVerificationTrend[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [availableWeeks, setAvailableWeeks] = useState<any[]>([]);
   const [availableMonths, setAvailableMonths] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -50,7 +52,7 @@ export function useKPIData() {
     setError(null);
 
     try {
-      const [weekly, monthly, yearly, champions, championsWeekly, championsAllTime, trends, summary, allTime, allTimeVer, monthlyTrend, weeklyVerTrend, weeks, months] = await Promise.all([
+      const [weekly, monthly, yearly, champions, championsWeekly, championsAllTime, trends, summary, allTime, allTimeVer, monthlyTrend, weeklyVerTrend, employeesList, weeks, months] = await Promise.all([
         getWeeklyKPI(selectedWeek),
         getMonthlyKPI(selectedYear, selectedMonth),
         getYearlyKPI(selectedYear),
@@ -63,6 +65,7 @@ export function useKPIData() {
         getAllTimeVerifications(),
         getMonthlyTrend(),
         getWeeklyVerificationTrend(),
+        getEmployees(),
         getAvailableWeeks(),
         getAvailableMonths()
       ]);
@@ -79,6 +82,7 @@ export function useKPIData() {
       setAllTimeVerifications(allTimeVer);
       setMonthlyTrendData(monthlyTrend);
       setWeeklyVerificationTrend(weeklyVerTrend);
+      setEmployees(employeesList);
       setAvailableWeeks(weeks);
       setAvailableMonths(months);
     } catch (err: any) {
@@ -130,6 +134,7 @@ export function useKPIData() {
     allTimeVerifications,
     monthlyTrendData,
     weeklyVerificationTrend,
+    employees,
     weeklyByPosition,
     monthlyByPosition,
     teamAverages,
