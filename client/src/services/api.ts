@@ -216,6 +216,48 @@ export const getWeeklyVerificationTrend = async (): Promise<WeeklyVerificationTr
   return response.data;
 };
 
+export interface WeeklyCvTrend {
+  weekStart: string;
+  year: number;
+  weekNumber: number;
+  totalCv: number;
+  employeeCount: number;
+  avgCvPerPerson: number;
+}
+
+export const getWeeklyCvTrend = async (): Promise<WeeklyCvTrend[]> => {
+  const response = await api.get('/kpi/weekly-cv-trend');
+  return response.data;
+};
+
+export interface WeeklyInterviewsTrend {
+  weekStart: string;
+  year: number;
+  weekNumber: number;
+  totalInterviews: number;
+  employeeCount: number;
+  avgInterviewsPerPerson: number;
+}
+
+export const getWeeklyInterviewsTrend = async (): Promise<WeeklyInterviewsTrend[]> => {
+  const response = await api.get('/kpi/weekly-interviews-trend');
+  return response.data;
+};
+
+export interface WeeklyPlacementsTrend {
+  weekStart: string;
+  year: number;
+  weekNumber: number;
+  totalPlacements: number;
+  employeeCount: number;
+  avgPlacementsPerPerson: number;
+}
+
+export const getWeeklyPlacementsTrend = async (): Promise<WeeklyPlacementsTrend[]> => {
+  const response = await api.get('/kpi/weekly-placements-trend');
+  return response.data;
+};
+
 // Individual Employee Trends
 export interface EmployeeTrendData {
   employee: {

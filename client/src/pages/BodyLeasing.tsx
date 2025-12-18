@@ -132,6 +132,9 @@ export default function BodyLeasing() {
     allTimeVerifications,
     monthlyTrendData,
     weeklyVerificationTrend,
+    weeklyCvTrend,
+    weeklyInterviewsTrend,
+    weeklyPlacementsTrend,
     employees,
     availableWeeks,
     loading,
@@ -1556,6 +1559,282 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                     <div className="text-xs text-gray-500">Liczba tygodni</div>
                     <div className="text-xl font-bold text-purple-600">
                       {weeklyVerificationTrend.length}
+                    </div>
+                    <div className="text-xs text-gray-500">w danych</div>
+                  </div>
+                </div>
+              </div>
+            </CollapsibleSection>
+          )}
+
+          {/* Weekly CV Trend Chart */}
+          {weeklyCvTrend.length > 0 && (
+            <CollapsibleSection
+              title="Trend dodanych CV - tygodniowo"
+              subtitle="Ilosc dodanych CV zespolu od poczatku (niezalezne od wybranego okresu)"
+              icon="📄"
+              headerClassName="bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
+            >
+              <div className="p-4">
+                <ResponsiveContainer width="100%" height={350}>
+                  <LineChart
+                    data={weeklyCvTrend.map(d => ({
+                      ...d,
+                      label: `W${d.weekNumber}/${d.year}`
+                    }))}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis
+                      dataKey="label"
+                      tick={{ fontSize: 11 }}
+                      interval={Math.max(0, Math.floor(weeklyCvTrend.length / 10) - 1)}
+                    />
+                    <YAxis
+                      yAxisId="left"
+                      tick={{ fontSize: 11 }}
+                      label={{ value: 'Total', angle: -90, position: 'insideLeft', fontSize: 12 }}
+                    />
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      tick={{ fontSize: 11 }}
+                      label={{ value: 'Avg/osoba', angle: 90, position: 'insideRight', fontSize: 12 }}
+                    />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                      labelStyle={{ fontWeight: 'bold', marginBottom: '4px' }}
+                      formatter={(value: number, name: string) => [
+                        value.toLocaleString(),
+                        name === 'totalCv' ? 'CV total' : 'Srednia/osoba'
+                      ]}
+                    />
+                    <Legend
+                      formatter={(value) => value === 'totalCv' ? 'CV total' : 'Srednia na osobe'}
+                    />
+                    <Line
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="totalCv"
+                      stroke="#10b981"
+                      strokeWidth={2}
+                      dot={{ fill: '#10b981', r: 3 }}
+                      activeDot={{ r: 6 }}
+                    />
+                    <Line
+                      yAxisId="right"
+                      type="monotone"
+                      dataKey="avgCvPerPerson"
+                      stroke="#14b8a6"
+                      strokeWidth={2}
+                      dot={{ fill: '#14b8a6', r: 3 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+                <div className="mt-4 grid grid-cols-3 gap-4 text-center">
+                  <div className="bg-emerald-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-500">Ostatni tydzien</div>
+                    <div className="text-xl font-bold text-emerald-600">
+                      {weeklyCvTrend[weeklyCvTrend.length - 1]?.totalCv || 0}
+                    </div>
+                    <div className="text-xs text-gray-500">dodanych CV</div>
+                  </div>
+                  <div className="bg-teal-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-500">Srednia/osoba</div>
+                    <div className="text-xl font-bold text-teal-600">
+                      {weeklyCvTrend[weeklyCvTrend.length - 1]?.avgCvPerPerson || 0}
+                    </div>
+                    <div className="text-xs text-gray-500">ostatni tydzien</div>
+                  </div>
+                  <div className="bg-cyan-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-500">Liczba tygodni</div>
+                    <div className="text-xl font-bold text-cyan-600">
+                      {weeklyCvTrend.length}
+                    </div>
+                    <div className="text-xs text-gray-500">w danych</div>
+                  </div>
+                </div>
+              </div>
+            </CollapsibleSection>
+          )}
+
+          {/* Weekly Interviews Trend Chart */}
+          {weeklyInterviewsTrend.length > 0 && (
+            <CollapsibleSection
+              title="Trend interviews - tygodniowo"
+              subtitle="Ilosc interviews zespolu od poczatku (niezalezne od wybranego okresu)"
+              icon="🎯"
+              headerClassName="bg-gradient-to-r from-amber-500 to-orange-600 text-white"
+            >
+              <div className="p-4">
+                <ResponsiveContainer width="100%" height={350}>
+                  <LineChart
+                    data={weeklyInterviewsTrend.map(d => ({
+                      ...d,
+                      label: `W${d.weekNumber}/${d.year}`
+                    }))}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis
+                      dataKey="label"
+                      tick={{ fontSize: 11 }}
+                      interval={Math.max(0, Math.floor(weeklyInterviewsTrend.length / 10) - 1)}
+                    />
+                    <YAxis
+                      yAxisId="left"
+                      tick={{ fontSize: 11 }}
+                      label={{ value: 'Total', angle: -90, position: 'insideLeft', fontSize: 12 }}
+                    />
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      tick={{ fontSize: 11 }}
+                      label={{ value: 'Avg/osoba', angle: 90, position: 'insideRight', fontSize: 12 }}
+                    />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                      labelStyle={{ fontWeight: 'bold', marginBottom: '4px' }}
+                      formatter={(value: number, name: string) => [
+                        value.toLocaleString(),
+                        name === 'totalInterviews' ? 'Interviews total' : 'Srednia/osoba'
+                      ]}
+                    />
+                    <Legend
+                      formatter={(value) => value === 'totalInterviews' ? 'Interviews total' : 'Srednia na osobe'}
+                    />
+                    <Line
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="totalInterviews"
+                      stroke="#f59e0b"
+                      strokeWidth={2}
+                      dot={{ fill: '#f59e0b', r: 3 }}
+                      activeDot={{ r: 6 }}
+                    />
+                    <Line
+                      yAxisId="right"
+                      type="monotone"
+                      dataKey="avgInterviewsPerPerson"
+                      stroke="#ea580c"
+                      strokeWidth={2}
+                      dot={{ fill: '#ea580c', r: 3 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+                <div className="mt-4 grid grid-cols-3 gap-4 text-center">
+                  <div className="bg-amber-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-500">Ostatni tydzien</div>
+                    <div className="text-xl font-bold text-amber-600">
+                      {weeklyInterviewsTrend[weeklyInterviewsTrend.length - 1]?.totalInterviews || 0}
+                    </div>
+                    <div className="text-xs text-gray-500">interviews</div>
+                  </div>
+                  <div className="bg-orange-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-500">Srednia/osoba</div>
+                    <div className="text-xl font-bold text-orange-600">
+                      {weeklyInterviewsTrend[weeklyInterviewsTrend.length - 1]?.avgInterviewsPerPerson || 0}
+                    </div>
+                    <div className="text-xs text-gray-500">ostatni tydzien</div>
+                  </div>
+                  <div className="bg-yellow-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-500">Liczba tygodni</div>
+                    <div className="text-xl font-bold text-yellow-600">
+                      {weeklyInterviewsTrend.length}
+                    </div>
+                    <div className="text-xs text-gray-500">w danych</div>
+                  </div>
+                </div>
+              </div>
+            </CollapsibleSection>
+          )}
+
+          {/* Weekly Placements Trend Chart */}
+          {weeklyPlacementsTrend.length > 0 && (
+            <CollapsibleSection
+              title="Trend placements - tygodniowo"
+              subtitle="Ilosc placements zespolu od poczatku (niezalezne od wybranego okresu)"
+              icon="🏆"
+              headerClassName="bg-gradient-to-r from-rose-500 to-pink-600 text-white"
+            >
+              <div className="p-4">
+                <ResponsiveContainer width="100%" height={350}>
+                  <LineChart
+                    data={weeklyPlacementsTrend.map(d => ({
+                      ...d,
+                      label: `W${d.weekNumber}/${d.year}`
+                    }))}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                    <XAxis
+                      dataKey="label"
+                      tick={{ fontSize: 11 }}
+                      interval={Math.max(0, Math.floor(weeklyPlacementsTrend.length / 10) - 1)}
+                    />
+                    <YAxis
+                      yAxisId="left"
+                      tick={{ fontSize: 11 }}
+                      label={{ value: 'Total', angle: -90, position: 'insideLeft', fontSize: 12 }}
+                    />
+                    <YAxis
+                      yAxisId="right"
+                      orientation="right"
+                      tick={{ fontSize: 11 }}
+                      label={{ value: 'Avg/osoba', angle: 90, position: 'insideRight', fontSize: 12 }}
+                    />
+                    <Tooltip
+                      contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}
+                      labelStyle={{ fontWeight: 'bold', marginBottom: '4px' }}
+                      formatter={(value: number, name: string) => [
+                        value.toLocaleString(),
+                        name === 'totalPlacements' ? 'Placements total' : 'Srednia/osoba'
+                      ]}
+                    />
+                    <Legend
+                      formatter={(value) => value === 'totalPlacements' ? 'Placements total' : 'Srednia na osobe'}
+                    />
+                    <Line
+                      yAxisId="left"
+                      type="monotone"
+                      dataKey="totalPlacements"
+                      stroke="#f43f5e"
+                      strokeWidth={2}
+                      dot={{ fill: '#f43f5e', r: 3 }}
+                      activeDot={{ r: 6 }}
+                    />
+                    <Line
+                      yAxisId="right"
+                      type="monotone"
+                      dataKey="avgPlacementsPerPerson"
+                      stroke="#ec4899"
+                      strokeWidth={2}
+                      dot={{ fill: '#ec4899', r: 3 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+                <div className="mt-4 grid grid-cols-3 gap-4 text-center">
+                  <div className="bg-rose-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-500">Ostatni tydzien</div>
+                    <div className="text-xl font-bold text-rose-600">
+                      {weeklyPlacementsTrend[weeklyPlacementsTrend.length - 1]?.totalPlacements || 0}
+                    </div>
+                    <div className="text-xs text-gray-500">placements</div>
+                  </div>
+                  <div className="bg-pink-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-500">Srednia/osoba</div>
+                    <div className="text-xl font-bold text-pink-600">
+                      {weeklyPlacementsTrend[weeklyPlacementsTrend.length - 1]?.avgPlacementsPerPerson || 0}
+                    </div>
+                    <div className="text-xs text-gray-500">ostatni tydzien</div>
+                  </div>
+                  <div className="bg-fuchsia-50 rounded-lg p-3">
+                    <div className="text-xs text-gray-500">Liczba tygodni</div>
+                    <div className="text-xl font-bold text-fuchsia-600">
+                      {weeklyPlacementsTrend.length}
                     </div>
                     <div className="text-xs text-gray-500">w danych</div>
                   </div>

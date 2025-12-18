@@ -329,6 +329,105 @@ router.get('/weekly-verification-trend', (req: Request, res: Response) => {
   }
 });
 
+// Weekly CV trend data (all-time)
+router.get('/weekly-cv-trend', (req: Request, res: Response) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        week_start,
+        year,
+        week_number,
+        COALESCE(SUM(cv_added), 0) as total_cv,
+        COUNT(DISTINCT employee_id) as employee_count
+      FROM weekly_kpi
+      GROUP BY week_start, year, week_number
+      ORDER BY week_start ASC
+    `).all() as any[];
+
+    const result = rows.map(row => ({
+      weekStart: row.week_start,
+      year: row.year,
+      weekNumber: row.week_number,
+      totalCv: row.total_cv,
+      employeeCount: row.employee_count,
+      avgCvPerPerson: row.employee_count > 0
+        ? Number((row.total_cv / row.employee_count).toFixed(1))
+        : 0
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error('Weekly CV trend error:', error);
+    res.status(500).json({ error: 'Failed to fetch weekly CV trend data' });
+  }
+});
+
+// Weekly interviews trend data (all-time)
+router.get('/weekly-interviews-trend', (req: Request, res: Response) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        week_start,
+        year,
+        week_number,
+        COALESCE(SUM(interviews), 0) as total_interviews,
+        COUNT(DISTINCT employee_id) as employee_count
+      FROM weekly_kpi
+      GROUP BY week_start, year, week_number
+      ORDER BY week_start ASC
+    `).all() as any[];
+
+    const result = rows.map(row => ({
+      weekStart: row.week_start,
+      year: row.year,
+      weekNumber: row.week_number,
+      totalInterviews: row.total_interviews,
+      employeeCount: row.employee_count,
+      avgInterviewsPerPerson: row.employee_count > 0
+        ? Number((row.total_interviews / row.employee_count).toFixed(1))
+        : 0
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error('Weekly interviews trend error:', error);
+    res.status(500).json({ error: 'Failed to fetch weekly interviews trend data' });
+  }
+});
+
+// Weekly placements trend data (all-time)
+router.get('/weekly-placements-trend', (req: Request, res: Response) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        week_start,
+        year,
+        week_number,
+        COALESCE(SUM(placements), 0) as total_placements,
+        COUNT(DISTINCT employee_id) as employee_count
+      FROM weekly_kpi
+      GROUP BY week_start, year, week_number
+      ORDER BY week_start ASC
+    `).all() as any[];
+
+    const result = rows.map(row => ({
+      weekStart: row.week_start,
+      year: row.year,
+      weekNumber: row.week_number,
+      totalPlacements: row.total_placements,
+      employeeCount: row.employee_count,
+      avgPlacementsPerPerson: row.employee_count > 0
+        ? Number((row.total_placements / row.employee_count).toFixed(1))
+        : 0
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error('Weekly placements trend error:', error);
+    res.status(500).json({ error: 'Failed to fetch weekly placements trend data' });
+  }
+});
+
 // Yearly KPI data
 router.get('/yearly', (req: Request, res: Response) => {
   try {
