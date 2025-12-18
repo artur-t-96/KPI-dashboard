@@ -397,9 +397,9 @@ export default function BodyLeasing() {
       )}
       </DraggableSection>
 
-      {/* Champions League Tables - 3 views */}
+      {/* Champions League Tables - 3 views stacked */}
       <DraggableSection id="champions-league">
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="flex flex-col gap-4">
         {/* Weekly Champions */}
         <CollapsibleSection
           title={`Liga Mistrzow - Tydzien`}
@@ -422,18 +422,23 @@ export default function BodyLeasing() {
 
         {/* All-Time Per Day Champions */}
         <CollapsibleSection
-          title="Liga Mistrzow - /dzien"
-          subtitle="Punkty w przeliczeniu na dzien pracy"
+          title="Liga Mistrzow - /dzien (od poczatku)"
+          subtitle="Punkty w przeliczeniu na dzien pracy | 100pkt=Plac | 10pkt=Int | 2pkt=Rek | 1pkt=Wer/CV"
           icon="🏆"
           headerClassName="bg-gradient-to-r from-amber-500 to-orange-600 text-white"
         >
-          <table className="w-full text-sm">
+          <table className="w-full">
             <thead className="bg-gray-50 border-b">
               <tr>
-                <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600">#</th>
-                <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600">Pracownik</th>
-                <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600">Dni</th>
-                <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600">Pkt/dzien</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">#</th>
+                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Pracownik</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">💼</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">🎤</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">📤</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">✓</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">📄</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Dni</th>
+                <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">PKT/DZIEN</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -442,15 +447,15 @@ export default function BodyLeasing() {
                   key={entry.employeeId}
                   className={`hover:bg-gray-50 transition-colors ${index < 3 ? 'bg-yellow-50/50' : ''}`}
                 >
-                  <td className="px-2 py-2 whitespace-nowrap">
-                    <span className={`${index < 3 ? 'text-lg' : 'text-gray-500 text-sm'}`}>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <span className={`text-lg ${index < 3 ? 'text-2xl' : 'text-gray-500'}`}>
                       {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
                     </span>
                   </td>
-                  <td className="px-2 py-2 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <div>
-                      <p className="font-medium text-gray-900 text-sm">{entry.name}</p>
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                      <p className="font-medium text-gray-900">{entry.name}</p>
+                      <span className={`text-xs px-2 py-0.5 rounded-full ${
                         entry.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
                         entry.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
                         'bg-purple-100 text-purple-800'
@@ -459,13 +464,39 @@ export default function BodyLeasing() {
                       </span>
                     </div>
                   </td>
-                  <td className="px-2 py-2 text-center text-gray-600 text-sm">{entry.totalDaysWorked}</td>
-                  <td className="px-2 py-2 text-center">
-                    <span className={`font-bold ${
-                      index === 0 ? 'text-yellow-600 text-lg' :
-                      index < 3 ? 'text-amber-600' :
-                      'text-gray-900'
-                    }`}>
+                  <td className="px-4 py-3 text-center">
+                    <div>
+                      <span className="font-semibold text-gray-900">{entry.placements}</span>
+                      <span className="text-xs text-gray-500 block">{entry.placementsPerDay}/d</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <div>
+                      <span className="font-semibold text-gray-900">{entry.interviews}</span>
+                      <span className="text-xs text-gray-500 block">{entry.interviewsPerDay}/d</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <div>
+                      <span className="font-semibold text-gray-900">{entry.recommendations}</span>
+                      <span className="text-xs text-gray-500 block">{entry.recommendationsPerDay}/d</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <div>
+                      <span className="font-semibold text-gray-900">{entry.verifications}</span>
+                      <span className="text-xs text-gray-500 block">{entry.verificationsPerDay}/d</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <div>
+                      <span className="font-semibold text-gray-900">{entry.cvAdded}</span>
+                      <span className="text-xs text-gray-500 block">{entry.cvPerDay}/d</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-center text-gray-600">{entry.totalDaysWorked}</td>
+                  <td className="px-4 py-3 text-right">
+                    <span className={`font-bold text-lg ${index === 0 ? 'text-yellow-600' : index < 3 ? 'text-amber-600' : 'text-gray-900'}`}>
                       {entry.pointsPerDay}
                     </span>
                   </td>
@@ -473,8 +504,10 @@ export default function BodyLeasing() {
               ))}
             </tbody>
           </table>
-          <div className="bg-gray-50 px-2 py-2 border-t text-xs text-gray-500">
-            Punkty: 💼100 | 🎤10 | 📤2 | ✓1 | 📄1
+          <div className="bg-gray-50 px-4 py-3 border-t">
+            <p className="text-xs text-gray-500">
+              💼 Placements (100pkt) | 🎤 Interviews (10pkt) | 📤 Rekomendacje (2pkt) | ✓ Weryfikacje (1pkt) | 📄 CV dodane (1pkt)
+            </p>
           </div>
         </CollapsibleSection>
       </div>
