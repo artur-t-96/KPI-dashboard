@@ -116,6 +116,17 @@ export default function MindyAvatar({
     const allTimePlacementsPerMonth = allTimeMonths > 0 ? (allTimeTotalPlacements / allTimeMonths).toFixed(2) : '0';
     const allTimePlacementTarget = weeklyData.length; // 1 per person per month
 
+    // Team-wide verifications per placement
+    const teamVerificationsPerPlacement = allTimeTotalPlacements > 0
+      ? (allTimeTotalVerifications / allTimeTotalPlacements).toFixed(1)
+      : '∞';
+
+    // All-time interviews
+    const allTimeTotalInterviews = allTimePlacements.reduce((sum, d) => sum + d.total_interviews, 0);
+    const teamInterviewsPerPlacement = allTimeTotalPlacements > 0
+      ? (allTimeTotalInterviews / allTimeTotalPlacements).toFixed(1)
+      : '∞';
+
     const overallAchievement = Math.round((verificationAchievement + cvAchievement + placementAchievement) / 3);
 
     return {
@@ -139,8 +150,12 @@ export default function MindyAvatar({
       allTimeVerPerDay,
       allTimeCVPerDay,
       allTimeTotalPlacements,
+      allTimeTotalVerifications,
+      allTimeTotalInterviews,
       allTimePlacementsPerMonth,
-      allTimePlacementTarget
+      allTimePlacementTarget,
+      teamVerificationsPerPlacement,
+      teamInterviewsPerPlacement
     };
   };
 
@@ -307,6 +322,18 @@ export default function MindyAvatar({
                   <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Dni pracy:</span>
                   <span className={`text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                     {stats.allTimeTotalDays}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center pt-1 border-t border-gray-200 dark:border-gray-600 mt-1">
+                  <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Wer./Plac.:</span>
+                  <span className={`text-sm font-bold ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
+                    {stats.teamVerificationsPerPlacement}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Int./Plac.:</span>
+                  <span className={`text-sm font-bold ${isDark ? 'text-indigo-300' : 'text-indigo-700'}`}>
+                    {stats.teamInterviewsPerPlacement}
                   </span>
                 </div>
               </div>
