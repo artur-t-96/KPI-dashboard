@@ -156,6 +156,21 @@ export const getYearlyKPI = async (year?: number): Promise<YearlyKPI[]> => {
   return response.data;
 };
 
+export interface MonthlyTrend {
+  year: number;
+  month: number;
+  totalVerifications: number;
+  totalInterviews: number;
+  totalPlacements: number;
+  verificationsPerPlacement: number | null;
+  interviewsPerPlacement: number | null;
+}
+
+export const getMonthlyTrend = async (): Promise<MonthlyTrend[]> => {
+  const response = await api.get('/kpi/monthly-trend');
+  return response.data;
+};
+
 // Mindy
 export const getMindyResponse = async (): Promise<MindyResponse> => {
   const response = await api.get('/mindy');

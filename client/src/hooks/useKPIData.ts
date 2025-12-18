@@ -10,8 +10,10 @@ import {
   getAvailableMonths,
   getAllTimePlacements,
   getAllTimeVerifications,
+  getMonthlyTrend,
   AllTimePlacement,
   AllTimeVerifications,
+  MonthlyTrend,
   YearlyKPI
 } from '../services/api';
 import type { WeeklyKPI, MonthlyKPI, ChampionEntry, TrendData, SummaryData } from '../types';
@@ -25,6 +27,7 @@ export function useKPIData() {
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
   const [allTimePlacements, setAllTimePlacements] = useState<AllTimePlacement[]>([]);
   const [allTimeVerifications, setAllTimeVerifications] = useState<AllTimeVerifications[]>([]);
+  const [monthlyTrendData, setMonthlyTrendData] = useState<MonthlyTrend[]>([]);
   const [availableWeeks, setAvailableWeeks] = useState<any[]>([]);
   const [availableMonths, setAvailableMonths] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,7 +42,7 @@ export function useKPIData() {
     setError(null);
 
     try {
-      const [weekly, monthly, yearly, champions, trends, summary, allTime, allTimeVer, weeks, months] = await Promise.all([
+      const [weekly, monthly, yearly, champions, trends, summary, allTime, allTimeVer, monthlyTrend, weeks, months] = await Promise.all([
         getWeeklyKPI(selectedWeek),
         getMonthlyKPI(selectedYear, selectedMonth),
         getYearlyKPI(selectedYear),
@@ -48,6 +51,7 @@ export function useKPIData() {
         getSummary(),
         getAllTimePlacements(),
         getAllTimeVerifications(),
+        getMonthlyTrend(),
         getAvailableWeeks(),
         getAvailableMonths()
       ]);
@@ -60,6 +64,7 @@ export function useKPIData() {
       setSummaryData(summary);
       setAllTimePlacements(allTime);
       setAllTimeVerifications(allTimeVer);
+      setMonthlyTrendData(monthlyTrend);
       setAvailableWeeks(weeks);
       setAvailableMonths(months);
     } catch (err: any) {
@@ -107,6 +112,7 @@ export function useKPIData() {
     summaryData,
     allTimePlacements,
     allTimeVerifications,
+    monthlyTrendData,
     weeklyByPosition,
     monthlyByPosition,
     teamAverages,

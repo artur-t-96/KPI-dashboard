@@ -21,6 +21,7 @@ export default function BodyLeasing() {
     championsData,
     allTimePlacements,
     allTimeVerifications,
+    monthlyTrendData,
     availableWeeks,
     loading,
     error,
@@ -641,6 +642,65 @@ export default function BodyLeasing() {
                     </td>
                   </tr>
                 ))}
+            </tbody>
+          </table>
+        </CollapsibleSection>
+      )}
+
+      {/* Monthly Conversion Trend */}
+      {monthlyTrendData.length > 0 && (
+        <CollapsibleSection
+          title="Trend konwersji miesiecznie"
+          subtitle="Ile weryfikacji i interviews potrzeba na jeden placement"
+          icon="📊"
+          headerClassName="bg-gradient-to-r from-indigo-500 to-violet-600 text-white"
+        >
+          <table className="w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Miesiac</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Weryfikacje</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Interviews</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Wer./Plac.</th>
+                <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Int./Plac.</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {monthlyTrendData.map((d) => (
+                <tr key={`${d.year}-${d.month}`} className="hover:bg-gray-50">
+                  <td className="px-4 py-3 text-center font-medium">
+                    {MONTHS_PL[d.month]} {d.year}
+                  </td>
+                  <td className="px-4 py-3 text-center text-gray-600">{d.totalVerifications}</td>
+                  <td className="px-4 py-3 text-center text-gray-600">{d.totalInterviews}</td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`font-bold ${d.totalPlacements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                      {d.totalPlacements}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`font-bold ${
+                      d.verificationsPerPlacement === null ? 'text-gray-400' :
+                      d.verificationsPerPlacement <= 50 ? 'text-green-600' :
+                      d.verificationsPerPlacement <= 100 ? 'text-yellow-600' :
+                      'text-red-600'
+                    }`}>
+                      {d.verificationsPerPlacement ?? '—'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-center">
+                    <span className={`font-bold ${
+                      d.interviewsPerPlacement === null ? 'text-gray-400' :
+                      d.interviewsPerPlacement <= 3 ? 'text-green-600' :
+                      d.interviewsPerPlacement <= 5 ? 'text-yellow-600' :
+                      'text-red-600'
+                    }`}>
+                      {d.interviewsPerPlacement ?? '—'}
+                    </span>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </CollapsibleSection>

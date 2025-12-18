@@ -188,6 +188,43 @@ router.get('/summary', (req: Request, res: Response) => {
   }
 });
 
+// Monthly conversion trend data
+router.get('/monthly-trend', (req: Request, res: Response) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        year,
+        month,
+        COALESCE(SUM(verifications), 0) as total_verifications,
+        COALESCE(SUM(interviews), 0) as total_interviews,
+        COALESCE(SUM(placements), 0) as total_placements
+      FROM weekly_kpi
+      GROUP BY year, month
+      ORDER BY year DESC, month DESC
+      LIMIT 12
+    `).all() as any[];
+
+    const result = rows.map(row => ({
+      year: row.year,
+      month: row.month,
+      totalVerifications: row.total_verifications,
+      totalInterviews: row.total_interviews,
+      totalPlacements: row.total_placements,
+      verificationsPerPlacement: row.total_placements > 0
+        ? Number((row.total_verifications / row.total_placements).toFixed(1))
+        : null,
+      interviewsPerPlacement: row.total_placements > 0
+        ? Number((row.total_interviews / row.total_placements).toFixed(1))
+        : null
+    })).reverse(); // Reverse to show oldest first
+
+    res.json(result);
+  } catch (error) {
+    console.error('Monthly trend error:', error);
+    res.status(500).json({ error: 'Failed to fetch monthly trend data' });
+  }
+});
+
 // Yearly KPI data
 router.get('/yearly', (req: Request, res: Response) => {
   try {
