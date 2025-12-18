@@ -1,9 +1,11 @@
 import { Router, Request, Response } from 'express';
 import db from '../db/connection';
-import { 
-  getWeeklyKPI, 
-  getMonthlyKPI, 
-  getChampionsLeague, 
+import {
+  getWeeklyKPI,
+  getMonthlyKPI,
+  getChampionsLeague,
+  getChampionsLeagueWeekly,
+  getChampionsLeagueAllTimePerDay,
   getTrends,
   getAvailableWeeks,
   getAvailableMonths
@@ -47,6 +49,27 @@ router.get('/champions', (req: Request, res: Response) => {
   } catch (error) {
     console.error('Champions League error:', error);
     res.status(500).json({ error: 'Failed to fetch Champions League data' });
+  }
+});
+
+router.get('/champions/weekly', (req: Request, res: Response) => {
+  try {
+    const { week } = req.query;
+    const data = getChampionsLeagueWeekly(week as string);
+    res.json(data);
+  } catch (error) {
+    console.error('Champions League Weekly error:', error);
+    res.status(500).json({ error: 'Failed to fetch weekly Champions League data' });
+  }
+});
+
+router.get('/champions/all-time-per-day', (req: Request, res: Response) => {
+  try {
+    const data = getChampionsLeagueAllTimePerDay();
+    res.json(data);
+  } catch (error) {
+    console.error('Champions League All-Time Per Day error:', error);
+    res.status(500).json({ error: 'Failed to fetch all-time per day Champions League data' });
   }
 });
 

@@ -4,6 +4,8 @@ import {
   getMonthlyKPI,
   getYearlyKPI,
   getChampionsLeague,
+  getChampionsLeagueWeekly,
+  getChampionsLeagueAllTimePerDay,
   getTrends,
   getSummary,
   getAvailableWeeks,
@@ -16,7 +18,8 @@ import {
   AllTimeVerifications,
   MonthlyTrend,
   WeeklyVerificationTrend,
-  YearlyKPI
+  YearlyKPI,
+  ChampionEntryPerDay
 } from '../services/api';
 import type { WeeklyKPI, MonthlyKPI, ChampionEntry, TrendData, SummaryData } from '../types';
 
@@ -25,6 +28,8 @@ export function useKPIData() {
   const [monthlyData, setMonthlyData] = useState<MonthlyKPI[]>([]);
   const [yearlyData, setYearlyData] = useState<YearlyKPI[]>([]);
   const [championsData, setChampionsData] = useState<ChampionEntry[]>([]);
+  const [championsWeeklyData, setChampionsWeeklyData] = useState<ChampionEntry[]>([]);
+  const [championsAllTimePerDay, setChampionsAllTimePerDay] = useState<ChampionEntryPerDay[]>([]);
   const [trendsData, setTrendsData] = useState<TrendData[]>([]);
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
   const [allTimePlacements, setAllTimePlacements] = useState<AllTimePlacement[]>([]);
@@ -45,11 +50,13 @@ export function useKPIData() {
     setError(null);
 
     try {
-      const [weekly, monthly, yearly, champions, trends, summary, allTime, allTimeVer, monthlyTrend, weeklyVerTrend, weeks, months] = await Promise.all([
+      const [weekly, monthly, yearly, champions, championsWeekly, championsAllTime, trends, summary, allTime, allTimeVer, monthlyTrend, weeklyVerTrend, weeks, months] = await Promise.all([
         getWeeklyKPI(selectedWeek),
         getMonthlyKPI(selectedYear, selectedMonth),
         getYearlyKPI(selectedYear),
         getChampionsLeague(selectedYear, selectedMonth),
+        getChampionsLeagueWeekly(selectedWeek),
+        getChampionsLeagueAllTimePerDay(),
         getTrends(), // Fetch all trend data
         getSummary(),
         getAllTimePlacements(),
@@ -64,6 +71,8 @@ export function useKPIData() {
       setMonthlyData(monthly);
       setYearlyData(yearly);
       setChampionsData(champions);
+      setChampionsWeeklyData(championsWeekly);
+      setChampionsAllTimePerDay(championsAllTime);
       setTrendsData(trends);
       setSummaryData(summary);
       setAllTimePlacements(allTime);
@@ -113,6 +122,8 @@ export function useKPIData() {
     monthlyData,
     yearlyData,
     championsData,
+    championsWeeklyData,
+    championsAllTimePerDay,
     trendsData,
     summaryData,
     allTimePlacements,

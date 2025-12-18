@@ -75,6 +75,37 @@ export const getChampionsLeague = async (year?: number, month?: number): Promise
   return response.data;
 };
 
+export const getChampionsLeagueWeekly = async (week?: string): Promise<ChampionEntry[]> => {
+  const params = week ? { week } : {};
+  const response = await api.get('/kpi/champions/weekly', { params });
+  return response.data;
+};
+
+export interface ChampionEntryPerDay {
+  rank: number;
+  employeeId: number;
+  name: string;
+  position: string;
+  placements: number;
+  interviews: number;
+  recommendations: number;
+  verifications: number;
+  cvAdded: number;
+  totalDaysWorked: number;
+  placementsPerDay: number;
+  interviewsPerDay: number;
+  recommendationsPerDay: number;
+  verificationsPerDay: number;
+  cvPerDay: number;
+  totalPoints: number;
+  pointsPerDay: number;
+}
+
+export const getChampionsLeagueAllTimePerDay = async (): Promise<ChampionEntryPerDay[]> => {
+  const response = await api.get('/kpi/champions/all-time-per-day');
+  return response.data;
+};
+
 export const getTrends = async (): Promise<TrendData[]> => {
   // Fetch all trend data without week limit
   const response = await api.get('/kpi/trends');

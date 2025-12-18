@@ -94,6 +94,8 @@ export default function BodyLeasing() {
     monthlyData,
     yearlyData,
     championsData,
+    championsWeeklyData,
+    championsAllTimePerDay,
     allTimePlacements,
     allTimeVerifications,
     monthlyTrendData,
@@ -395,16 +397,87 @@ export default function BodyLeasing() {
       )}
       </DraggableSection>
 
-      {/* Champions League Table */}
+      {/* Champions League Tables - 3 views */}
       <DraggableSection id="champions-league">
-      <CollapsibleSection
-        title={`Liga Mistrzow - ${MONTHS_PL[selectedMonth]} ${selectedYear}`}
-        subtitle="Punkty: Placement 100pkt | Interview 20pkt | Rekomendacja 10pkt"
-        icon="🏆"
-        headerClassName="bg-gradient-to-r from-yellow-500 to-amber-600 text-white"
-      >
-        <ChampionsLeagueTable data={championsData} embedded />
-      </CollapsibleSection>
+      <div className="grid md:grid-cols-3 gap-4">
+        {/* Weekly Champions */}
+        <CollapsibleSection
+          title={`Liga Mistrzow - Tydzien`}
+          subtitle="100pkt=Plac | 10pkt=Int | 2pkt=Rek | 1pkt=Wer/CV"
+          icon="🏆"
+          headerClassName="bg-gradient-to-r from-yellow-400 to-amber-500 text-white"
+        >
+          <ChampionsLeagueTable data={championsWeeklyData} embedded />
+        </CollapsibleSection>
+
+        {/* Monthly Champions */}
+        <CollapsibleSection
+          title={`Liga Mistrzow - ${MONTHS_PL[selectedMonth]}`}
+          subtitle="100pkt=Plac | 10pkt=Int | 2pkt=Rek | 1pkt=Wer/CV"
+          icon="🏆"
+          headerClassName="bg-gradient-to-r from-yellow-500 to-amber-600 text-white"
+        >
+          <ChampionsLeagueTable data={championsData} embedded />
+        </CollapsibleSection>
+
+        {/* All-Time Per Day Champions */}
+        <CollapsibleSection
+          title="Liga Mistrzow - /dzien"
+          subtitle="Punkty w przeliczeniu na dzien pracy"
+          icon="🏆"
+          headerClassName="bg-gradient-to-r from-amber-500 to-orange-600 text-white"
+        >
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600">#</th>
+                <th className="px-2 py-2 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600">Dni</th>
+                <th className="px-2 py-2 text-center text-xs font-semibold text-gray-600">Pkt/dzien</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {championsAllTimePerDay.map((entry, index) => (
+                <tr
+                  key={entry.employeeId}
+                  className={`hover:bg-gray-50 transition-colors ${index < 3 ? 'bg-yellow-50/50' : ''}`}
+                >
+                  <td className="px-2 py-2 whitespace-nowrap">
+                    <span className={`${index < 3 ? 'text-lg' : 'text-gray-500 text-sm'}`}>
+                      {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                    </span>
+                  </td>
+                  <td className="px-2 py-2 whitespace-nowrap">
+                    <div>
+                      <p className="font-medium text-gray-900 text-sm">{entry.name}</p>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                        entry.position === 'Sourcer' ? 'bg-blue-100 text-blue-800' :
+                        entry.position === 'Rekruter' ? 'bg-green-100 text-green-800' :
+                        'bg-purple-100 text-purple-800'
+                      }`}>
+                        {entry.position}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="px-2 py-2 text-center text-gray-600 text-sm">{entry.totalDaysWorked}</td>
+                  <td className="px-2 py-2 text-center">
+                    <span className={`font-bold ${
+                      index === 0 ? 'text-yellow-600 text-lg' :
+                      index < 3 ? 'text-amber-600' :
+                      'text-gray-900'
+                    }`}>
+                      {entry.pointsPerDay}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="bg-gray-50 px-2 py-2 border-t text-xs text-gray-500">
+            Punkty: 💼100 | 🎤10 | 📤2 | ✓1 | 📄1
+          </div>
+        </CollapsibleSection>
+      </div>
       </DraggableSection>
 
       {/* Monthly Data Table */}

@@ -148,9 +148,9 @@ export function getChampionsLeague(year?: number, month?: number) {
   const currentDate = new Date();
   const targetYear = year || currentDate.getFullYear();
   const targetMonth = month || currentDate.getMonth() + 1;
-  
+
   const query = `
-    SELECT 
+    SELECT
       e.id as employee_id,
       e.name,
       e.position,
@@ -171,9 +171,9 @@ export function getChampionsLeague(year?: number, month?: number) {
     GROUP BY e.id, e.name, e.position
     ORDER BY total_points DESC
   `;
-  
+
   const rows = db.prepare(query).all(targetYear, targetMonth) as any[];
-  
+
   return rows.map((row, index) => ({
     rank: index + 1,
     employeeId: row.employee_id,
@@ -190,6 +190,118 @@ export function getChampionsLeague(year?: number, month?: number) {
     verificationPoints: row.verification_points,
     cvPoints: row.cv_points,
     totalPoints: row.total_points
+  }));
+}
+
+export function getChampionsLeagueWeekly(weekStart?: string) {
+  let query = `
+    SELECT
+      e.id as employee_id,
+      e.name,
+      e.position,
+      COALESCE(w.placements, 0) as placements,
+      COALESCE(w.interviews, 0) as interviews,
+      COALESCE(w.recommendations, 0) as recommendations,
+      COALESCE(w.verifications, 0) as verifications,
+      COALESCE(w.cv_added, 0) as cv_added,
+      COALESCE(w.placements * 100, 0) as placement_points,
+      COALESCE(w.interviews * 10, 0) as interview_points,
+      COALESCE(w.recommendations * 2, 0) as recommendation_points,
+      COALESCE(w.verifications, 0) as verification_points,
+      COALESCE(w.cv_added, 0) as cv_points,
+      COALESCE(w.placements * 100 + w.interviews * 10 + w.recommendations * 2 + w.verifications + w.cv_added, 0) as total_points
+    FROM employees e
+    LEFT JOIN weekly_kpi w ON e.id = w.employee_id
+  `;
+
+  const params: any[] = [];
+
+  if (weekStart) {
+    query += ' AND w.week_start = ?';
+    params.push(weekStart);
+  } else {
+    query += ' AND w.week_start = (SELECT MAX(week_start) FROM weekly_kpi)';
+  }
+
+  query += `
+    WHERE e.is_active = 1
+    ORDER BY total_points DESC
+  `;
+
+  const rows = db.prepare(query).all(...params) as any[];
+
+  return rows.map((row, index) => ({
+    rank: index + 1,
+    employeeId: row.employee_id,
+    name: row.name,
+    position: row.position,
+    placements: row.placements || 0,
+    interviews: row.interviews || 0,
+    recommendations: row.recommendations || 0,
+    verifications: row.verifications || 0,
+    cvAdded: row.cv_added || 0,
+    placementPoints: row.placement_points || 0,
+    interviewPoints: row.interview_points || 0,
+    recommendationPoints: row.recommendation_points || 0,
+    verificationPoints: row.verification_points || 0,
+    cvPoints: row.cv_points || 0,
+    totalPoints: row.total_points || 0
+  }));
+}
+
+export function getChampionsLeagueAllTimePerDay() {
+  const query = `
+    SELECT
+      e.id as employee_id,
+      e.name,
+      e.position,
+      COALESCE(SUM(w.placements), 0) as placements,
+      COALESCE(SUM(w.interviews), 0) as interviews,
+      COALESCE(SUM(w.recommendations), 0) as recommendations,
+      COALESCE(SUM(w.verifications), 0) as verifications,
+      COALESCE(SUM(w.cv_added), 0) as cv_added,
+      COALESCE(SUM(w.days_worked), 0) as total_days_worked,
+      COALESCE(SUM(w.placements * 100 + w.interviews * 10 + w.recommendations * 2 + w.verifications + w.cv_added), 0) as total_points
+    FROM employees e
+    LEFT JOIN weekly_kpi w ON e.id = w.employee_id
+    WHERE e.is_active = 1
+    GROUP BY e.id, e.name, e.position
+    ORDER BY total_points DESC
+  `;
+
+  const rows = db.prepare(query).all() as any[];
+
+  return rows.map((row, index) => {
+    const days = row.total_days_worked || 1;
+    const placementsPerDay = row.placements / days;
+    const interviewsPerDay = row.interviews / days;
+    const recommendationsPerDay = row.recommendations / days;
+    const verificationsPerDay = row.verifications / days;
+    const cvPerDay = row.cv_added / days;
+    const pointsPerDay = row.total_points / days;
+
+    return {
+      rank: index + 1,
+      employeeId: row.employee_id,
+      name: row.name,
+      position: row.position,
+      placements: row.placements,
+      interviews: row.interviews,
+      recommendations: row.recommendations,
+      verifications: row.verifications,
+      cvAdded: row.cv_added,
+      totalDaysWorked: row.total_days_worked,
+      placementsPerDay: Number(placementsPerDay.toFixed(3)),
+      interviewsPerDay: Number(interviewsPerDay.toFixed(3)),
+      recommendationsPerDay: Number(recommendationsPerDay.toFixed(3)),
+      verificationsPerDay: Number(verificationsPerDay.toFixed(2)),
+      cvPerDay: Number(cvPerDay.toFixed(2)),
+      totalPoints: row.total_points,
+      pointsPerDay: Number(pointsPerDay.toFixed(2))
+    };
+  }).sort((a, b) => b.pointsPerDay - a.pointsPerDay).map((row, index) => ({
+    ...row,
+    rank: index + 1
   }));
 }
 
