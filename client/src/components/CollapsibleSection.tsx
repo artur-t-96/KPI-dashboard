@@ -23,6 +23,7 @@ export default function CollapsibleSection({
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full p-4 flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity ${headerClassName}`}
       >

@@ -40,6 +40,7 @@ function Category({ title, icon, color, children, defaultOpen = true }: Category
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full px-4 py-3 flex items-center justify-between ${color} text-white font-semibold text-lg`}
       >
@@ -1280,9 +1281,9 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
             icon="👤"
             headerClassName="bg-gradient-to-r from-purple-600 to-indigo-600 text-white"
           >
-            <div className="p-4">
+            <div className="p-4" onClick={(e) => e.stopPropagation()} onMouseDown={(e) => e.stopPropagation()}>
               {/* Employee Selector */}
-              <div className="flex items-center gap-4 mb-6" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-4 mb-6">
                 <div className="flex items-center gap-2">
                   <User className="w-5 h-5 text-gray-500" />
                   <select
@@ -1292,6 +1293,7 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                       setSelectedEmployeeId(e.target.value ? Number(e.target.value) : null);
                     }}
                     onClick={(e) => e.stopPropagation()}
+                    onMouseDown={(e) => e.stopPropagation()}
                     className="border border-gray-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-purple-500 focus:border-purple-500 min-w-[200px]"
                   >
                     <option value="">Wybierz pracownika...</option>
@@ -1306,10 +1308,13 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                 </div>
                 {employeeTrendData && (
                   <button
+                    type="button"
                     onClick={(e) => {
                       e.stopPropagation();
+                      e.preventDefault();
                       handleAiAnalysis();
                     }}
+                    onMouseDown={(e) => e.stopPropagation()}
                     disabled={loadingAiAnalysis}
                     className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 text-white rounded-lg hover:from-purple-700 hover:to-indigo-700 disabled:opacity-50 transition-all"
                   >
