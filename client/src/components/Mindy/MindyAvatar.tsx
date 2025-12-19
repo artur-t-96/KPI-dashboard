@@ -110,11 +110,10 @@ export default function MindyAvatar({
     const allTimeCVAchievement = allTimeCVTarget > 0 ? Math.round((allTimeTotalCV / allTimeCVTarget) * 100) : 0;
     const allTimePlacementAchievement = allTimePlacementTargetTotal > 0 ? Math.round((allTimeTotalPlacements / allTimePlacementTargetTotal) * 100) : 0;
 
-    // All-time averages per person
-    const allTimeTeamSize = allTimeVerifications.length || 1;
-    const allTimeAvgVerPerPerson = (allTimeTotalVerifications / allTimeTeamSize).toFixed(1);
-    const allTimeAvgCVPerPerson = (allTimeTotalCV / allTimeTeamSize).toFixed(1);
-    const allTimeAvgPlacPerPerson = (allTimeTotalPlacements / allTimeTeamSize).toFixed(2);
+    // All-time averages per working day
+    const allTimeAvgVerPerDay = allTimeTotalDays > 0 ? (allTimeTotalVerifications / allTimeTotalDays).toFixed(2) : '0';
+    const allTimeAvgCVPerDay = allTimeTotalDays > 0 ? (allTimeTotalCV / allTimeTotalDays).toFixed(2) : '0';
+    const allTimeAvgPlacPerDay = allTimeTotalDays > 0 ? (allTimeTotalPlacements / allTimeTotalDays).toFixed(3) : '0';
 
     const teamVerificationsPerPlacement = allTimeTotalPlacements > 0
       ? (allTimeTotalVerifications / allTimeTotalPlacements).toFixed(1)
@@ -127,11 +126,12 @@ export default function MindyAvatar({
 
     const overallAchievement = Math.round((verificationAchievement + cvAchievement + placementAchievement) / 3);
 
-    const teamSizeForAvg = currentData.length || 1;
-    const avgVerificationsPerPerson = (totalVerifications / teamSizeForAvg).toFixed(1);
-    const avgCVPerPerson = (totalCV / teamSizeForAvg).toFixed(1);
-    const avgPlacementsPerPerson = (totalPlacements / teamSizeForAvg).toFixed(2);
-    const avgInterviewsPerPerson = (totalInterviews / teamSizeForAvg).toFixed(2);
+    // Current period averages per working day
+    const daysForAvg = totalDaysWorked || 1;
+    const avgVerificationsPerDay = (totalVerifications / daysForAvg).toFixed(2);
+    const avgCVPerDay = (totalCV / daysForAvg).toFixed(2);
+    const avgPlacementsPerDay = (totalPlacements / daysForAvg).toFixed(3);
+    const avgInterviewsPerDay = (totalInterviews / daysForAvg).toFixed(2);
 
     return {
       teamSize: weeklyData.length,
@@ -150,10 +150,10 @@ export default function MindyAvatar({
       cvAchievement,
       placementAchievement,
       overallAchievement,
-      avgVerificationsPerPerson,
-      avgCVPerPerson,
-      avgPlacementsPerPerson,
-      avgInterviewsPerPerson,
+      avgVerificationsPerDay,
+      avgCVPerDay,
+      avgPlacementsPerDay,
+      avgInterviewsPerDay,
       allTimeTotalDays,
       allTimeVerPerDay,
       allTimeCVPerDay,
@@ -171,9 +171,9 @@ export default function MindyAvatar({
       allTimeVerificationAchievement,
       allTimeCVAchievement,
       allTimePlacementAchievement,
-      allTimeAvgVerPerPerson,
-      allTimeAvgCVPerPerson,
-      allTimeAvgPlacPerPerson
+      allTimeAvgVerPerDay,
+      allTimeAvgCVPerDay,
+      allTimeAvgPlacPerDay
     };
   };
 
@@ -439,7 +439,7 @@ export default function MindyAvatar({
                 {achievement}%
               </div>
               <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
-                sr. {avg}/os.
+                sr. {avg}/dzien
               </div>
             </div>
           </div>
@@ -528,7 +528,7 @@ export default function MindyAvatar({
                 value={stats.totalVerifications}
                 target={stats.verificationTarget}
                 achievement={stats.verificationAchievement}
-                avg={stats.avgVerificationsPerPerson}
+                avg={stats.avgVerificationsPerDay}
                 color={isDark ? 'text-cyan-400' : 'text-cyan-600'}
               />
               <StatusCard
@@ -537,7 +537,7 @@ export default function MindyAvatar({
                 value={stats.totalCV}
                 target={stats.cvTarget}
                 achievement={stats.cvAchievement}
-                avg={stats.avgCVPerPerson}
+                avg={stats.avgCVPerDay}
                 color={isDark ? 'text-purple-400' : 'text-purple-600'}
               />
               <StatusCard
@@ -546,7 +546,7 @@ export default function MindyAvatar({
                 value={stats.totalPlacements}
                 target={stats.placementTarget}
                 achievement={stats.placementAchievement}
-                avg={stats.avgPlacementsPerPerson}
+                avg={stats.avgPlacementsPerDay}
                 color={isDark ? 'text-amber-400' : 'text-amber-600'}
               />
             </div>
@@ -560,7 +560,7 @@ export default function MindyAvatar({
               <div className="flex items-center gap-3">
                 <span className={`text-2xl font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{stats.totalInterviews}</span>
                 <span className={`text-xs px-2 py-1 rounded-lg ${isDark ? 'bg-orange-900/50 text-orange-300' : 'bg-orange-100 text-orange-700'}`}>
-                  sr. {stats.avgInterviewsPerPerson}/os.
+                  sr. {stats.avgInterviewsPerDay}/dzien
                 </span>
               </div>
             </div>
@@ -582,7 +582,7 @@ export default function MindyAvatar({
                 value={stats.allTimeTotalVerifications}
                 target={stats.allTimeVerificationTarget}
                 achievement={stats.allTimeVerificationAchievement}
-                avg={stats.allTimeAvgVerPerPerson}
+                avg={stats.allTimeAvgVerPerDay}
                 color={isDark ? 'text-cyan-400' : 'text-cyan-600'}
               />
               <StatusCard
@@ -591,7 +591,7 @@ export default function MindyAvatar({
                 value={stats.allTimeTotalCV}
                 target={stats.allTimeCVTarget}
                 achievement={stats.allTimeCVAchievement}
-                avg={stats.allTimeAvgCVPerPerson}
+                avg={stats.allTimeAvgCVPerDay}
                 color={isDark ? 'text-purple-400' : 'text-purple-600'}
               />
               <StatusCard
@@ -600,7 +600,7 @@ export default function MindyAvatar({
                 value={stats.allTimeTotalPlacements}
                 target={stats.allTimePlacementTargetTotal}
                 achievement={stats.allTimePlacementAchievement}
-                avg={stats.allTimeAvgPlacPerPerson}
+                avg={stats.allTimeAvgPlacPerDay}
                 color={isDark ? 'text-amber-400' : 'text-amber-600'}
               />
             </div>
