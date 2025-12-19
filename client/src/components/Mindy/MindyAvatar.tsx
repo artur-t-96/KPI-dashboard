@@ -100,6 +100,22 @@ export default function MindyAvatar({
     const allTimePlacementsPerMonth = allTimeMonths > 0 ? (allTimeTotalPlacements / allTimeMonths).toFixed(2) : '0';
     const allTimePlacementTarget = weeklyData.length;
 
+    // All-time targets and achievements for consistent display
+    const allTimeSourcerDays = allTimeVerifications.filter(d => d.position === 'Sourcer').reduce((sum, d) => sum + d.totalDaysWorked, 0);
+    const allTimeRecruiterDays = allTimeVerifications.filter(d => d.position === 'Rekruter').reduce((sum, d) => sum + d.totalDaysWorked, 0);
+    const allTimeVerificationTarget = allTimeSourcerDays * 4;
+    const allTimeCVTarget = allTimeRecruiterDays * 5;
+    const allTimePlacementTargetTotal = allTimeMonths * weeklyData.length;
+    const allTimeVerificationAchievement = allTimeVerificationTarget > 0 ? Math.round((allTimeTotalVerifications / allTimeVerificationTarget) * 100) : 0;
+    const allTimeCVAchievement = allTimeCVTarget > 0 ? Math.round((allTimeTotalCV / allTimeCVTarget) * 100) : 0;
+    const allTimePlacementAchievement = allTimePlacementTargetTotal > 0 ? Math.round((allTimeTotalPlacements / allTimePlacementTargetTotal) * 100) : 0;
+
+    // All-time averages per person
+    const allTimeTeamSize = allTimeVerifications.length || 1;
+    const allTimeAvgVerPerPerson = (allTimeTotalVerifications / allTimeTeamSize).toFixed(1);
+    const allTimeAvgCVPerPerson = (allTimeTotalCV / allTimeTeamSize).toFixed(1);
+    const allTimeAvgPlacPerPerson = (allTimeTotalPlacements / allTimeTeamSize).toFixed(2);
+
     const teamVerificationsPerPlacement = allTimeTotalPlacements > 0
       ? (allTimeTotalVerifications / allTimeTotalPlacements).toFixed(1)
       : '∞';
@@ -141,13 +157,23 @@ export default function MindyAvatar({
       allTimeTotalDays,
       allTimeVerPerDay,
       allTimeCVPerDay,
+      allTimeTotalCV,
       allTimeTotalPlacements,
       allTimeTotalVerifications,
       allTimeTotalInterviews,
       allTimePlacementsPerMonth,
       allTimePlacementTarget,
       teamVerificationsPerPlacement,
-      teamInterviewsPerPlacement
+      teamInterviewsPerPlacement,
+      allTimeVerificationTarget,
+      allTimeCVTarget,
+      allTimePlacementTargetTotal,
+      allTimeVerificationAchievement,
+      allTimeCVAchievement,
+      allTimePlacementAchievement,
+      allTimeAvgVerPerPerson,
+      allTimeAvgCVPerPerson,
+      allTimeAvgPlacPerPerson
     };
   };
 
@@ -541,42 +567,70 @@ export default function MindyAvatar({
           </div>
 
           {/* All-Time Stats Panel */}
-          <div className={`w-64 p-4 rounded-xl ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'} border ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-            <div className="flex items-center gap-2 mb-4">
+          <div className="flex-1 space-y-4">
+            {/* Period label */}
+            <div className="flex items-center gap-2 mb-2">
               <TrendingUp className={`w-5 h-5 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
               <span className={`font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Od poczatku</span>
             </div>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Wer./dzien:</span>
-                <span className={`font-bold ${Number(stats.allTimeVerPerDay) >= 4 ? 'text-green-500' : 'text-orange-500'}`}>
-                  {stats.allTimeVerPerDay}
-                </span>
+
+            {/* KPI Cards Grid */}
+            <div className="grid grid-cols-1 gap-3">
+              <StatusCard
+                title="Weryfikacje"
+                icon={Brain}
+                value={stats.allTimeTotalVerifications}
+                target={stats.allTimeVerificationTarget}
+                achievement={stats.allTimeVerificationAchievement}
+                avg={stats.allTimeAvgVerPerPerson}
+                color={isDark ? 'text-cyan-400' : 'text-cyan-600'}
+              />
+              <StatusCard
+                title="CV Dodane"
+                icon={Target}
+                value={stats.allTimeTotalCV}
+                target={stats.allTimeCVTarget}
+                achievement={stats.allTimeCVAchievement}
+                avg={stats.allTimeAvgCVPerPerson}
+                color={isDark ? 'text-purple-400' : 'text-purple-600'}
+              />
+              <StatusCard
+                title="Placements"
+                icon={Trophy}
+                value={stats.allTimeTotalPlacements}
+                target={stats.allTimePlacementTargetTotal}
+                achievement={stats.allTimePlacementAchievement}
+                avg={stats.allTimeAvgPlacPerPerson}
+                color={isDark ? 'text-amber-400' : 'text-amber-600'}
+              />
+            </div>
+
+            {/* Interviews row */}
+            <div className={`flex items-center justify-between p-3 rounded-xl ${isDark ? 'bg-gray-800/50' : 'bg-orange-50'} border ${isDark ? 'border-gray-700' : 'border-orange-200'}`}>
+              <div className="flex items-center gap-2">
+                <Zap className={`w-5 h-5 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
+                <span className={`font-medium ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Interviews</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>CV/dzien:</span>
-                <span className={`font-bold ${Number(stats.allTimeCVPerDay) >= 5 ? 'text-green-500' : 'text-orange-500'}`}>
-                  {stats.allTimeCVPerDay}
-                </span>
+              <div className="flex items-center gap-3">
+                <span className={`text-2xl font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{stats.allTimeTotalInterviews}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Plac./mies.:</span>
-                <span className={`font-bold ${Number(stats.allTimePlacementsPerMonth) >= stats.allTimePlacementTarget ? 'text-green-500' : 'text-orange-500'}`}>
-                  {stats.allTimePlacementsPerMonth}
-                </span>
-              </div>
-              <hr className={`${isDark ? 'border-gray-700' : 'border-gray-200'}`} />
-              <div className="flex justify-between items-center">
-                <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Dni pracy:</span>
-                <span className={`font-bold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{stats.allTimeTotalDays}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Wer./Plac.:</span>
-                <span className={`font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{stats.teamVerificationsPerPlacement}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Int./Plac.:</span>
-                <span className={`font-bold ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>{stats.teamInterviewsPerPlacement}</span>
+            </div>
+
+            {/* Additional stats */}
+            <div className={`p-3 rounded-xl ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'} border ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+              <div className="grid grid-cols-3 gap-4 text-center">
+                <div>
+                  <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Dni pracy</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{stats.allTimeTotalDays}</div>
+                </div>
+                <div>
+                  <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Wer./Plac.</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{stats.teamVerificationsPerPlacement}</div>
+                </div>
+                <div>
+                  <div className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Int./Plac.</div>
+                  <div className={`text-lg font-bold ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>{stats.teamInterviewsPerPlacement}</div>
+                </div>
               </div>
             </div>
           </div>
