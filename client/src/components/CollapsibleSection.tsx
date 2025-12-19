@@ -20,11 +20,32 @@ export default function CollapsibleSection({
 }: CollapsibleSectionProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
+  const handleHeaderClick = (e: React.MouseEvent) => {
+    // Prevent toggle if clicking on form elements
+    const target = e.target as HTMLElement;
+    if (
+      target.tagName === 'SELECT' ||
+      target.tagName === 'INPUT' ||
+      target.tagName === 'BUTTON' ||
+      target.closest('select') ||
+      target.closest('input') ||
+      target.closest('button:not([data-collapse-toggle])')
+    ) {
+      return;
+    }
+    setIsOpen(!isOpen);
+  };
+
+  const handleContentClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        data-collapse-toggle="true"
+        onClick={handleHeaderClick}
         className={`w-full p-4 flex items-center justify-between cursor-pointer hover:opacity-90 transition-opacity ${headerClassName}`}
       >
         <div className="text-left">
@@ -45,7 +66,7 @@ export default function CollapsibleSection({
         </div>
       </button>
       {isOpen && (
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto" onClick={handleContentClick} onMouseDown={handleContentClick}>
           {children}
         </div>
       )}
