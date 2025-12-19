@@ -33,18 +33,27 @@ interface CategoryProps {
   defaultOpen?: boolean;
 }
 
-function Category({ title, icon, color, children, defaultOpen = false }: CategoryProps) {
+function Category({ id, title, icon, color, children, defaultOpen = false }: CategoryProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   const handleContentClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
 
+  const handleHeaderClick = (e: React.MouseEvent) => {
+    // Only toggle if clicking on the header itself, not child elements like form controls
+    const target = e.target as HTMLElement;
+    if (target.tagName === 'SELECT' || target.tagName === 'INPUT' || target.closest('select') || target.closest('input')) {
+      return;
+    }
+    setIsOpen(!isOpen);
+  };
+
   return (
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+    <div id={id} className="bg-white rounded-xl shadow-sm overflow-hidden">
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleHeaderClick}
         className={`w-full px-4 py-3 flex items-center justify-between ${color} text-white font-semibold text-lg`}
       >
         <div className="flex items-center gap-3">
@@ -303,27 +312,39 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
   };
 
   // Draggable section wrapper
-  const DraggableSection = ({ id, children }: { id: string; children: React.ReactNode }) => (
-    <div
-      draggable
-      onDragStart={(e) => handleDragStart(e, id)}
-      onDragOver={(e) => handleDragOver(e, id)}
-      onDragLeave={handleDragLeave}
-      onDrop={(e) => handleDrop(e, id)}
-      onDragEnd={handleDragEnd}
-      style={{ order: sectionOrder.indexOf(id) }}
-      className={`relative group transition-all duration-200 ${
-        draggedSection === id ? 'opacity-50 scale-[0.98]' : ''
-      } ${
-        dragOverSection === id ? 'ring-2 ring-blue-500 ring-offset-2 rounded-xl' : ''
-      }`}
-    >
-      <div className="absolute left-0 top-4 -translate-x-6 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing z-10">
-        <GripVertical className="w-5 h-5 text-gray-400" />
+  const DraggableSection = ({ id, children }: { id: string; children: React.ReactNode }) => {
+    const handleDragStartWrapper = (e: React.DragEvent) => {
+      // Prevent drag if started from interactive elements
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'SELECT' || target.tagName === 'INPUT' || target.tagName === 'BUTTON' || target.closest('select') || target.closest('input') || target.closest('button')) {
+        e.preventDefault();
+        return;
+      }
+      handleDragStart(e, id);
+    };
+
+    return (
+      <div
+        draggable
+        onDragStart={handleDragStartWrapper}
+        onDragOver={(e) => handleDragOver(e, id)}
+        onDragLeave={handleDragLeave}
+        onDrop={(e) => handleDrop(e, id)}
+        onDragEnd={handleDragEnd}
+        style={{ order: sectionOrder.indexOf(id) }}
+        className={`relative group transition-all duration-200 ${
+          draggedSection === id ? 'opacity-50 scale-[0.98]' : ''
+        } ${
+          dragOverSection === id ? 'ring-2 ring-blue-500 ring-offset-2 rounded-xl' : ''
+        }`}
+      >
+        <div className="absolute left-0 top-4 -translate-x-6 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing z-10">
+          <GripVertical className="w-5 h-5 text-gray-400" />
+        </div>
+        {children}
       </div>
-      {children}
-    </div>
-  );
+    );
+  };
 
   if (error) {
     return (
