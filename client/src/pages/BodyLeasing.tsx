@@ -386,7 +386,7 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                       <div className="text-right">
                         <div className="text-xl font-bold text-amber-600">{entry.pointsPerDay.toFixed(1)} pkt/dzien</div>
                         <div className="text-xs text-gray-500">
-                          Wer: {entry.verificationsPerDay.toFixed(1)} | CV: {entry.cvPerDay.toFixed(1)} | Int: {entry.interviewsPerDay.toFixed(2)}
+                          Wer: {entry.verificationsPerDay.toFixed(1)} | CV: {entry.cvPerDay.toFixed(1)} | Rek: {entry.recommendationsPerDay.toFixed(2)} | Int: {entry.interviewsPerDay.toFixed(2)} | Plac: {entry.placementsPerDay.toFixed(2)}
                         </div>
                       </div>
                     </div>
@@ -417,7 +417,7 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                         <div className="text-right">
                           <div className="text-xl font-bold text-red-500">{entry.pointsPerDay.toFixed(1)} pkt/dzien</div>
                           <div className="text-xs text-gray-500">
-                            Wer: {entry.verificationsPerDay.toFixed(1)} | CV: {entry.cvPerDay.toFixed(1)} | Int: {entry.interviewsPerDay.toFixed(2)}
+                            Wer: {entry.verificationsPerDay.toFixed(1)} | CV: {entry.cvPerDay.toFixed(1)} | Rek: {entry.recommendationsPerDay.toFixed(2)} | Int: {entry.interviewsPerDay.toFixed(2)} | Plac: {entry.placementsPerDay.toFixed(2)}
                           </div>
                         </div>
                       </div>
