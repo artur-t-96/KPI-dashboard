@@ -350,24 +350,24 @@ export default function MindyAvatar({
   }) => {
     const isOk = achievement >= 70;
     return (
-      <div className={`relative overflow-hidden rounded-lg p-2 ${isDark ? 'bg-gray-800/50' : 'bg-white'} border transition-all ${isOk ? 'border-green-500/30' : 'border-red-500/50'}`}>
+      <div className={`relative overflow-hidden rounded p-1.5 ${isDark ? 'bg-gray-800/50' : 'bg-white'} border transition-all ${isOk ? 'border-green-500/30' : 'border-red-500/50'}`}>
         {!isOk && <div className="absolute inset-0 bg-red-500/5 animate-pulse" />}
         <div className="relative">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5">
-              <Icon className={`w-3.5 h-3.5 ${isOk ? 'text-green-500' : 'text-red-500'}`} />
-              <span className={`text-xs font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{title}</span>
+            <div className="flex items-center gap-1">
+              <Icon className={`w-3 h-3 ${isOk ? 'text-green-500' : 'text-red-500'}`} />
+              <span className={`text-[10px] font-medium ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>{title}</span>
             </div>
-            <span className={`text-xs font-bold ${isOk ? 'text-green-500' : 'text-red-500'}`}>{achievement}%</span>
+            <span className={`text-[10px] font-bold ${isOk ? 'text-green-500' : 'text-red-500'}`}>{achievement}%</span>
           </div>
-          <div className="flex items-baseline justify-between mt-1">
+          <div className="flex items-baseline justify-between">
             <div>
-              <span className={`text-lg font-bold ${color}`}>{value}</span>
-              <span className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>/{target}</span>
+              <span className={`text-sm font-bold ${color}`}>{value}</span>
+              <span className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>/{target}</span>
             </div>
-            <span className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>sr. {avg}/d</span>
+            <span className={`text-[9px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{avg}/d</span>
           </div>
-          <div className="mt-1 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div className="mt-0.5 h-0.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full ${isOk ? 'bg-green-500' : 'bg-red-500'}`}
               style={{ width: `${Math.min(achievement, 100)}%` }}
@@ -414,121 +414,120 @@ export default function MindyAvatar({
 
       {/* Main Content - Compact */}
       <div className="p-3">
-        <div className="flex gap-4">
+        <div className="flex gap-2">
           {/* Mindy Robot */}
           <div className="flex-shrink-0">
             <MindyRobot />
           </div>
 
           {/* Stats Panel - Ten tydzien */}
-          <div className="flex-1 space-y-1.5">
+          <div className="flex-1 min-w-0 space-y-1">
             <div className="flex items-center gap-1">
               <Calendar className={`w-3 h-3 ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`} />
-              <span className={`text-xs font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
-                {viewMode === 'week' ? 'Ten tydzien' : `${MONTHS_PL[selectedMonth]} ${selectedYear}`}
+              <span className={`text-[10px] font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>
+                {viewMode === 'week' ? 'Tydzien' : `${MONTHS_PL[selectedMonth]} '${String(selectedYear).slice(-2)}`}
               </span>
             </div>
 
-            <div className="space-y-1.5">
-              <StatusCard title="Weryfikacje" icon={Brain} value={stats.totalVerifications} target={stats.verificationTarget} achievement={stats.verificationAchievement} avg={stats.avgVerificationsPerDay} color={isDark ? 'text-cyan-400' : 'text-cyan-600'} />
-              <StatusCard title="CV Dodane" icon={Target} value={stats.totalCV} target={stats.cvTarget} achievement={stats.cvAchievement} avg={stats.avgCVPerDay} color={isDark ? 'text-purple-400' : 'text-purple-600'} />
-              <StatusCard title="Placements" icon={Trophy} value={stats.totalPlacements} target={stats.placementTarget} achievement={stats.placementAchievement} avg={stats.avgPlacementsPerDay} color={isDark ? 'text-amber-400' : 'text-amber-600'} />
+            <div className="space-y-1">
+              <StatusCard title="WER" icon={Brain} value={stats.totalVerifications} target={stats.verificationTarget} achievement={stats.verificationAchievement} avg={stats.avgVerificationsPerDay} color={isDark ? 'text-cyan-400' : 'text-cyan-600'} />
+              <StatusCard title="CV" icon={Target} value={stats.totalCV} target={stats.cvTarget} achievement={stats.cvAchievement} avg={stats.avgCVPerDay} color={isDark ? 'text-purple-400' : 'text-purple-600'} />
+              <StatusCard title="PLAC" icon={Trophy} value={stats.totalPlacements} target={stats.placementTarget} achievement={stats.placementAchievement} avg={stats.avgPlacementsPerDay} color={isDark ? 'text-amber-400' : 'text-amber-600'} />
             </div>
 
-            <div className="flex gap-1.5">
-              <div className={`flex-1 flex items-center justify-between p-1.5 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-orange-50'} border ${isDark ? 'border-gray-700' : 'border-orange-200'}`}>
-                <div className="flex items-center gap-1">
-                  <Zap className={`w-3 h-3 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
-                  <span className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Int.</span>
+            <div className="flex gap-1">
+              <div className={`flex-1 flex items-center justify-between p-1 rounded ${isDark ? 'bg-gray-800/50' : 'bg-orange-50'} border ${isDark ? 'border-gray-700' : 'border-orange-200'}`}>
+                <div className="flex items-center gap-0.5">
+                  <Zap className={`w-2.5 h-2.5 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
+                  <span className={`text-[9px] ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Int</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-sm font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{stats.totalInterviews}</span>
-                  <span className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>sr. {stats.avgInterviewsPerDay}/d</span>
-                </div>
+                <span className={`text-xs font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{stats.totalInterviews}</span>
               </div>
-              <div className={`flex-1 flex items-center justify-between p-1.5 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-pink-50'} border ${isDark ? 'border-gray-700' : 'border-pink-200'}`}>
-                <div className="flex items-center gap-1">
-                  <Star className={`w-3 h-3 ${isDark ? 'text-pink-400' : 'text-pink-600'}`} />
-                  <span className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Rek.</span>
+              <div className={`flex-1 flex items-center justify-between p-1 rounded ${isDark ? 'bg-gray-800/50' : 'bg-pink-50'} border ${isDark ? 'border-gray-700' : 'border-pink-200'}`}>
+                <div className="flex items-center gap-0.5">
+                  <Star className={`w-2.5 h-2.5 ${isDark ? 'text-pink-400' : 'text-pink-600'}`} />
+                  <span className={`text-[9px] ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Rek</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-sm font-bold ${isDark ? 'text-pink-400' : 'text-pink-600'}`}>{stats.totalRecommendations}</span>
-                  <span className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>sr. {stats.avgRecommendationsPerDay}/d</span>
-                </div>
+                <span className={`text-xs font-bold ${isDark ? 'text-pink-400' : 'text-pink-600'}`}>{stats.totalRecommendations}</span>
               </div>
             </div>
           </div>
 
           {/* All-Time Stats Panel */}
-          <div className="flex-1 space-y-1.5">
+          <div className="flex-1 min-w-0 space-y-1">
             <div className="flex items-center gap-1">
               <TrendingUp className={`w-3 h-3 ${isDark ? 'text-cyan-400' : 'text-cyan-600'}`} />
-              <span className={`text-xs font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Od poczatku</span>
+              <span className={`text-[10px] font-semibold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>Od poczatku</span>
             </div>
 
-            <div className="space-y-1.5">
-              <StatusCard title="Weryfikacje" icon={Brain} value={stats.allTimeTotalVerifications} target={stats.allTimeVerificationTarget} achievement={stats.allTimeVerificationAchievement} avg={stats.allTimeAvgVerPerDay} color={isDark ? 'text-cyan-400' : 'text-cyan-600'} />
-              <StatusCard title="CV Dodane" icon={Target} value={stats.allTimeTotalCV} target={stats.allTimeCVTarget} achievement={stats.allTimeCVAchievement} avg={stats.allTimeAvgCVPerDay} color={isDark ? 'text-purple-400' : 'text-purple-600'} />
-              <StatusCard title="Placements" icon={Trophy} value={stats.allTimeTotalPlacements} target={stats.allTimePlacementTargetTotal} achievement={stats.allTimePlacementAchievement} avg={stats.allTimeAvgPlacPerDay} color={isDark ? 'text-amber-400' : 'text-amber-600'} />
+            <div className="space-y-1">
+              <StatusCard title="WER" icon={Brain} value={stats.allTimeTotalVerifications} target={stats.allTimeVerificationTarget} achievement={stats.allTimeVerificationAchievement} avg={stats.allTimeAvgVerPerDay} color={isDark ? 'text-cyan-400' : 'text-cyan-600'} />
+              <StatusCard title="CV" icon={Target} value={stats.allTimeTotalCV} target={stats.allTimeCVTarget} achievement={stats.allTimeCVAchievement} avg={stats.allTimeAvgCVPerDay} color={isDark ? 'text-purple-400' : 'text-purple-600'} />
+              <StatusCard title="PLAC" icon={Trophy} value={stats.allTimeTotalPlacements} target={stats.allTimePlacementTargetTotal} achievement={stats.allTimePlacementAchievement} avg={stats.allTimeAvgPlacPerDay} color={isDark ? 'text-amber-400' : 'text-amber-600'} />
             </div>
 
-            <div className="flex gap-1.5">
-              <div className={`flex-1 flex items-center justify-between p-1.5 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-orange-50'} border ${isDark ? 'border-gray-700' : 'border-orange-200'}`}>
-                <div className="flex items-center gap-1">
-                  <Zap className={`w-3 h-3 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
-                  <span className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Int.</span>
+            <div className="flex gap-1">
+              <div className={`flex-1 flex items-center justify-between p-1 rounded ${isDark ? 'bg-gray-800/50' : 'bg-orange-50'} border ${isDark ? 'border-gray-700' : 'border-orange-200'}`}>
+                <div className="flex items-center gap-0.5">
+                  <Zap className={`w-2.5 h-2.5 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
+                  <span className={`text-[9px] ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Int</span>
                 </div>
-                <span className={`text-sm font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{stats.allTimeTotalInterviews}</span>
+                <span className={`text-xs font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{stats.allTimeTotalInterviews}</span>
               </div>
-              <div className={`flex-1 flex items-center justify-between p-1.5 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-pink-50'} border ${isDark ? 'border-gray-700' : 'border-pink-200'}`}>
-                <div className="flex items-center gap-1">
-                  <Star className={`w-3 h-3 ${isDark ? 'text-pink-400' : 'text-pink-600'}`} />
-                  <span className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Rek.</span>
+              <div className={`flex-1 flex items-center justify-between p-1 rounded ${isDark ? 'bg-gray-800/50' : 'bg-pink-50'} border ${isDark ? 'border-gray-700' : 'border-pink-200'}`}>
+                <div className="flex items-center gap-0.5">
+                  <Star className={`w-2.5 h-2.5 ${isDark ? 'text-pink-400' : 'text-pink-600'}`} />
+                  <span className={`text-[9px] ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Rek</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`text-sm font-bold ${isDark ? 'text-pink-400' : 'text-pink-600'}`}>{stats.allTimeTotalRecommendations}</span>
-                  <span className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>sr. {stats.allTimeAvgRecPerDay}/d</span>
-                </div>
+                <span className={`text-xs font-bold ${isDark ? 'text-pink-400' : 'text-pink-600'}`}>{stats.allTimeTotalRecommendations}</span>
               </div>
             </div>
 
             {/* Additional stats - compact */}
-            <div className={`p-1.5 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'} border ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
-              <div className="grid grid-cols-3 gap-1 text-center">
+            <div className={`p-1 rounded ${isDark ? 'bg-gray-800/50' : 'bg-gray-50'} border ${isDark ? 'border-gray-700' : 'border-gray-200'}`}>
+              <div className="grid grid-cols-3 gap-0.5 text-center">
                 <div>
-                  <div className={`text-[9px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Dni</div>
-                  <div className={`text-xs font-bold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{stats.allTimeTotalDays}</div>
+                  <div className={`text-[8px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>Dni</div>
+                  <div className={`text-[10px] font-bold ${isDark ? 'text-gray-200' : 'text-gray-700'}`}>{stats.allTimeTotalDays}</div>
                 </div>
                 <div>
-                  <div className={`text-[9px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>W/P</div>
-                  <div className={`text-xs font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{stats.teamVerificationsPerPlacement}</div>
+                  <div className={`text-[8px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>W/P</div>
+                  <div className={`text-[10px] font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{stats.teamVerificationsPerPlacement}</div>
                 </div>
                 <div>
-                  <div className={`text-[9px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>I/P</div>
-                  <div className={`text-xs font-bold ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>{stats.teamInterviewsPerPlacement}</div>
+                  <div className={`text-[8px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>I/P</div>
+                  <div className={`text-[10px] font-bold ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>{stats.teamInterviewsPerPlacement}</div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Team badges - compact */}
-        <div className="flex gap-1.5 mt-2 flex-wrap">
-          <span className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full ${isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-800'}`}>
-            <Users className="w-2.5 h-2.5" />
-            {stats.teamSize}
-          </span>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isDark ? 'bg-cyan-900/50 text-cyan-300' : 'bg-cyan-100 text-cyan-800'}`}>
-            {stats.sourcers}S
-          </span>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isDark ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-800'}`}>
-            {stats.recruiters}R
-          </span>
-          {stats.tacs > 0 && (
-            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${isDark ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-800'}`}>
-              {stats.tacs}T
-            </span>
-          )}
+          {/* Employee Count Panel */}
+          <div className={`flex-shrink-0 w-20 p-2 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-slate-50'} border ${isDark ? 'border-gray-700' : 'border-slate-200'}`}>
+            <div className="flex items-center gap-1 mb-2">
+              <Users className={`w-3 h-3 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
+              <span className={`text-[10px] font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Zespół</span>
+            </div>
+            <div className="space-y-1.5">
+              <div className={`text-center p-1.5 rounded ${isDark ? 'bg-blue-900/30' : 'bg-blue-100'}`}>
+                <div className={`text-xl font-bold ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>{stats.teamSize}</div>
+                <div className={`text-[8px] ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>TOTAL</div>
+              </div>
+              <div className={`flex items-center justify-between p-1 rounded ${isDark ? 'bg-cyan-900/30' : 'bg-cyan-50'}`}>
+                <span className={`text-[9px] ${isDark ? 'text-cyan-400' : 'text-cyan-700'}`}>Sourcer</span>
+                <span className={`text-sm font-bold ${isDark ? 'text-cyan-300' : 'text-cyan-700'}`}>{stats.sourcers}</span>
+              </div>
+              <div className={`flex items-center justify-between p-1 rounded ${isDark ? 'bg-green-900/30' : 'bg-green-50'}`}>
+                <span className={`text-[9px] ${isDark ? 'text-green-400' : 'text-green-700'}`}>Rekruter</span>
+                <span className={`text-sm font-bold ${isDark ? 'text-green-300' : 'text-green-700'}`}>{stats.recruiters}</span>
+              </div>
+              {stats.tacs > 0 && (
+                <div className={`flex items-center justify-between p-1 rounded ${isDark ? 'bg-purple-900/30' : 'bg-purple-50'}`}>
+                  <span className={`text-[9px] ${isDark ? 'text-purple-400' : 'text-purple-700'}`}>TAC</span>
+                  <span className={`text-sm font-bold ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>{stats.tacs}</span>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
