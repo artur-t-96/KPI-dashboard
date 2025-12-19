@@ -186,10 +186,10 @@ export default function MindyAvatar({
 
   const getStatusColor = (ok: boolean) => ok ? '#10B981' : '#EF4444';
 
-  // Cute Mindy Robot - like the reference image
+  // Cute Mindy Robot - smaller with body part KPI indicators
   const MindyRobot = () => (
     <div className="relative">
-      <svg width="180" height="240" viewBox="0 0 180 240" className="drop-shadow-2xl">
+      <svg width="120" height="160" viewBox="0 0 180 240" className="drop-shadow-xl">
         <defs>
           {/* White/gray body gradient */}
           <linearGradient id="whiteBodyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -206,11 +206,6 @@ export default function MindyAvatar({
             <stop offset="0%" stopColor="#1E293B" />
             <stop offset="100%" stopColor="#0F172A" />
           </linearGradient>
-          {/* Cyan glow */}
-          <linearGradient id="cyanGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#22D3EE" />
-            <stop offset="100%" stopColor="#06B6D4" />
-          </linearGradient>
           <filter id="softGlow">
             <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
             <feMerge>
@@ -218,7 +213,7 @@ export default function MindyAvatar({
               <feMergeNode in="SourceGraphic"/>
             </feMerge>
           </filter>
-          <filter id="strongCyanGlow">
+          <filter id="strongGlow">
             <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
             <feMerge>
               <feMergeNode in="coloredBlur"/>
@@ -226,9 +221,8 @@ export default function MindyAvatar({
             </feMerge>
           </filter>
           <filter id="shadow">
-            <feDropShadow dx="0" dy="4" stdDeviation="6" floodOpacity="0.15"/>
+            <feDropShadow dx="0" dy="3" stdDeviation="4" floodOpacity="0.15"/>
           </filter>
-          {/* Highlight for 3D effect */}
           <radialGradient id="headHighlight" cx="30%" cy="30%" r="50%">
             <stop offset="0%" stopColor="white" stopOpacity="0.8"/>
             <stop offset="100%" stopColor="white" stopOpacity="0"/>
@@ -236,100 +230,85 @@ export default function MindyAvatar({
         </defs>
 
         {/* Shadow under robot */}
-        <ellipse cx="90" cy="232" rx="50" ry="8" fill="#94A3B8" opacity="0.3">
-          <animate attributeName="rx" values="50;45;50" dur="3s" repeatCount="indefinite" />
-        </ellipse>
+        <ellipse cx="90" cy="232" rx="45" ry="6" fill="#94A3B8" opacity="0.3" />
 
-        {/* BODY - Egg/oval shape */}
-        <ellipse cx="90" cy="175" rx="55" ry="60" fill="url(#whiteBodyGradient)" filter="url(#shadow)" />
-        {/* Body highlight */}
+        {/* BODY - Placements indicator */}
+        <ellipse cx="90" cy="175" rx="55" ry="60" fill="url(#whiteBodyGradient)" filter="url(#shadow)"
+          stroke={getStatusColor(placementOk)} strokeWidth="3" strokeOpacity={placementOk ? 0.3 : 0.8}>
+          {!placementOk && <animate attributeName="stroke-opacity" values="0.8;0.3;0.8" dur="1.5s" repeatCount="indefinite" />}
+        </ellipse>
         <ellipse cx="75" cy="155" rx="30" ry="25" fill="url(#headHighlight)" />
-        {/* Body line/belt */}
-        <path d="M 40 175 Q 90 185 140 175" stroke="#CBD5E1" strokeWidth="2" fill="none" />
 
-        {/* Overall achievement on body */}
-        <text x="90" y="185" textAnchor="middle" fontSize="22" fill={stats.overallAchievement >= 70 ? '#10B981' : '#EF4444'} fontWeight="bold">
-          {stats.overallAchievement}%
+        {/* Placement indicator on body */}
+        <text x="90" y="180" textAnchor="middle" fontSize="20" fill={getStatusColor(placementOk)} fontWeight="bold">
+          {stats.placementAchievement}%
         </text>
-        <text x="90" y="200" textAnchor="middle" fontSize="9" fill="#64748B">TARGET</text>
+        <text x="90" y="198" textAnchor="middle" fontSize="9" fill="#64748B">PLAC</text>
 
-        {/* ARMS - Small rounded */}
-        {/* Left arm */}
-        <ellipse cx="28" cy="160" rx="18" ry="25" fill="url(#whiteBodyGradient2)" filter="url(#shadow)">
-          <animate attributeName="cy" values="160;165;160" dur="3s" repeatCount="indefinite" />
+        {/* ARMS - CV indicator */}
+        <ellipse cx="28" cy="160" rx="18" ry="25" fill="url(#whiteBodyGradient2)" filter="url(#shadow)"
+          stroke={getStatusColor(cvOk)} strokeWidth="3" strokeOpacity={cvOk ? 0.3 : 0.8}>
+          {!cvOk && <animate attributeName="stroke-opacity" values="0.8;0.3;0.8" dur="1.5s" repeatCount="indefinite" />}
         </ellipse>
-        {/* Right arm */}
-        <ellipse cx="152" cy="160" rx="18" ry="25" fill="url(#whiteBodyGradient2)" filter="url(#shadow)">
-          <animate attributeName="cy" values="160;165;160" dur="3s" repeatCount="indefinite" />
+        <ellipse cx="152" cy="160" rx="18" ry="25" fill="url(#whiteBodyGradient2)" filter="url(#shadow)"
+          stroke={getStatusColor(cvOk)} strokeWidth="3" strokeOpacity={cvOk ? 0.3 : 0.8}>
+          {!cvOk && <animate attributeName="stroke-opacity" values="0.8;0.3;0.8" dur="1.5s" repeatCount="indefinite" />}
         </ellipse>
 
-        {/* NECK - Small connector */}
+        {/* NECK */}
         <rect x="75" y="95" width="30" height="15" rx="5" fill="url(#whiteBodyGradient)" />
 
-        {/* HEAD - Rounded rectangle with visor */}
+        {/* HEAD - Verifications indicator */}
         <g filter="url(#shadow)">
-          {/* Head base - white/gray */}
-          <rect x="25" y="10" width="130" height="90" rx="35" fill="url(#whiteBodyGradient)" />
-          {/* Head highlight for 3D */}
+          <rect x="25" y="10" width="130" height="90" rx="35" fill="url(#whiteBodyGradient)"
+            stroke={getStatusColor(verificationOk)} strokeWidth="3" strokeOpacity={verificationOk ? 0.3 : 0.8}>
+            {!verificationOk && <animate attributeName="stroke-opacity" values="0.8;0.3;0.8" dur="1.5s" repeatCount="indefinite" />}
+          </rect>
           <rect x="35" y="15" width="80" height="40" rx="20" fill="url(#headHighlight)" />
 
           {/* Ear pieces */}
           <rect x="10" y="40" width="20" height="35" rx="10" fill="url(#whiteBodyGradient2)" />
           <rect x="150" y="40" width="20" height="35" rx="10" fill="url(#whiteBodyGradient2)" />
 
-          {/* Top antenna/button */}
-          <ellipse cx="90" cy="8" rx="12" ry="8" fill="url(#whiteBodyGradient2)" />
+          {/* Top antenna */}
+          <ellipse cx="90" cy="8" rx="10" ry="6" fill="url(#whiteBodyGradient2)" />
 
-          {/* VISOR/FACE - Dark rounded screen */}
+          {/* VISOR/FACE */}
           <rect x="35" y="25" width="110" height="65" rx="25" fill="url(#visorGradient)" />
 
-          {/* EYES - Cyan glowing */}
-          <g filter="url(#strongCyanGlow)">
-            <ellipse cx="60" cy="52" rx="12" ry="14" fill={stats.overallAchievement >= 70 ? '#22D3EE' : '#EF4444'}>
+          {/* EYES - Based on verification status */}
+          <g filter="url(#strongGlow)">
+            <ellipse cx="60" cy="52" rx="12" ry="14" fill={getStatusColor(verificationOk)}>
               <animate attributeName="ry" values="14;12;14" dur="4s" repeatCount="indefinite" />
             </ellipse>
-            <ellipse cx="120" cy="52" rx="12" ry="14" fill={stats.overallAchievement >= 70 ? '#22D3EE' : '#EF4444'}>
+            <ellipse cx="120" cy="52" rx="12" ry="14" fill={getStatusColor(verificationOk)}>
               <animate attributeName="ry" values="14;12;14" dur="4s" repeatCount="indefinite" />
             </ellipse>
-            {/* Eye highlights */}
             <circle cx="56" cy="47" r="4" fill="white" opacity="0.9" />
             <circle cx="116" cy="47" r="4" fill="white" opacity="0.9" />
           </g>
 
-          {/* MOUTH - Small cute smile */}
+          {/* MOUTH */}
           {stats.overallAchievement >= 70 ? (
             <path d="M 75 72 Q 90 82 105 72" stroke="#22D3EE" strokeWidth="3" fill="none" strokeLinecap="round" filter="url(#softGlow)" />
           ) : (
-            <path d="M 75 78 Q 90 72 105 78" stroke="#EF4444" strokeWidth="3" fill="none" strokeLinecap="round" filter="url(#softGlow)">
-              <animate attributeName="d" values="M 75 78 Q 90 72 105 78;M 75 76 Q 90 74 105 76;M 75 78 Q 90 72 105 78" dur="2s" repeatCount="indefinite" />
-            </path>
+            <path d="M 75 78 Q 90 72 105 78" stroke="#EF4444" strokeWidth="3" fill="none" strokeLinecap="round" filter="url(#softGlow)" />
           )}
-        </g>
-
-        {/* Status indicators - small dots on body */}
-        <g transform="translate(60, 215)">
-          <circle cx="0" cy="0" r="5" fill={getStatusColor(verificationOk)} filter="url(#softGlow)" />
-        </g>
-        <g transform="translate(90, 215)">
-          <circle cx="0" cy="0" r="5" fill={getStatusColor(cvOk)} filter="url(#softGlow)" />
-        </g>
-        <g transform="translate(120, 215)">
-          <circle cx="0" cy="0" r="5" fill={getStatusColor(placementOk)} filter="url(#softGlow)" />
         </g>
       </svg>
 
-      {/* Status labels below robot */}
-      <div className="flex justify-center gap-3 mt-2">
-        <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${verificationOk ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
-          <Brain className="w-3 h-3" />
+      {/* Status labels */}
+      <div className="flex justify-center gap-2 mt-1">
+        <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${verificationOk ? 'bg-green-500/20 text-green-600' : 'bg-red-500/20 text-red-500'}`}>
+          <Brain className="w-2.5 h-2.5" />
           WER
         </div>
-        <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${cvOk ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
-          <Target className="w-3 h-3" />
+        <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${cvOk ? 'bg-green-500/20 text-green-600' : 'bg-red-500/20 text-red-500'}`}>
+          <Target className="w-2.5 h-2.5" />
           CV
         </div>
-        <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${placementOk ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
-          <Trophy className="w-3 h-3" />
+        <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${placementOk ? 'bg-green-500/20 text-green-600' : 'bg-red-500/20 text-red-500'}`}>
+          <Trophy className="w-2.5 h-2.5" />
           PLAC
         </div>
       </div>
