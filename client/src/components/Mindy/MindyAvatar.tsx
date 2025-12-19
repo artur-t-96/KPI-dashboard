@@ -186,204 +186,149 @@ export default function MindyAvatar({
 
   const getStatusColor = (ok: boolean) => ok ? '#10B981' : '#EF4444';
 
-  // Futuristic Mindy Robot
+  // Cute Mindy Robot - like the reference image
   const MindyRobot = () => (
     <div className="relative">
-      <svg width="200" height="280" viewBox="0 0 200 280" className="drop-shadow-2xl">
+      <svg width="180" height="240" viewBox="0 0 180 240" className="drop-shadow-2xl">
         <defs>
-          {/* Gradients */}
-          <linearGradient id="bodyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#1F2937" />
-            <stop offset="50%" stopColor="#374151" />
-            <stop offset="100%" stopColor="#1F2937" />
+          {/* White/gray body gradient */}
+          <linearGradient id="whiteBodyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#F8FAFC" />
+            <stop offset="50%" stopColor="#E2E8F0" />
+            <stop offset="100%" stopColor="#CBD5E1" />
           </linearGradient>
-          <linearGradient id="screenGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#0F172A" />
-            <stop offset="100%" stopColor="#1E293B" />
+          <linearGradient id="whiteBodyGradient2" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#F1F5F9" />
+            <stop offset="100%" stopColor="#CBD5E1" />
           </linearGradient>
-          <linearGradient id="glowGreen" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#10B981" />
-            <stop offset="100%" stopColor="#059669" />
+          {/* Dark visor gradient */}
+          <linearGradient id="visorGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#1E293B" />
+            <stop offset="100%" stopColor="#0F172A" />
           </linearGradient>
-          <linearGradient id="glowRed" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#EF4444" />
-            <stop offset="100%" stopColor="#DC2626" />
+          {/* Cyan glow */}
+          <linearGradient id="cyanGlow" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#22D3EE" />
+            <stop offset="100%" stopColor="#06B6D4" />
           </linearGradient>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+          <filter id="softGlow">
+            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
             <feMerge>
               <feMergeNode in="coloredBlur"/>
               <feMergeNode in="SourceGraphic"/>
             </feMerge>
           </filter>
-          <filter id="strongGlow">
-            <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+          <filter id="strongCyanGlow">
+            <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
             <feMerge>
               <feMergeNode in="coloredBlur"/>
               <feMergeNode in="SourceGraphic"/>
             </feMerge>
           </filter>
+          <filter id="shadow">
+            <feDropShadow dx="0" dy="4" stdDeviation="6" floodOpacity="0.15"/>
+          </filter>
+          {/* Highlight for 3D effect */}
+          <radialGradient id="headHighlight" cx="30%" cy="30%" r="50%">
+            <stop offset="0%" stopColor="white" stopOpacity="0.8"/>
+            <stop offset="100%" stopColor="white" stopOpacity="0"/>
+          </radialGradient>
         </defs>
 
-        {/* Antenna with pulse */}
-        <g filter="url(#glow)">
-          <line x1="100" y1="25" x2="100" y2="5" stroke={getStatusColor(verificationOk)} strokeWidth="4" strokeLinecap="round">
-            <animate attributeName="y2" values="5;0;5" dur="2s" repeatCount="indefinite" />
-          </line>
-          <circle cx="100" cy="5" r="8" fill={getStatusColor(verificationOk)}>
-            <animate attributeName="r" values="8;12;8" dur="2s" repeatCount="indefinite" />
-            <animate attributeName="opacity" values="1;0.5;1" dur="2s" repeatCount="indefinite" />
-          </circle>
-        </g>
+        {/* Shadow under robot */}
+        <ellipse cx="90" cy="232" rx="50" ry="8" fill="#94A3B8" opacity="0.3">
+          <animate attributeName="rx" values="50;45;50" dur="3s" repeatCount="indefinite" />
+        </ellipse>
 
-        {/* HEAD - Verifications indicator */}
-        <g>
-          {/* Head outer shell */}
-          <rect x="45" y="25" width="110" height="80" rx="20" fill="url(#bodyGradient)" stroke={getStatusColor(verificationOk)} strokeWidth="3">
-            {!verificationOk && <animate attributeName="stroke-opacity" values="1;0.3;1" dur="1s" repeatCount="indefinite" />}
-          </rect>
+        {/* BODY - Egg/oval shape */}
+        <ellipse cx="90" cy="175" rx="55" ry="60" fill="url(#whiteBodyGradient)" filter="url(#shadow)" />
+        {/* Body highlight */}
+        <ellipse cx="75" cy="155" rx="30" ry="25" fill="url(#headHighlight)" />
+        {/* Body line/belt */}
+        <path d="M 40 175 Q 90 185 140 175" stroke="#CBD5E1" strokeWidth="2" fill="none" />
 
-          {/* Face screen */}
-          <rect x="55" y="35" width="90" height="60" rx="12" fill="url(#screenGradient)" />
+        {/* Overall achievement on body */}
+        <text x="90" y="185" textAnchor="middle" fontSize="22" fill={stats.overallAchievement >= 70 ? '#10B981' : '#EF4444'} fontWeight="bold">
+          {stats.overallAchievement}%
+        </text>
+        <text x="90" y="200" textAnchor="middle" fontSize="9" fill="#64748B">TARGET</text>
 
-          {/* Eyes */}
-          <g filter="url(#glow)">
-            <circle cx="75" cy="60" r="12" fill={getStatusColor(verificationOk)}>
-              <animate attributeName="r" values="12;10;12" dur="3s" repeatCount="indefinite" />
-            </circle>
-            <circle cx="125" cy="60" r="12" fill={getStatusColor(verificationOk)}>
-              <animate attributeName="r" values="12;10;12" dur="3s" repeatCount="indefinite" />
-            </circle>
+        {/* ARMS - Small rounded */}
+        {/* Left arm */}
+        <ellipse cx="28" cy="160" rx="18" ry="25" fill="url(#whiteBodyGradient2)" filter="url(#shadow)">
+          <animate attributeName="cy" values="160;165;160" dur="3s" repeatCount="indefinite" />
+        </ellipse>
+        {/* Right arm */}
+        <ellipse cx="152" cy="160" rx="18" ry="25" fill="url(#whiteBodyGradient2)" filter="url(#shadow)">
+          <animate attributeName="cy" values="160;165;160" dur="3s" repeatCount="indefinite" />
+        </ellipse>
+
+        {/* NECK - Small connector */}
+        <rect x="75" y="95" width="30" height="15" rx="5" fill="url(#whiteBodyGradient)" />
+
+        {/* HEAD - Rounded rectangle with visor */}
+        <g filter="url(#shadow)">
+          {/* Head base - white/gray */}
+          <rect x="25" y="10" width="130" height="90" rx="35" fill="url(#whiteBodyGradient)" />
+          {/* Head highlight for 3D */}
+          <rect x="35" y="15" width="80" height="40" rx="20" fill="url(#headHighlight)" />
+
+          {/* Ear pieces */}
+          <rect x="10" y="40" width="20" height="35" rx="10" fill="url(#whiteBodyGradient2)" />
+          <rect x="150" y="40" width="20" height="35" rx="10" fill="url(#whiteBodyGradient2)" />
+
+          {/* Top antenna/button */}
+          <ellipse cx="90" cy="8" rx="12" ry="8" fill="url(#whiteBodyGradient2)" />
+
+          {/* VISOR/FACE - Dark rounded screen */}
+          <rect x="35" y="25" width="110" height="65" rx="25" fill="url(#visorGradient)" />
+
+          {/* EYES - Cyan glowing */}
+          <g filter="url(#strongCyanGlow)">
+            <ellipse cx="60" cy="52" rx="12" ry="14" fill={stats.overallAchievement >= 70 ? '#22D3EE' : '#EF4444'}>
+              <animate attributeName="ry" values="14;12;14" dur="4s" repeatCount="indefinite" />
+            </ellipse>
+            <ellipse cx="120" cy="52" rx="12" ry="14" fill={stats.overallAchievement >= 70 ? '#22D3EE' : '#EF4444'}>
+              <animate attributeName="ry" values="14;12;14" dur="4s" repeatCount="indefinite" />
+            </ellipse>
             {/* Eye highlights */}
-            <circle cx="72" cy="57" r="4" fill="white" opacity="0.8" />
-            <circle cx="122" cy="57" r="4" fill="white" opacity="0.8" />
+            <circle cx="56" cy="47" r="4" fill="white" opacity="0.9" />
+            <circle cx="116" cy="47" r="4" fill="white" opacity="0.9" />
           </g>
 
-          {/* Mouth - changes based on overall status */}
+          {/* MOUTH - Small cute smile */}
           {stats.overallAchievement >= 70 ? (
-            <path d="M 70 80 Q 100 95 130 80" stroke={getStatusColor(true)} strokeWidth="4" fill="none" strokeLinecap="round" filter="url(#glow)" />
+            <path d="M 75 72 Q 90 82 105 72" stroke="#22D3EE" strokeWidth="3" fill="none" strokeLinecap="round" filter="url(#softGlow)" />
           ) : (
-            <path d="M 70 88 Q 100 75 130 88" stroke={getStatusColor(false)} strokeWidth="4" fill="none" strokeLinecap="round" filter="url(#glow)">
-              <animate attributeName="d" values="M 70 88 Q 100 75 130 88;M 70 85 Q 100 78 130 85;M 70 88 Q 100 75 130 88" dur="2s" repeatCount="indefinite" />
+            <path d="M 75 78 Q 90 72 105 78" stroke="#EF4444" strokeWidth="3" fill="none" strokeLinecap="round" filter="url(#softGlow)">
+              <animate attributeName="d" values="M 75 78 Q 90 72 105 78;M 75 76 Q 90 74 105 76;M 75 78 Q 90 72 105 78" dur="2s" repeatCount="indefinite" />
             </path>
           )}
-
-          {/* Brain indicator (verification) */}
-          {!verificationOk && (
-            <g>
-              <circle cx="155" cy="35" r="12" fill="#EF4444" filter="url(#strongGlow)">
-                <animate attributeName="opacity" values="1;0.5;1" dur="0.5s" repeatCount="indefinite" />
-              </circle>
-              <text x="155" y="40" textAnchor="middle" fontSize="14" fill="white" fontWeight="bold">!</text>
-            </g>
-          )}
         </g>
 
-        {/* NECK */}
-        <rect x="85" y="105" width="30" height="20" rx="5" fill="url(#bodyGradient)" />
-        <rect x="90" y="108" width="20" height="14" rx="3" fill="#0F172A" />
-
-        {/* BODY / TORSO */}
-        <g>
-          <rect x="40" y="125" width="120" height="95" rx="15" fill="url(#bodyGradient)" stroke="#4B5563" strokeWidth="2" />
-
-          {/* Chest screen */}
-          <rect x="55" y="135" width="90" height="75" rx="10" fill="url(#screenGradient)" />
-
-          {/* Overall achievement display */}
-          <text x="100" y="165" textAnchor="middle" fontSize="28" fill={stats.overallAchievement >= 70 ? '#10B981' : '#EF4444'} fontWeight="bold" filter="url(#glow)">
-            {stats.overallAchievement}%
-          </text>
-          <text x="100" y="185" textAnchor="middle" fontSize="12" fill="#9CA3AF">OVERALL</text>
-
-          {/* Status indicators on chest */}
-          <g transform="translate(60, 195)">
-            <circle cx="0" cy="0" r="6" fill={getStatusColor(verificationOk)} filter="url(#glow)" />
-            <text x="0" y="15" textAnchor="middle" fontSize="8" fill="#9CA3AF">WER</text>
-          </g>
-          <g transform="translate(100, 195)">
-            <circle cx="0" cy="0" r="6" fill={getStatusColor(cvOk)} filter="url(#glow)" />
-            <text x="0" y="15" textAnchor="middle" fontSize="8" fill="#9CA3AF">CV</text>
-          </g>
-          <g transform="translate(140, 195)">
-            <circle cx="0" cy="0" r="6" fill={getStatusColor(placementOk)} filter="url(#glow)" />
-            <text x="0" y="15" textAnchor="middle" fontSize="8" fill="#9CA3AF">PLAC</text>
-          </g>
+        {/* Status indicators - small dots on body */}
+        <g transform="translate(60, 215)">
+          <circle cx="0" cy="0" r="5" fill={getStatusColor(verificationOk)} filter="url(#softGlow)" />
         </g>
-
-        {/* ARMS - CV indicator */}
-        <g>
-          {/* Left Arm */}
-          <rect x="10" y="130" width="28" height="70" rx="10" fill="url(#bodyGradient)" stroke={getStatusColor(cvOk)} strokeWidth="2">
-            {!cvOk && <animate attributeName="stroke-opacity" values="1;0.3;1" dur="1s" repeatCount="indefinite" />}
-          </rect>
-          <circle cx="24" cy="210" r="16" fill="url(#bodyGradient)" stroke={getStatusColor(cvOk)} strokeWidth="2" />
-          {!cvOk && (
-            <circle cx="24" cy="130" r="10" fill="#EF4444" filter="url(#strongGlow)">
-              <animate attributeName="opacity" values="1;0.5;1" dur="0.5s" repeatCount="indefinite" />
-            </circle>
-          )}
-
-          {/* Right Arm */}
-          <rect x="162" y="130" width="28" height="70" rx="10" fill="url(#bodyGradient)" stroke={getStatusColor(cvOk)} strokeWidth="2">
-            {!cvOk && <animate attributeName="stroke-opacity" values="1;0.3;1" dur="1s" repeatCount="indefinite" />}
-          </rect>
-          <circle cx="176" cy="210" r="16" fill="url(#bodyGradient)" stroke={getStatusColor(cvOk)} strokeWidth="2" />
-          {!cvOk && (
-            <circle cx="176" cy="130" r="10" fill="#EF4444" filter="url(#strongGlow)">
-              <animate attributeName="opacity" values="1;0.5;1" dur="0.5s" repeatCount="indefinite" />
-            </circle>
-          )}
+        <g transform="translate(90, 215)">
+          <circle cx="0" cy="0" r="5" fill={getStatusColor(cvOk)} filter="url(#softGlow)" />
         </g>
-
-        {/* LEGS - Placements indicator */}
-        <g>
-          {/* Left Leg */}
-          <rect x="55" y="220" width="30" height="45" rx="8" fill="url(#bodyGradient)" stroke={getStatusColor(placementOk)} strokeWidth="2">
-            {!placementOk && <animate attributeName="stroke-opacity" values="1;0.3;1" dur="1s" repeatCount="indefinite" />}
-          </rect>
-          <rect x="50" y="260" width="40" height="18" rx="6" fill="url(#bodyGradient)" stroke={getStatusColor(placementOk)} strokeWidth="2" />
-
-          {/* Right Leg */}
-          <rect x="115" y="220" width="30" height="45" rx="8" fill="url(#bodyGradient)" stroke={getStatusColor(placementOk)} strokeWidth="2">
-            {!placementOk && <animate attributeName="stroke-opacity" values="1;0.3;1" dur="1s" repeatCount="indefinite" />}
-          </rect>
-          <rect x="110" y="260" width="40" height="18" rx="6" fill="url(#bodyGradient)" stroke={getStatusColor(placementOk)} strokeWidth="2" />
-
-          {!placementOk && (
-            <g>
-              <circle cx="70" cy="240" r="10" fill="#EF4444" filter="url(#strongGlow)">
-                <animate attributeName="opacity" values="1;0.5;1" dur="0.5s" repeatCount="indefinite" />
-              </circle>
-              <circle cx="130" cy="240" r="10" fill="#EF4444" filter="url(#strongGlow)">
-                <animate attributeName="opacity" values="1;0.5;1" dur="0.5s" repeatCount="indefinite" />
-              </circle>
-            </g>
-          )}
+        <g transform="translate(120, 215)">
+          <circle cx="0" cy="0" r="5" fill={getStatusColor(placementOk)} filter="url(#softGlow)" />
         </g>
-
-        {/* Energy core glow */}
-        <circle cx="100" cy="175" r="30" fill="none" stroke={stats.overallAchievement >= 70 ? '#10B981' : '#EF4444'} strokeWidth="1" opacity="0.3">
-          <animate attributeName="r" values="30;40;30" dur="2s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite" />
-        </circle>
       </svg>
 
-      {/* Status labels */}
-      <div className="absolute -right-2 top-8 flex flex-col gap-1">
-        <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${verificationOk ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+      {/* Status labels below robot */}
+      <div className="flex justify-center gap-3 mt-2">
+        <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${verificationOk ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
           <Brain className="w-3 h-3" />
           WER
         </div>
-      </div>
-      <div className="absolute -left-2 top-32 flex flex-col gap-1">
-        <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${cvOk ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+        <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${cvOk ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
           <Target className="w-3 h-3" />
           CV
         </div>
-      </div>
-      <div className="absolute left-1/2 -translate-x-1/2 bottom-0 flex gap-1">
-        <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${placementOk ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+        <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium ${placementOk ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
           <Trophy className="w-3 h-3" />
           PLAC
         </div>
