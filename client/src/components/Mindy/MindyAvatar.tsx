@@ -122,6 +122,7 @@ export default function MindyAvatar({
       : '∞';
 
     const allTimeTotalInterviews = allTimePlacements.reduce((sum, d) => sum + d.total_interviews, 0);
+    const allTimeAvgIntPerDay = allTimeTotalDays > 0 ? (allTimeTotalInterviews / allTimeTotalDays).toFixed(2) : '0';
     const teamInterviewsPerPlacement = allTimeTotalPlacements > 0
       ? (allTimeTotalInterviews / allTimeTotalPlacements).toFixed(1)
       : '∞';
@@ -170,6 +171,7 @@ export default function MindyAvatar({
       allTimeTotalPlacements,
       allTimeTotalVerifications,
       allTimeTotalInterviews,
+      allTimeAvgIntPerDay,
       allTimeTotalRecommendations,
       allTimeAvgRecPerDay,
       allTimePlacementsPerMonth,
@@ -190,141 +192,172 @@ export default function MindyAvatar({
 
   const stats = calculateTeamStats();
 
-  // Determine status for each body part
-  const verificationOk = stats.verificationAchievement >= 70;
-  const cvOk = stats.cvAchievement >= 70;
-  const placementOk = stats.placementAchievement >= 70;
-  const interviewOk = stats.totalInterviews >= stats.totalPlacements * 3; // 3 interviews per placement target
-  const recommendationOk = stats.totalRecommendations >= stats.totalPlacements * 2; // 2 recommendations per placement
+  // Determine emotion based on overall achievement
+  type MindyMood = 'ecstatic' | 'happy' | 'satisfied' | 'neutral' | 'concerned' | 'worried' | 'sad';
 
-  // Colors for body parts
-  const getColor = (ok: boolean) => ok ? '#10B981' : '#EF4444';
-  const getGlow = (ok: boolean) => ok ? '#34D399' : '#F87171';
+  const getMood = (achievement: number): MindyMood => {
+    if (achievement >= 100) return 'ecstatic';
+    if (achievement >= 85) return 'happy';
+    if (achievement >= 70) return 'satisfied';
+    if (achievement >= 60) return 'neutral';
+    if (achievement >= 50) return 'concerned';
+    if (achievement >= 40) return 'worried';
+    return 'sad';
+  };
 
-  // Mindy Robot - Modern humanoid with body-part KPI mapping
+  const mood = getMood(stats.overallAchievement);
+
+  const moodConfig = {
+    ecstatic: { color: '#10B981', bgFrom: '#D1FAE5', bgTo: '#6EE7B7', eyeColor: '#FBBF24', label: 'Zachwycona!', emoji: '🌟' },
+    happy: { color: '#22C55E', bgFrom: '#DCFCE7', bgTo: '#86EFAC', eyeColor: '#22D3EE', label: 'Szczęśliwa', emoji: '😊' },
+    satisfied: { color: '#3B82F6', bgFrom: '#DBEAFE', bgTo: '#93C5FD', eyeColor: '#60A5FA', label: 'Zadowolona', emoji: '🙂' },
+    neutral: { color: '#F59E0B', bgFrom: '#FEF3C7', bgTo: '#FCD34D', eyeColor: '#FBBF24', label: 'Neutralna', emoji: '😐' },
+    concerned: { color: '#F97316', bgFrom: '#FFEDD5', bgTo: '#FDBA74', eyeColor: '#FB923C', label: 'Zaniepokojona', emoji: '😟' },
+    worried: { color: '#EF4444', bgFrom: '#FEE2E2', bgTo: '#FCA5A5', eyeColor: '#F87171', label: 'Zmartwiona', emoji: '😰' },
+    sad: { color: '#DC2626', bgFrom: '#FEE2E2', bgTo: '#F87171', eyeColor: '#EF4444', label: 'Smutna', emoji: '😢' }
+  };
+
+  const currentMood = moodConfig[mood];
+
+  // Emotional Mindy Robot
   const MindyRobot = () => {
-    const overallOk = stats.overallAchievement >= 70;
     return (
       <div className="flex flex-col items-center">
-        <svg width="120" height="160" viewBox="0 0 120 160">
+        <svg width="110" height="140" viewBox="0 0 110 140">
           <defs>
-            {/* Gradients for each body part */}
-            <linearGradient id="headGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={verificationOk ? '#D1FAE5' : '#FEE2E2'} />
-              <stop offset="100%" stopColor={verificationOk ? '#6EE7B7' : '#FCA5A5'} />
+            <linearGradient id="mindyBg" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={currentMood.bgFrom} />
+              <stop offset="100%" stopColor={currentMood.bgTo} />
             </linearGradient>
-            <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={placementOk ? '#D1FAE5' : '#FEE2E2'} />
-              <stop offset="100%" stopColor={placementOk ? '#6EE7B7' : '#FCA5A5'} />
+            <linearGradient id="mindyShine" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stopColor="white" stopOpacity="0.4" />
+              <stop offset="50%" stopColor="white" stopOpacity="0" />
             </linearGradient>
-            <linearGradient id="leftArmGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={cvOk ? '#CFFAFE' : '#FEE2E2'} />
-              <stop offset="100%" stopColor={cvOk ? '#67E8F9' : '#FCA5A5'} />
-            </linearGradient>
-            <linearGradient id="rightArmGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={recommendationOk ? '#FCE7F3' : '#FEE2E2'} />
-              <stop offset="100%" stopColor={recommendationOk ? '#F9A8D4' : '#FCA5A5'} />
-            </linearGradient>
-            <linearGradient id="legsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={interviewOk ? '#FEF3C7' : '#FEE2E2'} />
-              <stop offset="100%" stopColor={interviewOk ? '#FCD34D' : '#FCA5A5'} />
-            </linearGradient>
-            <filter id="neonGlow">
-              <feGaussianBlur stdDeviation="2" result="blur"/>
+            <filter id="mindyGlow">
+              <feGaussianBlur stdDeviation="3" result="blur"/>
               <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
-            <filter id="shadow">
-              <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.2"/>
+            <filter id="mindyShadow">
+              <feDropShadow dx="0" dy="3" stdDeviation="3" floodOpacity="0.15"/>
             </filter>
           </defs>
 
-          {/* Antenna */}
-          <line x1="60" y1="5" x2="60" y2="15" stroke="#64748B" strokeWidth="2"/>
-          <circle cx="60" cy="5" r="4" fill={overallOk ? '#22D3EE' : '#EF4444'} filter="url(#neonGlow)"/>
-
-          {/* HEAD - Weryfikacje */}
-          <g filter="url(#shadow)">
-            <rect x="35" y="15" width="50" height="40" rx="12" fill="url(#headGrad)" stroke={getColor(verificationOk)} strokeWidth="2"/>
-            {/* Visor */}
-            <rect x="40" y="22" width="40" height="18" rx="6" fill="#1E293B"/>
-            {/* Eyes */}
-            <circle cx="50" cy="31" r="5" fill={getGlow(verificationOk)} filter="url(#neonGlow)"/>
-            <circle cx="70" cy="31" r="5" fill={getGlow(verificationOk)} filter="url(#neonGlow)"/>
-            {/* Mouth indicator */}
-            <rect x="48" y="45" width="24" height="4" rx="2" fill={getColor(verificationOk)}/>
+          {/* Antennae */}
+          <g>
+            <line x1="35" y1="18" x2="30" y2="8" stroke="#94A3B8" strokeWidth="3" strokeLinecap="round"/>
+            <circle cx="30" cy="6" r="5" fill={currentMood.color} filter="url(#mindyGlow)"/>
+            <line x1="75" y1="18" x2="80" y2="8" stroke="#94A3B8" strokeWidth="3" strokeLinecap="round"/>
+            <circle cx="80" cy="6" r="5" fill={currentMood.color} filter="url(#mindyGlow)"/>
           </g>
 
-          {/* NECK */}
-          <rect x="52" y="55" width="16" height="8" rx="2" fill="#94A3B8"/>
-
-          {/* LEFT ARM - CV */}
-          <g filter="url(#shadow)">
-            <rect x="8" y="65" width="18" height="45" rx="6" fill="url(#leftArmGrad)" stroke={getColor(cvOk)} strokeWidth="2"/>
-            {/* Hand */}
-            <circle cx="17" cy="115" r="8" fill="url(#leftArmGrad)" stroke={getColor(cvOk)} strokeWidth="2"/>
-            {/* Arm joint */}
-            <circle cx="17" cy="72" r="5" fill="#64748B"/>
+          {/* Head/Face - main circle */}
+          <g filter="url(#mindyShadow)">
+            <circle cx="55" cy="55" r="40" fill="url(#mindyBg)" stroke={currentMood.color} strokeWidth="3"/>
+            <ellipse cx="55" cy="45" rx="35" ry="25" fill="url(#mindyShine)"/>
           </g>
 
-          {/* RIGHT ARM - Rekomendacje */}
-          <g filter="url(#shadow)">
-            <rect x="94" y="65" width="18" height="45" rx="6" fill="url(#rightArmGrad)" stroke={getColor(recommendationOk)} strokeWidth="2"/>
-            {/* Hand with star */}
-            <circle cx="103" cy="115" r="8" fill="url(#rightArmGrad)" stroke={getColor(recommendationOk)} strokeWidth="2"/>
-            {/* Star icon in hand */}
-            <path d="M103 112 L104.5 115 L108 115.5 L105.5 117.5 L106 121 L103 119.5 L100 121 L100.5 117.5 L98 115.5 L101.5 115 Z"
-                  fill={getColor(recommendationOk)} transform="scale(0.8) translate(12, 2)"/>
-            {/* Arm joint */}
-            <circle cx="103" cy="72" r="5" fill="#64748B"/>
-          </g>
+          {/* Eyes based on mood */}
+          {mood === 'ecstatic' ? (
+            <>
+              {/* Star eyes for ecstatic */}
+              <path d="M35 50 L37 54 L41 55 L38 58 L39 62 L35 60 L31 62 L32 58 L29 55 L33 54 Z" fill={currentMood.eyeColor} filter="url(#mindyGlow)"/>
+              <path d="M75 50 L77 54 L81 55 L78 58 L79 62 L75 60 L71 62 L72 58 L69 55 L73 54 Z" fill={currentMood.eyeColor} filter="url(#mindyGlow)"/>
+            </>
+          ) : mood === 'sad' || mood === 'worried' ? (
+            <>
+              {/* Sad/worried eyes - droopy */}
+              <ellipse cx="38" cy="50" rx="10" ry="8" fill="white"/>
+              <ellipse cx="72" cy="50" rx="10" ry="8" fill="white"/>
+              <circle cx="38" cy="52" r="5" fill="#1E293B"/>
+              <circle cx="72" cy="52" r="5" fill="#1E293B"/>
+              <circle cx="36" cy="50" r="2" fill="white"/>
+              <circle cx="70" cy="50" r="2" fill="white"/>
+              {/* Eyebrows - worried */}
+              <path d="M28 42 Q35 38 48 44" stroke="#64748B" strokeWidth="2" fill="none" strokeLinecap="round"/>
+              <path d="M82 42 Q75 38 62 44" stroke="#64748B" strokeWidth="2" fill="none" strokeLinecap="round"/>
+              {/* Tear for sad */}
+              {mood === 'sad' && (
+                <ellipse cx="48" cy="62" rx="3" ry="4" fill="#60A5FA" opacity="0.7"/>
+              )}
+            </>
+          ) : (
+            <>
+              {/* Normal/happy eyes */}
+              <ellipse cx="38" cy="50" rx="10" ry={mood === 'happy' || mood === 'satisfied' ? '10' : '8'} fill="white"/>
+              <ellipse cx="72" cy="50" rx="10" ry={mood === 'happy' || mood === 'satisfied' ? '10' : '8'} fill="white"/>
+              <circle cx="38" cy="50" r="6" fill="#1E293B"/>
+              <circle cx="72" cy="50" r="6" fill="#1E293B"/>
+              <circle cx="36" cy="48" r="2" fill="white"/>
+              <circle cx="70" cy="48" r="2" fill="white"/>
+              {/* Sparkle for happy */}
+              {(mood === 'happy' || mood === 'satisfied') && (
+                <>
+                  <circle cx="42" cy="46" r="1.5" fill={currentMood.eyeColor}/>
+                  <circle cx="76" cy="46" r="1.5" fill={currentMood.eyeColor}/>
+                </>
+              )}
+            </>
+          )}
 
-          {/* BODY/TORSO - Placements */}
-          <g filter="url(#shadow)">
-            <rect x="26" y="63" width="68" height="50" rx="10" fill="url(#bodyGrad)" stroke={getColor(placementOk)} strokeWidth="2"/>
-            {/* Core indicator */}
-            <circle cx="60" cy="88" r="12" fill="#1E293B"/>
-            <circle cx="60" cy="88" r="8" fill={getGlow(placementOk)} filter="url(#neonGlow)"/>
-            {/* Achievement percentage */}
-            <text x="60" y="92" textAnchor="middle" fontSize="8" fill="#1E293B" fontWeight="bold">
-              {stats.overallAchievement}%
-            </text>
-            {/* Chest details */}
-            <rect x="34" y="70" width="12" height="3" rx="1" fill={getColor(placementOk)} opacity="0.5"/>
-            <rect x="74" y="70" width="12" height="3" rx="1" fill={getColor(placementOk)} opacity="0.5"/>
-          </g>
+          {/* Cheeks - blush for happy moods */}
+          {(mood === 'ecstatic' || mood === 'happy' || mood === 'satisfied') && (
+            <>
+              <ellipse cx="22" cy="60" rx="8" ry="5" fill="#FDA4AF" opacity="0.5"/>
+              <ellipse cx="88" cy="60" rx="8" ry="5" fill="#FDA4AF" opacity="0.5"/>
+            </>
+          )}
 
-          {/* LEGS - Interviews */}
-          <g filter="url(#shadow)">
-            {/* Left leg */}
-            <rect x="32" y="113" width="18" height="35" rx="6" fill="url(#legsGrad)" stroke={getColor(interviewOk)} strokeWidth="2"/>
-            <rect x="30" y="145" width="22" height="10" rx="4" fill="url(#legsGrad)" stroke={getColor(interviewOk)} strokeWidth="2"/>
+          {/* Mouth based on mood */}
+          {mood === 'ecstatic' ? (
+            <path d="M35 72 Q55 90 75 72" stroke={currentMood.color} strokeWidth="4" fill="none" strokeLinecap="round"/>
+          ) : mood === 'happy' ? (
+            <path d="M35 70 Q55 85 75 70" stroke={currentMood.color} strokeWidth="3" fill="none" strokeLinecap="round"/>
+          ) : mood === 'satisfied' ? (
+            <path d="M38 72 Q55 82 72 72" stroke={currentMood.color} strokeWidth="3" fill="none" strokeLinecap="round"/>
+          ) : mood === 'neutral' ? (
+            <line x1="40" y1="75" x2="70" y2="75" stroke={currentMood.color} strokeWidth="3" strokeLinecap="round"/>
+          ) : mood === 'concerned' ? (
+            <path d="M40 78 Q55 72 70 78" stroke={currentMood.color} strokeWidth="3" fill="none" strokeLinecap="round"/>
+          ) : mood === 'worried' ? (
+            <path d="M38 80 Q55 70 72 80" stroke={currentMood.color} strokeWidth="3" fill="none" strokeLinecap="round"/>
+          ) : (
+            <path d="M35 82 Q55 68 75 82" stroke={currentMood.color} strokeWidth="4" fill="none" strokeLinecap="round"/>
+          )}
 
-            {/* Right leg */}
-            <rect x="70" y="113" width="18" height="35" rx="6" fill="url(#legsGrad)" stroke={getColor(interviewOk)} strokeWidth="2"/>
-            <rect x="68" y="145" width="22" height="10" rx="4" fill="url(#legsGrad)" stroke={getColor(interviewOk)} strokeWidth="2"/>
+          {/* Body */}
+          <rect x="35" y="95" width="40" height="30" rx="8" fill="url(#mindyBg)" stroke={currentMood.color} strokeWidth="2"/>
 
-            {/* Hip joint */}
-            <rect x="50" y="110" width="20" height="8" rx="3" fill="#64748B"/>
-          </g>
+          {/* Achievement display on body */}
+          <rect x="42" y="102" width="26" height="16" rx="4" fill="#1E293B"/>
+          <text x="55" y="115" textAnchor="middle" fontSize="11" fill={currentMood.color} fontWeight="bold">
+            {stats.overallAchievement}%
+          </text>
+
+          {/* Arms */}
+          <rect x="15" y="98" width="18" height="8" rx="4" fill="url(#mindyBg)" stroke={currentMood.color} strokeWidth="2"/>
+          <rect x="77" y="98" width="18" height="8" rx="4" fill="url(#mindyBg)" stroke={currentMood.color} strokeWidth="2"/>
+
+          {/* Hands - waving for happy, down for sad */}
+          {mood === 'ecstatic' || mood === 'happy' ? (
+            <>
+              <circle cx="10" cy="95" r="6" fill="url(#mindyBg)" stroke={currentMood.color} strokeWidth="2"/>
+              <circle cx="100" cy="95" r="6" fill="url(#mindyBg)" stroke={currentMood.color} strokeWidth="2"/>
+            </>
+          ) : (
+            <>
+              <circle cx="12" cy="105" r="6" fill="url(#mindyBg)" stroke={currentMood.color} strokeWidth="2"/>
+              <circle cx="98" cy="105" r="6" fill="url(#mindyBg)" stroke={currentMood.color} strokeWidth="2"/>
+            </>
+          )}
+
+          {/* Feet */}
+          <ellipse cx="45" cy="132" rx="10" ry="6" fill="url(#mindyBg)" stroke={currentMood.color} strokeWidth="2"/>
+          <ellipse cx="65" cy="132" rx="10" ry="6" fill="url(#mindyBg)" stroke={currentMood.color} strokeWidth="2"/>
         </svg>
 
-        {/* Legend */}
-        <div className="flex flex-wrap gap-1 mt-1 justify-center text-[8px]">
-          <span className={`px-1 py-0.5 rounded ${verificationOk ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-            Głowa:WER
-          </span>
-          <span className={`px-1 py-0.5 rounded ${placementOk ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-            Tułów:PLAC
-          </span>
-          <span className={`px-1 py-0.5 rounded ${cvOk ? 'bg-cyan-100 text-cyan-700' : 'bg-red-100 text-red-700'}`}>
-            L.ręka:CV
-          </span>
-          <span className={`px-1 py-0.5 rounded ${recommendationOk ? 'bg-pink-100 text-pink-700' : 'bg-red-100 text-red-700'}`}>
-            P.ręka:REK
-          </span>
-          <span className={`px-1 py-0.5 rounded ${interviewOk ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
-            Nogi:INT
-          </span>
+        {/* Mood label */}
+        <div className={`mt-1 px-2 py-0.5 rounded-full text-[10px] font-medium`} style={{ backgroundColor: currentMood.bgTo, color: currentMood.color }}>
+          {currentMood.emoji} {currentMood.label}
         </div>
       </div>
     );
@@ -441,14 +474,20 @@ export default function MindyAvatar({
                   <Zap className={`w-2.5 h-2.5 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
                   <span className={`text-[9px] ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Int</span>
                 </div>
-                <span className={`text-xs font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{stats.totalInterviews}</span>
+                <div className="flex items-center gap-1">
+                  <span className={`text-xs font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{stats.totalInterviews}</span>
+                  <span className={`text-[8px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{stats.avgInterviewsPerDay}/d</span>
+                </div>
               </div>
               <div className={`flex-1 flex items-center justify-between p-1 rounded ${isDark ? 'bg-gray-800/50' : 'bg-pink-50'} border ${isDark ? 'border-gray-700' : 'border-pink-200'}`}>
                 <div className="flex items-center gap-0.5">
                   <Star className={`w-2.5 h-2.5 ${isDark ? 'text-pink-400' : 'text-pink-600'}`} />
                   <span className={`text-[9px] ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Rek</span>
                 </div>
-                <span className={`text-xs font-bold ${isDark ? 'text-pink-400' : 'text-pink-600'}`}>{stats.totalRecommendations}</span>
+                <div className="flex items-center gap-1">
+                  <span className={`text-xs font-bold ${isDark ? 'text-pink-400' : 'text-pink-600'}`}>{stats.totalRecommendations}</span>
+                  <span className={`text-[8px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{stats.avgRecommendationsPerDay}/d</span>
+                </div>
               </div>
             </div>
           </div>
@@ -472,14 +511,20 @@ export default function MindyAvatar({
                   <Zap className={`w-2.5 h-2.5 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
                   <span className={`text-[9px] ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Int</span>
                 </div>
-                <span className={`text-xs font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{stats.allTimeTotalInterviews}</span>
+                <div className="flex items-center gap-1">
+                  <span className={`text-xs font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{stats.allTimeTotalInterviews}</span>
+                  <span className={`text-[8px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{stats.allTimeAvgIntPerDay}/d</span>
+                </div>
               </div>
               <div className={`flex-1 flex items-center justify-between p-1 rounded ${isDark ? 'bg-gray-800/50' : 'bg-pink-50'} border ${isDark ? 'border-gray-700' : 'border-pink-200'}`}>
                 <div className="flex items-center gap-0.5">
                   <Star className={`w-2.5 h-2.5 ${isDark ? 'text-pink-400' : 'text-pink-600'}`} />
                   <span className={`text-[9px] ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Rek</span>
                 </div>
-                <span className={`text-xs font-bold ${isDark ? 'text-pink-400' : 'text-pink-600'}`}>{stats.allTimeTotalRecommendations}</span>
+                <div className="flex items-center gap-1">
+                  <span className={`text-xs font-bold ${isDark ? 'text-pink-400' : 'text-pink-600'}`}>{stats.allTimeTotalRecommendations}</span>
+                  <span className={`text-[8px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{stats.allTimeAvgRecPerDay}/d</span>
+                </div>
               </div>
             </div>
 
