@@ -347,6 +347,83 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
         selectedYear={selectedYear}
       />
 
+      {/* Top 3 & Bottom 3 Champions League Overall */}
+      {championsAllTimePerDay.length > 0 && (
+        <div className="bg-white rounded-xl shadow-sm p-4">
+          <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <span>🏆</span> Liga Mistrzow - Ranking Overall
+          </h2>
+          <div className="grid md:grid-cols-2 gap-6">
+            {/* Top 3 */}
+            <div>
+              <h3 className="text-sm font-semibold text-green-700 mb-3 flex items-center gap-2">
+                <span>🌟</span> TOP 3
+              </h3>
+              <div className="space-y-2">
+                {championsAllTimePerDay.slice(0, 3).map((entry, index) => (
+                  <div
+                    key={entry.employeeId}
+                    className={`flex items-center justify-between p-3 rounded-lg ${
+                      index === 0 ? 'bg-gradient-to-r from-yellow-100 to-amber-100 border border-yellow-300' :
+                      index === 1 ? 'bg-gradient-to-r from-gray-100 to-slate-100 border border-gray-300' :
+                      'bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">
+                        {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+                      </span>
+                      <div>
+                        <div className="font-semibold text-gray-900">{entry.name}</div>
+                        <div className="text-xs text-gray-500">{entry.position}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xl font-bold text-amber-600">{entry.totalPoints} pkt</div>
+                      <div className="text-xs text-gray-500">
+                        {entry.placements}P / {entry.interviews}I / {entry.recommendations}R
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Bottom 3 */}
+            <div>
+              <h3 className="text-sm font-semibold text-red-700 mb-3 flex items-center gap-2">
+                <span>📉</span> BOTTOM 3
+              </h3>
+              <div className="space-y-2">
+                {championsAllTimePerDay.length >= 3 && [...championsAllTimePerDay].slice(-3).reverse().map((entry, index) => {
+                  const actualRank = championsAllTimePerDay.length - index;
+                  return (
+                    <div
+                      key={entry.employeeId}
+                      className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-red-50 to-rose-50 border border-red-200"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg font-bold text-red-400">#{actualRank}</span>
+                        <div>
+                          <div className="font-semibold text-gray-900">{entry.name}</div>
+                          <div className="text-xs text-gray-500">{entry.position}</div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-xl font-bold text-red-500">{entry.totalPoints} pkt</div>
+                        <div className="text-xs text-gray-500">
+                          {entry.placements}P / {entry.interviews}I / {entry.recommendations}R
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm p-4">
         <div className="flex flex-wrap items-center gap-4">
@@ -810,7 +887,7 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
 
       {/* ===== CATEGORY 4: CV, WERYFIKACJE, INTERVIEWS & REKOMENDACJE ===== */}
       <DraggableSection id="category-cv-weryfikacje">
-        <Category id="category-cv-weryfikacje" title="CV, Weryfikacje, Interviews & Rekomendacje" icon="📄" color="bg-gradient-to-r from-violet-500 to-purple-600">
+        <Category id="category-cv-weryfikacje" title="CV, Weryfikacje, Interviews, Rekomendacje & Placements" icon="📄" color="bg-gradient-to-r from-violet-500 to-purple-600">
           {/* CV Tables Grid */}
           <div className="grid md:grid-cols-3 gap-4">
             {/* Weekly CV */}
@@ -1264,6 +1341,126 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                         </tr>
                       );
                     })}
+                </tbody>
+              </table>
+            </CollapsibleSection>
+
+            {/* Weekly Placements */}
+            <CollapsibleSection
+              title="Placements - Tydzien"
+              subtitle="Placements w wybranym tygodniu"
+              icon="🏆"
+              headerClassName="bg-gradient-to-r from-emerald-500 to-green-600 text-white"
+            >
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">#</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">Placements</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[...weeklyData]
+                    .sort((a, b) => b.placements - a.placements)
+                    .map((d, index) => (
+                      <tr key={d.employeeId} className={`hover:bg-gray-50 ${index < 3 ? 'bg-green-50' : ''}`}>
+                        <td className="px-3 py-2 text-center text-sm">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                        </td>
+                        <td className="px-3 py-2 font-medium text-sm">{d.name}</td>
+                        <td className="px-3 py-2 text-center">
+                          <span className={`font-bold ${d.placements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                            {d.placements}
+                          </span>
+                          {d.placements >= 1 && <span className="ml-1">✅</span>}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </CollapsibleSection>
+
+            {/* Monthly Placements */}
+            <CollapsibleSection
+              title={`Placements - ${MONTHS_PL[selectedMonth]}`}
+              subtitle="Placements w wybranym miesiacu"
+              icon="📅"
+              headerClassName="bg-gradient-to-r from-green-500 to-teal-600 text-white"
+            >
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">#</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">Placements</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {[...monthlyData]
+                    .sort((a, b) => b.totalPlacements - a.totalPlacements)
+                    .map((d, index) => (
+                      <tr key={d.employeeId} className={`hover:bg-gray-50 ${index < 3 ? 'bg-green-50' : ''}`}>
+                        <td className="px-3 py-2 text-center text-sm">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                        </td>
+                        <td className="px-3 py-2 font-medium text-sm">{d.name}</td>
+                        <td className="px-3 py-2 text-center">
+                          <span className={`font-bold ${d.totalPlacements > 0 ? 'text-green-600' : 'text-gray-400'}`}>
+                            {d.totalPlacements}
+                          </span>
+                          {d.totalPlacements >= 1 && <span className="ml-1">✅</span>}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </CollapsibleSection>
+
+            {/* All-Time Placements */}
+            <CollapsibleSection
+              title="Placements - Od poczatku"
+              subtitle="Lacznie wszystkie placements"
+              icon="🏅"
+              headerClassName="bg-gradient-to-r from-teal-500 to-cyan-600 text-white"
+            >
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">#</th>
+                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Pracownik</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">Plac.</th>
+                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">Plac./mies.</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {allTimePlacements.map((d, index) => {
+                    let months = 1;
+                    if (d.first_week && d.last_week) {
+                      const firstDate = new Date(d.first_week).getTime();
+                      const lastDate = new Date(d.last_week).getTime();
+                      if (!isNaN(firstDate) && !isNaN(lastDate)) {
+                        months = Math.max(1, Math.ceil((lastDate - firstDate) / (30 * 24 * 60 * 60 * 1000)));
+                      }
+                    }
+                    const placPerMonth = (d.total_placements / months).toFixed(2);
+                    return (
+                      <tr key={d.employee_id} className={`hover:bg-gray-50 ${index < 3 ? 'bg-green-50' : ''}`}>
+                        <td className="px-3 py-2 text-center text-sm">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
+                        </td>
+                        <td className="px-3 py-2 font-medium text-sm">{d.name}</td>
+                        <td className="px-3 py-2 text-center">
+                          <span className="font-bold text-gray-700">{d.total_placements}</span>
+                        </td>
+                        <td className="px-3 py-2 text-center">
+                          <span className={`font-bold ${Number(placPerMonth) >= 1 ? 'text-green-600' : Number(placPerMonth) > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
+                            {placPerMonth}
+                          </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </CollapsibleSection>
