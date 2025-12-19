@@ -194,51 +194,137 @@ export default function MindyAvatar({
   const verificationOk = stats.verificationAchievement >= 70;
   const cvOk = stats.cvAchievement >= 70;
   const placementOk = stats.placementAchievement >= 70;
+  const interviewOk = stats.totalInterviews >= stats.totalPlacements * 3; // 3 interviews per placement target
+  const recommendationOk = stats.totalRecommendations >= stats.totalPlacements * 2; // 2 recommendations per placement
 
-  // Mindy Robot - compact circle design with KPI indicators
+  // Colors for body parts
+  const getColor = (ok: boolean) => ok ? '#10B981' : '#EF4444';
+  const getGlow = (ok: boolean) => ok ? '#34D399' : '#F87171';
+
+  // Mindy Robot - Modern humanoid with body-part KPI mapping
   const MindyRobot = () => {
     const overallOk = stats.overallAchievement >= 70;
     return (
       <div className="flex flex-col items-center">
-        <svg width="100" height="100" viewBox="0 0 100 100">
+        <svg width="120" height="160" viewBox="0 0 120 160">
           <defs>
-            <linearGradient id="robotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#E0E7FF" />
-              <stop offset="100%" stopColor="#C7D2FE" />
+            {/* Gradients for each body part */}
+            <linearGradient id="headGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={verificationOk ? '#D1FAE5' : '#FEE2E2'} />
+              <stop offset="100%" stopColor={verificationOk ? '#6EE7B7' : '#FCA5A5'} />
             </linearGradient>
-            <filter id="glow">
+            <linearGradient id="bodyGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={placementOk ? '#D1FAE5' : '#FEE2E2'} />
+              <stop offset="100%" stopColor={placementOk ? '#6EE7B7' : '#FCA5A5'} />
+            </linearGradient>
+            <linearGradient id="leftArmGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={cvOk ? '#CFFAFE' : '#FEE2E2'} />
+              <stop offset="100%" stopColor={cvOk ? '#67E8F9' : '#FCA5A5'} />
+            </linearGradient>
+            <linearGradient id="rightArmGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={recommendationOk ? '#FCE7F3' : '#FEE2E2'} />
+              <stop offset="100%" stopColor={recommendationOk ? '#F9A8D4' : '#FCA5A5'} />
+            </linearGradient>
+            <linearGradient id="legsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={interviewOk ? '#FEF3C7' : '#FEE2E2'} />
+              <stop offset="100%" stopColor={interviewOk ? '#FCD34D' : '#FCA5A5'} />
+            </linearGradient>
+            <filter id="neonGlow">
               <feGaussianBlur stdDeviation="2" result="blur"/>
               <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
             </filter>
+            <filter id="shadow">
+              <feDropShadow dx="0" dy="2" stdDeviation="2" floodOpacity="0.2"/>
+            </filter>
           </defs>
 
-          {/* Main circle - face */}
-          <circle cx="50" cy="50" r="42" fill="url(#robotGrad)" stroke={overallOk ? '#10B981' : '#EF4444'} strokeWidth="3"/>
+          {/* Antenna */}
+          <line x1="60" y1="5" x2="60" y2="15" stroke="#64748B" strokeWidth="2"/>
+          <circle cx="60" cy="5" r="4" fill={overallOk ? '#22D3EE' : '#EF4444'} filter="url(#neonGlow)"/>
 
-          {/* Eyes */}
-          <ellipse cx="35" cy="42" rx="8" ry="10" fill="#1E293B"/>
-          <ellipse cx="65" cy="42" rx="8" ry="10" fill="#1E293B"/>
-          <circle cx="33" cy="39" r="3" fill={overallOk ? '#22D3EE' : '#EF4444'} filter="url(#glow)"/>
-          <circle cx="63" cy="39" r="3" fill={overallOk ? '#22D3EE' : '#EF4444'} filter="url(#glow)"/>
+          {/* HEAD - Weryfikacje */}
+          <g filter="url(#shadow)">
+            <rect x="35" y="15" width="50" height="40" rx="12" fill="url(#headGrad)" stroke={getColor(verificationOk)} strokeWidth="2"/>
+            {/* Visor */}
+            <rect x="40" y="22" width="40" height="18" rx="6" fill="#1E293B"/>
+            {/* Eyes */}
+            <circle cx="50" cy="31" r="5" fill={getGlow(verificationOk)} filter="url(#neonGlow)"/>
+            <circle cx="70" cy="31" r="5" fill={getGlow(verificationOk)} filter="url(#neonGlow)"/>
+            {/* Mouth indicator */}
+            <rect x="48" y="45" width="24" height="4" rx="2" fill={getColor(verificationOk)}/>
+          </g>
 
-          {/* Smile/frown */}
-          {overallOk ? (
-            <path d="M 32 62 Q 50 75 68 62" stroke="#10B981" strokeWidth="3" fill="none" strokeLinecap="round"/>
-          ) : (
-            <path d="M 32 70 Q 50 60 68 70" stroke="#EF4444" strokeWidth="3" fill="none" strokeLinecap="round"/>
-          )}
+          {/* NECK */}
+          <rect x="52" y="55" width="16" height="8" rx="2" fill="#94A3B8"/>
 
-          {/* Achievement text */}
-          <text x="50" y="88" textAnchor="middle" fontSize="11" fill={overallOk ? '#10B981' : '#EF4444'} fontWeight="bold">
-            {stats.overallAchievement}%
-          </text>
+          {/* LEFT ARM - CV */}
+          <g filter="url(#shadow)">
+            <rect x="8" y="65" width="18" height="45" rx="6" fill="url(#leftArmGrad)" stroke={getColor(cvOk)} strokeWidth="2"/>
+            {/* Hand */}
+            <circle cx="17" cy="115" r="8" fill="url(#leftArmGrad)" stroke={getColor(cvOk)} strokeWidth="2"/>
+            {/* Arm joint */}
+            <circle cx="17" cy="72" r="5" fill="#64748B"/>
+          </g>
+
+          {/* RIGHT ARM - Rekomendacje */}
+          <g filter="url(#shadow)">
+            <rect x="94" y="65" width="18" height="45" rx="6" fill="url(#rightArmGrad)" stroke={getColor(recommendationOk)} strokeWidth="2"/>
+            {/* Hand with star */}
+            <circle cx="103" cy="115" r="8" fill="url(#rightArmGrad)" stroke={getColor(recommendationOk)} strokeWidth="2"/>
+            {/* Star icon in hand */}
+            <path d="M103 112 L104.5 115 L108 115.5 L105.5 117.5 L106 121 L103 119.5 L100 121 L100.5 117.5 L98 115.5 L101.5 115 Z"
+                  fill={getColor(recommendationOk)} transform="scale(0.8) translate(12, 2)"/>
+            {/* Arm joint */}
+            <circle cx="103" cy="72" r="5" fill="#64748B"/>
+          </g>
+
+          {/* BODY/TORSO - Placements */}
+          <g filter="url(#shadow)">
+            <rect x="26" y="63" width="68" height="50" rx="10" fill="url(#bodyGrad)" stroke={getColor(placementOk)} strokeWidth="2"/>
+            {/* Core indicator */}
+            <circle cx="60" cy="88" r="12" fill="#1E293B"/>
+            <circle cx="60" cy="88" r="8" fill={getGlow(placementOk)} filter="url(#neonGlow)"/>
+            {/* Achievement percentage */}
+            <text x="60" y="92" textAnchor="middle" fontSize="8" fill="#1E293B" fontWeight="bold">
+              {stats.overallAchievement}%
+            </text>
+            {/* Chest details */}
+            <rect x="34" y="70" width="12" height="3" rx="1" fill={getColor(placementOk)} opacity="0.5"/>
+            <rect x="74" y="70" width="12" height="3" rx="1" fill={getColor(placementOk)} opacity="0.5"/>
+          </g>
+
+          {/* LEGS - Interviews */}
+          <g filter="url(#shadow)">
+            {/* Left leg */}
+            <rect x="32" y="113" width="18" height="35" rx="6" fill="url(#legsGrad)" stroke={getColor(interviewOk)} strokeWidth="2"/>
+            <rect x="30" y="145" width="22" height="10" rx="4" fill="url(#legsGrad)" stroke={getColor(interviewOk)} strokeWidth="2"/>
+
+            {/* Right leg */}
+            <rect x="70" y="113" width="18" height="35" rx="6" fill="url(#legsGrad)" stroke={getColor(interviewOk)} strokeWidth="2"/>
+            <rect x="68" y="145" width="22" height="10" rx="4" fill="url(#legsGrad)" stroke={getColor(interviewOk)} strokeWidth="2"/>
+
+            {/* Hip joint */}
+            <rect x="50" y="110" width="20" height="8" rx="3" fill="#64748B"/>
+          </g>
         </svg>
 
-        {/* KPI indicators */}
-        <div className="flex gap-1 mt-1">
-          <div className={`w-2 h-2 rounded-full ${verificationOk ? 'bg-green-500' : 'bg-red-500'}`} title="WER"/>
-          <div className={`w-2 h-2 rounded-full ${cvOk ? 'bg-green-500' : 'bg-red-500'}`} title="CV"/>
-          <div className={`w-2 h-2 rounded-full ${placementOk ? 'bg-green-500' : 'bg-red-500'}`} title="PLAC"/>
+        {/* Legend */}
+        <div className="flex flex-wrap gap-1 mt-1 justify-center text-[8px]">
+          <span className={`px-1 py-0.5 rounded ${verificationOk ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            Głowa:WER
+          </span>
+          <span className={`px-1 py-0.5 rounded ${placementOk ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            Tułów:PLAC
+          </span>
+          <span className={`px-1 py-0.5 rounded ${cvOk ? 'bg-cyan-100 text-cyan-700' : 'bg-red-100 text-red-700'}`}>
+            L.ręka:CV
+          </span>
+          <span className={`px-1 py-0.5 rounded ${recommendationOk ? 'bg-pink-100 text-pink-700' : 'bg-red-100 text-red-700'}`}>
+            P.ręka:REK
+          </span>
+          <span className={`px-1 py-0.5 rounded ${interviewOk ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+            Nogi:INT
+          </span>
         </div>
       </div>
     );
