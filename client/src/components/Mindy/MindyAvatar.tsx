@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { getMindyResponse } from '../../services/api';
 import type { WeeklyKPI, MonthlyKPI } from '../../types';
 import type { AllTimeVerifications, AllTimePlacement } from '../../services/api';
-import { Users, TrendingUp, Calendar, MessageCircle, X, Zap, Brain, Target, Trophy } from 'lucide-react';
+import { Users, TrendingUp, Calendar, MessageCircle, X, Zap, Brain, Target, Trophy, Star } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
 interface Props {
@@ -66,6 +66,8 @@ export default function MindyAvatar({
       sum + (viewMode === 'week' ? d.placements : d.totalPlacements), 0);
     const totalInterviews = currentData.reduce((sum, d: any) =>
       sum + (viewMode === 'week' ? d.interviews : d.totalInterviews), 0);
+    const totalRecommendations = currentData.reduce((sum, d: any) =>
+      sum + (viewMode === 'week' ? d.recommendations : d.totalRecommendations), 0);
 
     const sourcerDays = sourcers.reduce((sum, d: any) =>
       sum + (viewMode === 'week' ? d.daysWorked : (monthlyData.find(m => m.employeeId === d.employeeId)?.totalDaysWorked || 0)), 0);
@@ -132,6 +134,11 @@ export default function MindyAvatar({
     const avgCVPerDay = (totalCV / daysForAvg).toFixed(2);
     const avgPlacementsPerDay = (totalPlacements / daysForAvg).toFixed(3);
     const avgInterviewsPerDay = (totalInterviews / daysForAvg).toFixed(2);
+    const avgRecommendationsPerDay = (totalRecommendations / daysForAvg).toFixed(2);
+
+    // All-time recommendations from placements data
+    const allTimeTotalRecommendations = allTimePlacements.reduce((sum, d) => sum + d.total_recommendations, 0);
+    const allTimeAvgRecPerDay = allTimeTotalDays > 0 ? (allTimeTotalRecommendations / allTimeTotalDays).toFixed(2) : '0';
 
     return {
       teamSize: weeklyData.length,
@@ -143,6 +150,7 @@ export default function MindyAvatar({
       totalCV,
       totalPlacements,
       totalInterviews,
+      totalRecommendations,
       verificationTarget,
       cvTarget,
       placementTarget,
@@ -154,6 +162,7 @@ export default function MindyAvatar({
       avgCVPerDay,
       avgPlacementsPerDay,
       avgInterviewsPerDay,
+      avgRecommendationsPerDay,
       allTimeTotalDays,
       allTimeVerPerDay,
       allTimeCVPerDay,
@@ -161,6 +170,8 @@ export default function MindyAvatar({
       allTimeTotalPlacements,
       allTimeTotalVerifications,
       allTimeTotalInterviews,
+      allTimeTotalRecommendations,
+      allTimeAvgRecPerDay,
       allTimePlacementsPerMonth,
       allTimePlacementTarget,
       teamVerificationsPerPlacement,
@@ -184,136 +195,54 @@ export default function MindyAvatar({
   const cvOk = stats.cvAchievement >= 70;
   const placementOk = stats.placementAchievement >= 70;
 
-  const getStatusColor = (ok: boolean) => ok ? '#10B981' : '#EF4444';
+  // Mindy Robot - compact circle design with KPI indicators
+  const MindyRobot = () => {
+    const overallOk = stats.overallAchievement >= 70;
+    return (
+      <div className="flex flex-col items-center">
+        <svg width="100" height="100" viewBox="0 0 100 100">
+          <defs>
+            <linearGradient id="robotGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#E0E7FF" />
+              <stop offset="100%" stopColor="#C7D2FE" />
+            </linearGradient>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="2" result="blur"/>
+              <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
 
-  // Cute Mindy Robot - smaller with body part KPI indicators
-  const MindyRobot = () => (
-    <div className="relative">
-      <svg width="120" height="160" viewBox="0 0 180 240" className="drop-shadow-xl">
-        <defs>
-          {/* White/gray body gradient */}
-          <linearGradient id="whiteBodyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#F8FAFC" />
-            <stop offset="50%" stopColor="#E2E8F0" />
-            <stop offset="100%" stopColor="#CBD5E1" />
-          </linearGradient>
-          <linearGradient id="whiteBodyGradient2" x1="100%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#F1F5F9" />
-            <stop offset="100%" stopColor="#CBD5E1" />
-          </linearGradient>
-          {/* Dark visor gradient */}
-          <linearGradient id="visorGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#1E293B" />
-            <stop offset="100%" stopColor="#0F172A" />
-          </linearGradient>
-          <filter id="softGlow">
-            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-            <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-          <filter id="strongGlow">
-            <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
-            <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-          <filter id="shadow">
-            <feDropShadow dx="0" dy="3" stdDeviation="4" floodOpacity="0.15"/>
-          </filter>
-          <radialGradient id="headHighlight" cx="30%" cy="30%" r="50%">
-            <stop offset="0%" stopColor="white" stopOpacity="0.8"/>
-            <stop offset="100%" stopColor="white" stopOpacity="0"/>
-          </radialGradient>
-        </defs>
+          {/* Main circle - face */}
+          <circle cx="50" cy="50" r="42" fill="url(#robotGrad)" stroke={overallOk ? '#10B981' : '#EF4444'} strokeWidth="3"/>
 
-        {/* Shadow under robot */}
-        <ellipse cx="90" cy="232" rx="45" ry="6" fill="#94A3B8" opacity="0.3" />
+          {/* Eyes */}
+          <ellipse cx="35" cy="42" rx="8" ry="10" fill="#1E293B"/>
+          <ellipse cx="65" cy="42" rx="8" ry="10" fill="#1E293B"/>
+          <circle cx="33" cy="39" r="3" fill={overallOk ? '#22D3EE' : '#EF4444'} filter="url(#glow)"/>
+          <circle cx="63" cy="39" r="3" fill={overallOk ? '#22D3EE' : '#EF4444'} filter="url(#glow)"/>
 
-        {/* BODY - Placements indicator */}
-        <ellipse cx="90" cy="175" rx="55" ry="60" fill="url(#whiteBodyGradient)" filter="url(#shadow)"
-          stroke={getStatusColor(placementOk)} strokeWidth="3" strokeOpacity={placementOk ? 0.3 : 0.8}>
-          {!placementOk && <animate attributeName="stroke-opacity" values="0.8;0.3;0.8" dur="1.5s" repeatCount="indefinite" />}
-        </ellipse>
-        <ellipse cx="75" cy="155" rx="30" ry="25" fill="url(#headHighlight)" />
-
-        {/* Placement indicator on body */}
-        <text x="90" y="180" textAnchor="middle" fontSize="20" fill={getStatusColor(placementOk)} fontWeight="bold">
-          {stats.placementAchievement}%
-        </text>
-        <text x="90" y="198" textAnchor="middle" fontSize="9" fill="#64748B">PLAC</text>
-
-        {/* ARMS - CV indicator */}
-        <ellipse cx="28" cy="160" rx="18" ry="25" fill="url(#whiteBodyGradient2)" filter="url(#shadow)"
-          stroke={getStatusColor(cvOk)} strokeWidth="3" strokeOpacity={cvOk ? 0.3 : 0.8}>
-          {!cvOk && <animate attributeName="stroke-opacity" values="0.8;0.3;0.8" dur="1.5s" repeatCount="indefinite" />}
-        </ellipse>
-        <ellipse cx="152" cy="160" rx="18" ry="25" fill="url(#whiteBodyGradient2)" filter="url(#shadow)"
-          stroke={getStatusColor(cvOk)} strokeWidth="3" strokeOpacity={cvOk ? 0.3 : 0.8}>
-          {!cvOk && <animate attributeName="stroke-opacity" values="0.8;0.3;0.8" dur="1.5s" repeatCount="indefinite" />}
-        </ellipse>
-
-        {/* NECK */}
-        <rect x="75" y="95" width="30" height="15" rx="5" fill="url(#whiteBodyGradient)" />
-
-        {/* HEAD - Verifications indicator */}
-        <g filter="url(#shadow)">
-          <rect x="25" y="10" width="130" height="90" rx="35" fill="url(#whiteBodyGradient)"
-            stroke={getStatusColor(verificationOk)} strokeWidth="3" strokeOpacity={verificationOk ? 0.3 : 0.8}>
-            {!verificationOk && <animate attributeName="stroke-opacity" values="0.8;0.3;0.8" dur="1.5s" repeatCount="indefinite" />}
-          </rect>
-          <rect x="35" y="15" width="80" height="40" rx="20" fill="url(#headHighlight)" />
-
-          {/* Ear pieces */}
-          <rect x="10" y="40" width="20" height="35" rx="10" fill="url(#whiteBodyGradient2)" />
-          <rect x="150" y="40" width="20" height="35" rx="10" fill="url(#whiteBodyGradient2)" />
-
-          {/* Top antenna */}
-          <ellipse cx="90" cy="8" rx="10" ry="6" fill="url(#whiteBodyGradient2)" />
-
-          {/* VISOR/FACE */}
-          <rect x="35" y="25" width="110" height="65" rx="25" fill="url(#visorGradient)" />
-
-          {/* EYES - Based on verification status */}
-          <g filter="url(#strongGlow)">
-            <ellipse cx="60" cy="52" rx="12" ry="14" fill={getStatusColor(verificationOk)}>
-              <animate attributeName="ry" values="14;12;14" dur="4s" repeatCount="indefinite" />
-            </ellipse>
-            <ellipse cx="120" cy="52" rx="12" ry="14" fill={getStatusColor(verificationOk)}>
-              <animate attributeName="ry" values="14;12;14" dur="4s" repeatCount="indefinite" />
-            </ellipse>
-            <circle cx="56" cy="47" r="4" fill="white" opacity="0.9" />
-            <circle cx="116" cy="47" r="4" fill="white" opacity="0.9" />
-          </g>
-
-          {/* MOUTH */}
-          {stats.overallAchievement >= 70 ? (
-            <path d="M 75 72 Q 90 82 105 72" stroke="#22D3EE" strokeWidth="3" fill="none" strokeLinecap="round" filter="url(#softGlow)" />
+          {/* Smile/frown */}
+          {overallOk ? (
+            <path d="M 32 62 Q 50 75 68 62" stroke="#10B981" strokeWidth="3" fill="none" strokeLinecap="round"/>
           ) : (
-            <path d="M 75 78 Q 90 72 105 78" stroke="#EF4444" strokeWidth="3" fill="none" strokeLinecap="round" filter="url(#softGlow)" />
+            <path d="M 32 70 Q 50 60 68 70" stroke="#EF4444" strokeWidth="3" fill="none" strokeLinecap="round"/>
           )}
-        </g>
-      </svg>
 
-      {/* Status labels */}
-      <div className="flex justify-center gap-2 mt-1">
-        <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${verificationOk ? 'bg-green-500/20 text-green-600' : 'bg-red-500/20 text-red-500'}`}>
-          <Brain className="w-2.5 h-2.5" />
-          WER
-        </div>
-        <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${cvOk ? 'bg-green-500/20 text-green-600' : 'bg-red-500/20 text-red-500'}`}>
-          <Target className="w-2.5 h-2.5" />
-          CV
-        </div>
-        <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium ${placementOk ? 'bg-green-500/20 text-green-600' : 'bg-red-500/20 text-red-500'}`}>
-          <Trophy className="w-2.5 h-2.5" />
-          PLAC
+          {/* Achievement text */}
+          <text x="50" y="88" textAnchor="middle" fontSize="11" fill={overallOk ? '#10B981' : '#EF4444'} fontWeight="bold">
+            {stats.overallAchievement}%
+          </text>
+        </svg>
+
+        {/* KPI indicators */}
+        <div className="flex gap-1 mt-1">
+          <div className={`w-2 h-2 rounded-full ${verificationOk ? 'bg-green-500' : 'bg-red-500'}`} title="WER"/>
+          <div className={`w-2 h-2 rounded-full ${cvOk ? 'bg-green-500' : 'bg-red-500'}`} title="CV"/>
+          <div className={`w-2 h-2 rounded-full ${placementOk ? 'bg-green-500' : 'bg-red-500'}`} title="PLAC"/>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   // Compact status card component
   const StatusCard = ({
@@ -420,14 +349,26 @@ export default function MindyAvatar({
               <StatusCard title="Placements" icon={Trophy} value={stats.totalPlacements} target={stats.placementTarget} achievement={stats.placementAchievement} avg={stats.avgPlacementsPerDay} color={isDark ? 'text-amber-400' : 'text-amber-600'} />
             </div>
 
-            <div className={`flex items-center justify-between p-1.5 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-orange-50'} border ${isDark ? 'border-gray-700' : 'border-orange-200'}`}>
-              <div className="flex items-center gap-1">
-                <Zap className={`w-3 h-3 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
-                <span className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Int.</span>
+            <div className="flex gap-1.5">
+              <div className={`flex-1 flex items-center justify-between p-1.5 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-orange-50'} border ${isDark ? 'border-gray-700' : 'border-orange-200'}`}>
+                <div className="flex items-center gap-1">
+                  <Zap className={`w-3 h-3 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
+                  <span className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Int.</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{stats.totalInterviews}</span>
+                  <span className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>sr. {stats.avgInterviewsPerDay}/d</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span className={`text-sm font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{stats.totalInterviews}</span>
-                <span className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>sr. {stats.avgInterviewsPerDay}/d</span>
+              <div className={`flex-1 flex items-center justify-between p-1.5 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-pink-50'} border ${isDark ? 'border-gray-700' : 'border-pink-200'}`}>
+                <div className="flex items-center gap-1">
+                  <Star className={`w-3 h-3 ${isDark ? 'text-pink-400' : 'text-pink-600'}`} />
+                  <span className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Rek.</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-bold ${isDark ? 'text-pink-400' : 'text-pink-600'}`}>{stats.totalRecommendations}</span>
+                  <span className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>sr. {stats.avgRecommendationsPerDay}/d</span>
+                </div>
               </div>
             </div>
           </div>
@@ -445,12 +386,24 @@ export default function MindyAvatar({
               <StatusCard title="Placements" icon={Trophy} value={stats.allTimeTotalPlacements} target={stats.allTimePlacementTargetTotal} achievement={stats.allTimePlacementAchievement} avg={stats.allTimeAvgPlacPerDay} color={isDark ? 'text-amber-400' : 'text-amber-600'} />
             </div>
 
-            <div className={`flex items-center justify-between p-1.5 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-orange-50'} border ${isDark ? 'border-gray-700' : 'border-orange-200'}`}>
-              <div className="flex items-center gap-1">
-                <Zap className={`w-3 h-3 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
-                <span className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Int.</span>
+            <div className="flex gap-1.5">
+              <div className={`flex-1 flex items-center justify-between p-1.5 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-orange-50'} border ${isDark ? 'border-gray-700' : 'border-orange-200'}`}>
+                <div className="flex items-center gap-1">
+                  <Zap className={`w-3 h-3 ${isDark ? 'text-orange-400' : 'text-orange-600'}`} />
+                  <span className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Int.</span>
+                </div>
+                <span className={`text-sm font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{stats.allTimeTotalInterviews}</span>
               </div>
-              <span className={`text-sm font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>{stats.allTimeTotalInterviews}</span>
+              <div className={`flex-1 flex items-center justify-between p-1.5 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-pink-50'} border ${isDark ? 'border-gray-700' : 'border-pink-200'}`}>
+                <div className="flex items-center gap-1">
+                  <Star className={`w-3 h-3 ${isDark ? 'text-pink-400' : 'text-pink-600'}`} />
+                  <span className={`text-xs ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Rek.</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-bold ${isDark ? 'text-pink-400' : 'text-pink-600'}`}>{stats.allTimeTotalRecommendations}</span>
+                  <span className={`text-[10px] ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>sr. {stats.allTimeAvgRecPerDay}/d</span>
+                </div>
+              </div>
             </div>
 
             {/* Additional stats - compact */}
