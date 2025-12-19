@@ -129,6 +129,13 @@ export default function MindyAvatar({
 
     const overallAchievement = Math.round((verificationAchievement + cvAchievement + placementAchievement) / 3);
 
+    // Average per person for current period
+    const teamSizeForAvg = currentData.length || 1;
+    const avgVerificationsPerPerson = (totalVerifications / teamSizeForAvg).toFixed(1);
+    const avgCVPerPerson = (totalCV / teamSizeForAvg).toFixed(1);
+    const avgPlacementsPerPerson = (totalPlacements / teamSizeForAvg).toFixed(2);
+    const avgInterviewsPerPerson = (totalInterviews / teamSizeForAvg).toFixed(2);
+
     return {
       teamSize: weeklyData.length,
       sourcers: sourcers.length,
@@ -146,6 +153,10 @@ export default function MindyAvatar({
       cvAchievement,
       placementAchievement,
       overallAchievement,
+      avgVerificationsPerPerson,
+      avgCVPerPerson,
+      avgPlacementsPerPerson,
+      avgInterviewsPerPerson,
       allTimeTotalDays,
       allTimeVerPerDay,
       allTimeCVPerDay,
@@ -350,21 +361,47 @@ export default function MindyAvatar({
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
                   <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Weryfikacje:</span>
-                  <span className={`text-sm font-bold ${stats.verificationAchievement >= 100 ? 'text-green-500' : stats.verificationAchievement >= 70 ? 'text-yellow-500' : 'text-red-500'}`}>
-                    {stats.totalVerifications}/{stats.verificationTarget} ({stats.verificationAchievement}%)
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-bold ${stats.verificationAchievement >= 100 ? 'text-green-500' : stats.verificationAchievement >= 70 ? 'text-yellow-500' : 'text-red-500'}`}>
+                      {stats.totalVerifications}/{stats.verificationTarget} ({stats.verificationAchievement}%)
+                    </span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${isDark ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>
+                      sr. {stats.avgVerificationsPerPerson}/os.
+                    </span>
+                  </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>CV:</span>
-                  <span className={`text-sm font-bold ${stats.cvAchievement >= 100 ? 'text-green-500' : stats.cvAchievement >= 70 ? 'text-yellow-500' : 'text-red-500'}`}>
-                    {stats.totalCV}/{stats.cvTarget} ({stats.cvAchievement}%)
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-bold ${stats.cvAchievement >= 100 ? 'text-green-500' : stats.cvAchievement >= 70 ? 'text-yellow-500' : 'text-red-500'}`}>
+                      {stats.totalCV}/{stats.cvTarget} ({stats.cvAchievement}%)
+                    </span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${isDark ? 'bg-purple-900/50 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
+                      sr. {stats.avgCVPerPerson}/os.
+                    </span>
+                  </div>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Placements:</span>
-                  <span className={`text-sm font-bold ${stats.placementAchievement >= 100 ? 'text-green-500' : stats.placementAchievement >= 70 ? 'text-yellow-500' : 'text-red-500'}`}>
-                    {stats.totalPlacements}/{stats.placementTarget} ({stats.placementAchievement}%)
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-bold ${stats.placementAchievement >= 100 ? 'text-green-500' : stats.placementAchievement >= 70 ? 'text-yellow-500' : 'text-red-500'}`}>
+                      {stats.totalPlacements}/{stats.placementTarget} ({stats.placementAchievement}%)
+                    </span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${isDark ? 'bg-green-900/50 text-green-300' : 'bg-green-100 text-green-700'}`}>
+                      sr. {stats.avgPlacementsPerPerson}/os.
+                    </span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>Interviews:</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`text-sm font-bold ${isDark ? 'text-orange-400' : 'text-orange-600'}`}>
+                      {stats.totalInterviews}
+                    </span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded ${isDark ? 'bg-orange-900/50 text-orange-300' : 'bg-orange-100 text-orange-700'}`}>
+                      sr. {stats.avgInterviewsPerPerson}/os.
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
