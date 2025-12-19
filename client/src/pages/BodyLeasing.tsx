@@ -33,8 +33,12 @@ interface CategoryProps {
   defaultOpen?: boolean;
 }
 
-function Category({ title, icon, color, children, defaultOpen = true }: CategoryProps) {
+function Category({ title, icon, color, children, defaultOpen = false }: CategoryProps) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  const handleContentClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
@@ -50,7 +54,11 @@ function Category({ title, icon, color, children, defaultOpen = true }: Category
         {isOpen ? <ChevronDown className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
       </button>
       {isOpen && (
-        <div className="p-4 flex flex-col gap-4 bg-gray-50">
+        <div
+          className="p-4 flex flex-col gap-4 bg-gray-50"
+          onClick={handleContentClick}
+          onMouseDown={handleContentClick}
+        >
           {children}
         </div>
       )}
@@ -357,7 +365,7 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
             <h2 className="text-lg font-bold text-gray-800 mb-1 flex items-center gap-2">
               <span>🏆</span> Liga Mistrzow - Ranking Overall (srednia dzienna)
             </h2>
-            <p className="text-xs text-gray-500 mb-4">Ranking oparty o srednie wyniki per dzien - sprawiedliwy dla nowych pracownikow</p>
+            <p className="text-xs text-gray-500 mb-4">Ranking oparty o srednie wyniki per dzien</p>
             <div className="grid md:grid-cols-2 gap-6">
               {/* Top 3 */}
               <div>
