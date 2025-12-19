@@ -343,7 +343,113 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
 
   return (
     <div className="flex flex-col gap-4 pl-6">
-      {/* Mindy Section - not draggable, always on top */}
+      {/* Filters - always on top */}
+      <div className="bg-white rounded-xl shadow-sm p-4">
+        <div className="flex flex-wrap items-center gap-4">
+          {/* View Mode Toggle */}
+          <div className="flex items-center bg-gray-100 rounded-lg p-1">
+            <button
+              type="button"
+              onClick={() => setViewMode('week')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'week'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <Calendar className="w-4 h-4" />
+              Tydzien
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('month')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'month'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <CalendarDays className="w-4 h-4" />
+              Miesiac
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('year')}
+              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                viewMode === 'year'
+                  ? 'bg-white text-blue-600 shadow-sm'
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              <CalendarDays className="w-4 h-4" />
+              Rok
+            </button>
+          </div>
+
+          {/* Week selector - only visible in week mode */}
+          {viewMode === 'week' && (
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedWeek || ''}
+                onChange={(e) => setSelectedWeek(e.target.value || undefined)}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <option value="">Najnowszy tydzien</option>
+                {availableWeeks.map((w: any) => (
+                  <option key={w.week_start} value={w.week_start}>
+                    {w.year}-W{w.week_number} ({new Date(w.week_start).toLocaleDateString('pl-PL')})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {/* Month/Year selector */}
+          <div className="flex items-center gap-2">
+            <select
+              value={selectedYear}
+              onChange={(e) => setSelectedYear(Number(e.target.value))}
+              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              {[2024, 2025, 2026].map(y => (
+                <option key={y} value={y}>{y}</option>
+              ))}
+            </select>
+            {viewMode !== 'year' && (
+              <select
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(Number(e.target.value))}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                {MONTHS_PL.slice(1).map((m, i) => (
+                  <option key={i + 1} value={i + 1}>{m}</option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={refreshData}
+            disabled={loading}
+            className="ml-auto flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            Odswiez
+          </button>
+          <button
+            type="button"
+            onClick={resetOrder}
+            className="flex items-center gap-2 px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm"
+            title="Resetuj kolejnosc sekcji"
+          >
+            <GripVertical className="w-4 h-4" />
+            Reset
+          </button>
+        </div>
+      </div>
+
+      {/* Mindy Section */}
       <MindyAvatar
         weeklyData={weeklyData}
         monthlyData={monthlyData}
@@ -437,107 +543,6 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
           </div>
         );
       })()}
-
-      {/* Filters */}
-      <div className="bg-white rounded-xl shadow-sm p-4">
-        <div className="flex flex-wrap items-center gap-4">
-          {/* View Mode Toggle */}
-          <div className="flex items-center bg-gray-100 rounded-lg p-1">
-            <button
-              onClick={() => setViewMode('week')}
-              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'week'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <Calendar className="w-4 h-4" />
-              Tydzien
-            </button>
-            <button
-              onClick={() => setViewMode('month')}
-              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'month'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <CalendarDays className="w-4 h-4" />
-              Miesiac
-            </button>
-            <button
-              onClick={() => setViewMode('year')}
-              className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                viewMode === 'year'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              <CalendarDays className="w-4 h-4" />
-              Rok
-            </button>
-          </div>
-
-          {/* Week selector - only visible in week mode */}
-          {viewMode === 'week' && (
-            <div className="flex items-center gap-2">
-              <select
-                value={selectedWeek || ''}
-                onChange={(e) => setSelectedWeek(e.target.value || undefined)}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Najnowszy tydzien</option>
-                {availableWeeks.map((w: any) => (
-                  <option key={w.week_start} value={w.week_start}>
-                    {w.year}-W{w.week_number} ({new Date(w.week_start).toLocaleDateString('pl-PL')})
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-
-          {/* Month/Year selector */}
-          <div className="flex items-center gap-2">
-            <select
-              value={selectedYear}
-              onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            >
-              {[2024, 2025, 2026].map(y => (
-                <option key={y} value={y}>{y}</option>
-              ))}
-            </select>
-            {viewMode !== 'year' && (
-              <select
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(Number(e.target.value))}
-                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              >
-                {MONTHS_PL.slice(1).map((m, i) => (
-                  <option key={i + 1} value={i + 1}>{m}</option>
-                ))}
-              </select>
-            )}
-          </div>
-
-          <button
-            onClick={refreshData}
-            disabled={loading}
-            className="ml-auto flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            Odswiez
-          </button>
-          <button
-            onClick={resetOrder}
-            className="flex items-center gap-2 px-3 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors text-sm"
-            title="Resetuj kolejnosc sekcji"
-          >
-            <GripVertical className="w-4 h-4" />
-            Reset
-          </button>
-        </div>
-      </div>
 
       {/* Draggable categories container */}
       <div className="flex flex-col gap-4">
