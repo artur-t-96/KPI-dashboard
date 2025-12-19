@@ -346,82 +346,89 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
         selectedYear={selectedYear}
       />
 
-      {/* Top 3 & Bottom 3 Champions League Overall */}
-      {championsAllTimePerDay.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-4">
-          <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-            <span>🏆</span> Liga Mistrzow - Ranking Overall
-          </h2>
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Top 3 */}
-            <div>
-              <h3 className="text-sm font-semibold text-green-700 mb-3 flex items-center gap-2">
-                <span>🌟</span> TOP 3
-              </h3>
-              <div className="space-y-2">
-                {championsAllTimePerDay.slice(0, 3).map((entry, index) => (
-                  <div
-                    key={entry.employeeId}
-                    className={`flex items-center justify-between p-3 rounded-lg ${
-                      index === 0 ? 'bg-gradient-to-r from-yellow-100 to-amber-100 border border-yellow-300' :
-                      index === 1 ? 'bg-gradient-to-r from-gray-100 to-slate-100 border border-gray-300' :
-                      'bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">
-                        {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
-                      </span>
-                      <div>
-                        <div className="font-semibold text-gray-900">{entry.name}</div>
-                        <div className="text-xs text-gray-500">{entry.position}</div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xl font-bold text-amber-600">{entry.totalPoints} pkt</div>
-                      <div className="text-xs text-gray-500">
-                        {entry.placements}P / {entry.interviews}I / {entry.recommendations}R
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+      {/* Top 3 & Bottom 3 Champions League Overall - sorted by points per day */}
+      {championsAllTimePerDay.length > 0 && (() => {
+        const sortedByPerDay = [...championsAllTimePerDay].sort((a, b) => b.pointsPerDay - a.pointsPerDay);
+        const top3 = sortedByPerDay.slice(0, 3);
+        const bottom3 = sortedByPerDay.slice(-3).reverse();
 
-            {/* Bottom 3 */}
-            <div>
-              <h3 className="text-sm font-semibold text-red-700 mb-3 flex items-center gap-2">
-                <span>📉</span> BOTTOM 3
-              </h3>
-              <div className="space-y-2">
-                {championsAllTimePerDay.length >= 3 && [...championsAllTimePerDay].slice(-3).reverse().map((entry, index) => {
-                  const actualRank = championsAllTimePerDay.length - index;
-                  return (
+        return (
+          <div className="bg-white rounded-xl shadow-sm p-4">
+            <h2 className="text-lg font-bold text-gray-800 mb-1 flex items-center gap-2">
+              <span>🏆</span> Liga Mistrzow - Ranking Overall (srednia dzienna)
+            </h2>
+            <p className="text-xs text-gray-500 mb-4">Ranking oparty o srednie wyniki per dzien - sprawiedliwy dla nowych pracownikow</p>
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Top 3 */}
+              <div>
+                <h3 className="text-sm font-semibold text-green-700 mb-3 flex items-center gap-2">
+                  <span>🌟</span> TOP 3
+                </h3>
+                <div className="space-y-2">
+                  {top3.map((entry, index) => (
                     <div
                       key={entry.employeeId}
-                      className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-red-50 to-rose-50 border border-red-200"
+                      className={`flex items-center justify-between p-3 rounded-lg ${
+                        index === 0 ? 'bg-gradient-to-r from-yellow-100 to-amber-100 border border-yellow-300' :
+                        index === 1 ? 'bg-gradient-to-r from-gray-100 to-slate-100 border border-gray-300' :
+                        'bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200'
+                      }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className="text-lg font-bold text-red-400">#{actualRank}</span>
+                        <span className="text-2xl">
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : '🥉'}
+                        </span>
                         <div>
                           <div className="font-semibold text-gray-900">{entry.name}</div>
-                          <div className="text-xs text-gray-500">{entry.position}</div>
+                          <div className="text-xs text-gray-500">{entry.position} • {entry.totalDaysWorked} dni</div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-xl font-bold text-red-500">{entry.totalPoints} pkt</div>
+                        <div className="text-xl font-bold text-amber-600">{entry.pointsPerDay.toFixed(1)} pkt/dzien</div>
                         <div className="text-xs text-gray-500">
-                          {entry.placements}P / {entry.interviews}I / {entry.recommendations}R
+                          Wer: {entry.verificationsPerDay.toFixed(1)} | CV: {entry.cvPerDay.toFixed(1)} | Int: {entry.interviewsPerDay.toFixed(2)}
                         </div>
                       </div>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
+              </div>
+
+              {/* Bottom 3 */}
+              <div>
+                <h3 className="text-sm font-semibold text-red-700 mb-3 flex items-center gap-2">
+                  <span>📉</span> BOTTOM 3
+                </h3>
+                <div className="space-y-2">
+                  {bottom3.map((entry, index) => {
+                    const actualRank = sortedByPerDay.length - index;
+                    return (
+                      <div
+                        key={entry.employeeId}
+                        className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-red-50 to-rose-50 border border-red-200"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-bold text-red-400">#{actualRank}</span>
+                          <div>
+                            <div className="font-semibold text-gray-900">{entry.name}</div>
+                            <div className="text-xs text-gray-500">{entry.position} • {entry.totalDaysWorked} dni</div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xl font-bold text-red-500">{entry.pointsPerDay.toFixed(1)} pkt/dzien</div>
+                          <div className="text-xs text-gray-500">
+                            Wer: {entry.verificationsPerDay.toFixed(1)} | CV: {entry.cvPerDay.toFixed(1)} | Int: {entry.interviewsPerDay.toFixed(2)}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Filters */}
       <div className="bg-white rounded-xl shadow-sm p-4">
