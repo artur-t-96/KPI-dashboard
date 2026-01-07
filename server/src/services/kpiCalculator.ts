@@ -99,27 +99,29 @@ export function getMonthlyKPI(year?: number, month?: number): MonthlyKPIData[] {
   const currentDate = new Date();
   const targetYear = year || currentDate.getFullYear();
   const targetMonth = month || currentDate.getMonth() + 1;
-  
+
+  // Dynamic employee filtering: Only include employees who have data in the selected month
+  // Employees without data in this period are excluded (not assigned zero values)
   const query = `
-    SELECT 
+    SELECT
       e.id as employee_id,
       e.name,
       e.position,
       ? as year,
       ? as month,
-      COALESCE(SUM(w.verifications), 0) as total_verifications,
-      COALESCE(SUM(w.cv_added), 0) as total_cv_added,
-      COALESCE(SUM(w.recommendations), 0) as total_recommendations,
-      COALESCE(SUM(w.interviews), 0) as total_interviews,
-      COALESCE(SUM(w.placements), 0) as total_placements,
-      COALESCE(SUM(w.days_worked), 0) as total_days_worked
-    FROM employees e
-    LEFT JOIN weekly_kpi w ON e.id = w.employee_id AND w.year = ? AND w.month = ?
-    WHERE e.is_active = 1
+      SUM(w.verifications) as total_verifications,
+      SUM(w.cv_added) as total_cv_added,
+      SUM(w.recommendations) as total_recommendations,
+      SUM(w.interviews) as total_interviews,
+      SUM(w.placements) as total_placements,
+      SUM(w.days_worked) as total_days_worked
+    FROM weekly_kpi w
+    JOIN employees e ON w.employee_id = e.id
+    WHERE e.is_active = 1 AND w.year = ? AND w.month = ?
     GROUP BY e.id, e.name, e.position
     ORDER BY e.position, e.name
   `;
-  
+
   const rows = db.prepare(query).all(targetYear, targetMonth, targetYear, targetMonth) as any[];
   
   return rows.map(row => {
@@ -148,30 +150,32 @@ export function getChampionsLeague(year?: number, month?: number) {
   const currentDate = new Date();
   const targetYear = year || currentDate.getFullYear();
   const targetMonth = month || currentDate.getMonth() + 1;
-  
+
+  // Dynamic employee filtering: Only include employees who have data in the selected month
+  // Employees who ended work (no data in current period) are excluded from rankings
   const query = `
-    SELECT 
+    SELECT
       e.id as employee_id,
       e.name,
       e.position,
-      COALESCE(SUM(w.placements), 0) as placements,
-      COALESCE(SUM(w.interviews), 0) as interviews,
-      COALESCE(SUM(w.recommendations), 0) as recommendations,
-      COALESCE(SUM(w.verifications), 0) as verifications,
-      COALESCE(SUM(w.cv_added), 0) as cv_added,
-      COALESCE(SUM(w.placements * 100), 0) as placement_points,
-      COALESCE(SUM(w.interviews * 10), 0) as interview_points,
-      COALESCE(SUM(w.recommendations * 2), 0) as recommendation_points,
-      COALESCE(SUM(w.verifications), 0) as verification_points,
-      COALESCE(SUM(w.cv_added), 0) as cv_points,
-      COALESCE(SUM(w.placements * 100 + w.interviews * 10 + w.recommendations * 2 + w.verifications + w.cv_added), 0) as total_points
-    FROM employees e
-    LEFT JOIN weekly_kpi w ON e.id = w.employee_id AND w.year = ? AND w.month = ?
-    WHERE e.is_active = 1
+      SUM(w.placements) as placements,
+      SUM(w.interviews) as interviews,
+      SUM(w.recommendations) as recommendations,
+      SUM(w.verifications) as verifications,
+      SUM(w.cv_added) as cv_added,
+      SUM(w.placements * 100) as placement_points,
+      SUM(w.interviews * 10) as interview_points,
+      SUM(w.recommendations * 2) as recommendation_points,
+      SUM(w.verifications) as verification_points,
+      SUM(w.cv_added) as cv_points,
+      SUM(w.placements * 100 + w.interviews * 10 + w.recommendations * 2 + w.verifications + w.cv_added) as total_points
+    FROM weekly_kpi w
+    JOIN employees e ON w.employee_id = e.id
+    WHERE e.is_active = 1 AND w.year = ? AND w.month = ?
     GROUP BY e.id, e.name, e.position
     ORDER BY total_points DESC
   `;
-  
+
   const rows = db.prepare(query).all(targetYear, targetMonth) as any[];
   
   return rows.map((row, index) => ({
