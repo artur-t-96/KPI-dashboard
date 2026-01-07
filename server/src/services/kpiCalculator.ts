@@ -153,6 +153,7 @@ export function getChampionsLeague(year?: number, month?: number) {
 
   // Dynamic employee filtering: Only include employees who have data in the selected month
   // Employees who ended work (no data in current period) are excluded from rankings
+  // CV excluded from points calculation per scoring rules update
   const query = `
     SELECT
       e.id as employee_id,
@@ -167,8 +168,7 @@ export function getChampionsLeague(year?: number, month?: number) {
       SUM(w.interviews * 10) as interview_points,
       SUM(w.recommendations * 2) as recommendation_points,
       SUM(w.verifications) as verification_points,
-      SUM(w.cv_added) as cv_points,
-      SUM(w.placements * 100 + w.interviews * 10 + w.recommendations * 2 + w.verifications + w.cv_added) as total_points
+      SUM(w.placements * 100 + w.interviews * 10 + w.recommendations * 2 + w.verifications) as total_points
     FROM weekly_kpi w
     JOIN employees e ON w.employee_id = e.id
     WHERE e.is_active = 1 AND w.year = ? AND w.month = ?
@@ -177,7 +177,7 @@ export function getChampionsLeague(year?: number, month?: number) {
   `;
 
   const rows = db.prepare(query).all(targetYear, targetMonth) as any[];
-  
+
   return rows.map((row, index) => ({
     rank: index + 1,
     employeeId: row.employee_id,
@@ -192,7 +192,7 @@ export function getChampionsLeague(year?: number, month?: number) {
     interviewPoints: row.interview_points,
     recommendationPoints: row.recommendation_points,
     verificationPoints: row.verification_points,
-    cvPoints: row.cv_points,
+    cvPoints: 0, // CV excluded from scoring
     totalPoints: row.total_points
   }));
 }
@@ -270,22 +270,22 @@ function calculateMonthlyTargetAchievement(row: any): number {
   }
 }
 
+// CV excluded from points calculation per scoring rules update
 function calculatePoints(row: any): number {
   return (
     (row.placements || 0) * 100 +
     (row.interviews || 0) * 10 +
     (row.recommendations || 0) * 2 +
-    (row.verifications || 0) +
-    (row.cv_added || 0)
+    (row.verifications || 0)
   );
 }
 
+// CV excluded from points calculation per scoring rules update
 function calculateMonthlyPoints(row: any): number {
   return (
     (row.total_placements || 0) * 100 +
     (row.total_interviews || 0) * 10 +
     (row.total_recommendations || 0) * 2 +
-    (row.total_verifications || 0) +
-    (row.total_cv_added || 0)
+    (row.total_verifications || 0)
   );
 }
