@@ -210,18 +210,20 @@ router.get('/summary', (req: Request, res: Response) => {
       WHERE year = ? AND month = ?
     `).get(year, month);
     
+    // Dynamic employee filtering: Only count employees who have data in the current month
+    // Employees who ended work (no data in current period) are excluded from position breakdown
     const positionBreakdown = db.prepare(`
-      SELECT 
+      SELECT
         e.position,
         COUNT(DISTINCT e.id) as employee_count,
-        COALESCE(SUM(w.verifications), 0) as verifications,
-        COALESCE(SUM(w.cv_added), 0) as cv_added,
-        COALESCE(SUM(w.recommendations), 0) as recommendations,
-        COALESCE(SUM(w.interviews), 0) as interviews,
-        COALESCE(SUM(w.placements), 0) as placements
-      FROM employees e
-      LEFT JOIN weekly_kpi w ON e.id = w.employee_id AND w.year = ? AND w.month = ?
-      WHERE e.is_active = 1
+        SUM(w.verifications) as verifications,
+        SUM(w.cv_added) as cv_added,
+        SUM(w.recommendations) as recommendations,
+        SUM(w.interviews) as interviews,
+        SUM(w.placements) as placements
+      FROM weekly_kpi w
+      JOIN employees e ON w.employee_id = e.id
+      WHERE e.is_active = 1 AND w.year = ? AND w.month = ?
       GROUP BY e.position
     `).all(year, month);
     
