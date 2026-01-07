@@ -1,21 +1,52 @@
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  getWeeklyKPI, 
-  getMonthlyKPI, 
-  getChampionsLeague, 
+import {
+  getWeeklyKPI,
+  getMonthlyKPI,
+  getYearlyKPI,
+  getChampionsLeague,
+  getChampionsLeagueWeekly,
+  getChampionsLeagueAllTimePerDay,
   getTrends,
   getSummary,
   getAvailableWeeks,
-  getAvailableMonths
+  getAvailableMonths,
+  getAllTimePlacements,
+  getAllTimeVerifications,
+  getMonthlyTrend,
+  getWeeklyVerificationTrend,
+  getWeeklyCvTrend,
+  getWeeklyInterviewsTrend,
+  getWeeklyPlacementsTrend,
+  getEmployees,
+  AllTimePlacement,
+  AllTimeVerifications,
+  MonthlyTrend,
+  WeeklyVerificationTrend,
+  WeeklyCvTrend,
+  WeeklyInterviewsTrend,
+  WeeklyPlacementsTrend,
+  YearlyKPI,
+  ChampionEntryPerDay
 } from '../services/api';
-import type { WeeklyKPI, MonthlyKPI, ChampionEntry, TrendData, SummaryData } from '../types';
+import type { WeeklyKPI, MonthlyKPI, ChampionEntry, TrendData, SummaryData, Employee } from '../types';
 
 export function useKPIData() {
   const [weeklyData, setWeeklyData] = useState<WeeklyKPI[]>([]);
   const [monthlyData, setMonthlyData] = useState<MonthlyKPI[]>([]);
+  const [yearlyData, setYearlyData] = useState<YearlyKPI[]>([]);
   const [championsData, setChampionsData] = useState<ChampionEntry[]>([]);
+  const [championsWeeklyData, setChampionsWeeklyData] = useState<ChampionEntry[]>([]);
+  const [championsAllTimePerDay, setChampionsAllTimePerDay] = useState<ChampionEntryPerDay[]>([]);
   const [trendsData, setTrendsData] = useState<TrendData[]>([]);
   const [summaryData, setSummaryData] = useState<SummaryData | null>(null);
+  const [allTimePlacements, setAllTimePlacements] = useState<AllTimePlacement[]>([]);
+  const [allTimeVerifications, setAllTimeVerifications] = useState<AllTimeVerifications[]>([]);
+  const [monthlyTrendData, setMonthlyTrendData] = useState<MonthlyTrend[]>([]);
+  const [weeklyVerificationTrend, setWeeklyVerificationTrend] = useState<WeeklyVerificationTrend[]>([]);
+  const [weeklyCvTrend, setWeeklyCvTrend] = useState<WeeklyCvTrend[]>([]);
+  const [weeklyInterviewsTrend, setWeeklyInterviewsTrend] = useState<WeeklyInterviewsTrend[]>([]);
+  const [weeklyPlacementsTrend, setWeeklyPlacementsTrend] = useState<WeeklyPlacementsTrend[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [availableWeeks, setAvailableWeeks] = useState<any[]>([]);
   const [availableMonths, setAvailableMonths] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,23 +59,45 @@ export function useKPIData() {
   const fetchAllData = useCallback(async () => {
     setLoading(true);
     setError(null);
-    
+
     try {
-      const [weekly, monthly, champions, trends, summary, weeks, months] = await Promise.all([
+      const [weekly, monthly, yearly, champions, championsWeekly, championsAllTime, trends, summary, allTime, allTimeVer, monthlyTrend, weeklyVerTrend, weeklyCvTrendData, weeklyIntTrend, weeklyPlacTrend, employeesList, weeks, months] = await Promise.all([
         getWeeklyKPI(selectedWeek),
         getMonthlyKPI(selectedYear, selectedMonth),
+        getYearlyKPI(selectedYear),
         getChampionsLeague(selectedYear, selectedMonth),
-        getTrends(12),
+        getChampionsLeagueWeekly(selectedWeek),
+        getChampionsLeagueAllTimePerDay(),
+        getTrends(), // Fetch all trend data
         getSummary(),
+        getAllTimePlacements(),
+        getAllTimeVerifications(),
+        getMonthlyTrend(),
+        getWeeklyVerificationTrend(),
+        getWeeklyCvTrend(),
+        getWeeklyInterviewsTrend(),
+        getWeeklyPlacementsTrend(),
+        getEmployees(),
         getAvailableWeeks(),
         getAvailableMonths()
       ]);
-      
+
       setWeeklyData(weekly);
       setMonthlyData(monthly);
+      setYearlyData(yearly);
       setChampionsData(champions);
+      setChampionsWeeklyData(championsWeekly);
+      setChampionsAllTimePerDay(championsAllTime);
       setTrendsData(trends);
       setSummaryData(summary);
+      setAllTimePlacements(allTime);
+      setAllTimeVerifications(allTimeVer);
+      setMonthlyTrendData(monthlyTrend);
+      setWeeklyVerificationTrend(weeklyVerTrend);
+      setWeeklyCvTrend(weeklyCvTrendData);
+      setWeeklyInterviewsTrend(weeklyIntTrend);
+      setWeeklyPlacementsTrend(weeklyPlacTrend);
+      setEmployees(employeesList);
       setAvailableWeeks(weeks);
       setAvailableMonths(months);
     } catch (err: any) {
@@ -86,9 +139,20 @@ export function useKPIData() {
   return {
     weeklyData,
     monthlyData,
+    yearlyData,
     championsData,
+    championsWeeklyData,
+    championsAllTimePerDay,
     trendsData,
     summaryData,
+    allTimePlacements,
+    allTimeVerifications,
+    monthlyTrendData,
+    weeklyVerificationTrend,
+    weeklyCvTrend,
+    weeklyInterviewsTrend,
+    weeklyPlacementsTrend,
+    employees,
     weeklyByPosition,
     monthlyByPosition,
     teamAverages,

@@ -75,8 +75,40 @@ export const getChampionsLeague = async (year?: number, month?: number): Promise
   return response.data;
 };
 
-export const getTrends = async (weeks: number = 12): Promise<TrendData[]> => {
-  const response = await api.get('/kpi/trends', { params: { weeks } });
+export const getChampionsLeagueWeekly = async (week?: string): Promise<ChampionEntry[]> => {
+  const params = week ? { week } : {};
+  const response = await api.get('/kpi/champions/weekly', { params });
+  return response.data;
+};
+
+export interface ChampionEntryPerDay {
+  rank: number;
+  employeeId: number;
+  name: string;
+  position: string;
+  placements: number;
+  interviews: number;
+  recommendations: number;
+  verifications: number;
+  cvAdded: number;
+  totalDaysWorked: number;
+  placementsPerDay: number;
+  interviewsPerDay: number;
+  recommendationsPerDay: number;
+  verificationsPerDay: number;
+  cvPerDay: number;
+  totalPoints: number;
+  pointsPerDay: number;
+}
+
+export const getChampionsLeagueAllTimePerDay = async (): Promise<ChampionEntryPerDay[]> => {
+  const response = await api.get('/kpi/champions/all-time-per-day');
+  return response.data;
+};
+
+export const getTrends = async (): Promise<TrendData[]> => {
+  // Fetch all trend data without week limit
+  const response = await api.get('/kpi/trends');
   return response.data;
 };
 
@@ -100,6 +132,167 @@ export const getAvailableMonths = async () => {
   return response.data;
 };
 
+export interface AllTimePlacement {
+  employee_id: number;
+  name: string;
+  position: string;
+  total_placements: number;
+  total_interviews: number;
+  total_recommendations: number;
+  first_week: string;
+  last_week: string;
+}
+
+export const getAllTimePlacements = async (): Promise<AllTimePlacement[]> => {
+  const response = await api.get('/kpi/all-time-placements');
+  return response.data;
+};
+
+export interface AllTimeVerifications {
+  employeeId: number;
+  name: string;
+  position: string;
+  totalVerifications: number;
+  totalCvAdded: number;
+  totalDaysWorked: number;
+  verificationsPerDay: number;
+  cvPerDay: number;
+}
+
+export const getAllTimeVerifications = async (): Promise<AllTimeVerifications[]> => {
+  const response = await api.get('/kpi/all-time-verifications');
+  return response.data;
+};
+
+export interface YearlyKPI {
+  employeeId: number;
+  name: string;
+  position: string;
+  year: number;
+  totalVerifications: number;
+  totalCvAdded: number;
+  totalRecommendations: number;
+  totalInterviews: number;
+  totalPlacements: number;
+  totalDaysWorked: number;
+  verificationsPerDay: number;
+  cvPerDay: number;
+  targetAchievement: number;
+}
+
+export const getYearlyKPI = async (year?: number): Promise<YearlyKPI[]> => {
+  const params: any = {};
+  if (year) params.year = year;
+  const response = await api.get('/kpi/yearly', { params });
+  return response.data;
+};
+
+export interface MonthlyTrend {
+  year: number;
+  month: number;
+  totalVerifications: number;
+  totalInterviews: number;
+  totalPlacements: number;
+  verificationsPerPlacement: number | null;
+  interviewsPerPlacement: number | null;
+}
+
+export const getMonthlyTrend = async (): Promise<MonthlyTrend[]> => {
+  const response = await api.get('/kpi/monthly-trend');
+  return response.data;
+};
+
+export interface WeeklyVerificationTrend {
+  weekStart: string;
+  year: number;
+  weekNumber: number;
+  totalVerifications: number;
+  employeeCount: number;
+  avgVerificationsPerPerson: number;
+}
+
+export const getWeeklyVerificationTrend = async (): Promise<WeeklyVerificationTrend[]> => {
+  const response = await api.get('/kpi/weekly-verification-trend');
+  return response.data;
+};
+
+export interface WeeklyCvTrend {
+  weekStart: string;
+  year: number;
+  weekNumber: number;
+  totalCv: number;
+  employeeCount: number;
+  avgCvPerPerson: number;
+}
+
+export const getWeeklyCvTrend = async (): Promise<WeeklyCvTrend[]> => {
+  const response = await api.get('/kpi/weekly-cv-trend');
+  return response.data;
+};
+
+export interface WeeklyInterviewsTrend {
+  weekStart: string;
+  year: number;
+  weekNumber: number;
+  totalInterviews: number;
+  employeeCount: number;
+  avgInterviewsPerPerson: number;
+}
+
+export const getWeeklyInterviewsTrend = async (): Promise<WeeklyInterviewsTrend[]> => {
+  const response = await api.get('/kpi/weekly-interviews-trend');
+  return response.data;
+};
+
+export interface WeeklyPlacementsTrend {
+  weekStart: string;
+  year: number;
+  weekNumber: number;
+  totalPlacements: number;
+  employeeCount: number;
+  avgPlacementsPerPerson: number;
+}
+
+export const getWeeklyPlacementsTrend = async (): Promise<WeeklyPlacementsTrend[]> => {
+  const response = await api.get('/kpi/weekly-placements-trend');
+  return response.data;
+};
+
+// Individual Employee Trends
+export interface EmployeeTrendData {
+  employee: {
+    id: number;
+    name: string;
+    position: string;
+    is_active: number;
+  };
+  kpiData: Array<{
+    week_start: string;
+    week_end: string;
+    year: number;
+    week_number: number;
+    month: number;
+    verifications: number;
+    cv_added: number;
+    recommendations: number;
+    interviews: number;
+    placements: number;
+    days_worked: number;
+  }>;
+  teamAverages: Array<{
+    week_start: string;
+    avg_verifications: number;
+    avg_cv: number;
+    avg_interviews: number;
+    avg_placements: number;
+  }>;
+}
+
+export const getEmployeeTrends = async (employeeId: number): Promise<EmployeeTrendData> => {
+  const response = await api.get(`/kpi/employee/${employeeId}/trends`);
+  return response.data;
+};
+
 // Mindy
 export const getMindyResponse = async (): Promise<MindyResponse> => {
   const response = await api.get('/mindy');
@@ -107,9 +300,12 @@ export const getMindyResponse = async (): Promise<MindyResponse> => {
 };
 
 // Admin - Upload
-export const uploadExcel = async (file: File): Promise<UploadResult> => {
+export type UploadType = 'body-leasing' | 'sales' | 'supervisory-board';
+
+export const uploadExcel = async (file: File, type: UploadType = 'body-leasing'): Promise<UploadResult> => {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('type', type);
   const response = await api.post('/admin', formData, {
     headers: { 'Content-Type': 'multipart/form-data' }
   });
@@ -118,6 +314,16 @@ export const uploadExcel = async (file: File): Promise<UploadResult> => {
 
 export const getUploadHistory = async () => {
   const response = await api.get('/admin/history');
+  return response.data;
+};
+
+export const getAllKPIData = async () => {
+  const response = await api.get('/admin/data');
+  return response.data;
+};
+
+export const deleteAllData = async () => {
+  const response = await api.delete('/admin/all-data');
   return response.data;
 };
 
@@ -150,6 +356,47 @@ export const updateEmployee = async (id: number, data: Partial<Employee>) => {
 
 export const deleteEmployee = async (id: number) => {
   const response = await api.delete(`/admin/employee/${id}`);
+  return response.data;
+};
+
+// Reports
+export interface ReportResponse {
+  type: 'question' | 'report';
+  content: string;
+  reportTitle?: string;
+  reportId?: string;
+  expiresAt?: string;
+}
+
+export interface SavedReport {
+  id: string;
+  title: string;
+  content: string;
+  createdAt: string;
+  expiresAt: string;
+  remainingMinutes: number;
+}
+
+export const generateReport = async (
+  query: string,
+  conversationHistory?: Array<{ role: 'user' | 'assistant'; content: string }>
+): Promise<ReportResponse> => {
+  const response = await api.post('/reports/generate', { query, conversationHistory });
+  return response.data;
+};
+
+export const getReports = async (): Promise<SavedReport[]> => {
+  const response = await api.get('/reports');
+  return response.data;
+};
+
+export const getReport = async (id: string): Promise<SavedReport> => {
+  const response = await api.get(`/reports/${id}`);
+  return response.data;
+};
+
+export const deleteReport = async (id: string) => {
+  const response = await api.delete(`/reports/${id}`);
   return response.data;
 };
 
