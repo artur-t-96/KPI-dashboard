@@ -7,9 +7,11 @@ import authRoutes from './routes/auth';
 import kpiRoutes from './routes/kpi';
 import uploadRoutes from './routes/upload';
 import mindyRoutes from './routes/mindy';
+import reportsRoutes from './routes/reports';
 
 // Initialize database on startup
 import './db/connection';
+import './db/init';
 
 dotenv.config();
 
@@ -31,6 +33,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/kpi', kpiRoutes);
 app.use('/api/admin', uploadRoutes);
 app.use('/api/mindy', mindyRoutes);
+app.use('/api/reports', reportsRoutes);
 
 // Serve static frontend files
 const clientPath = path.join(__dirname, '../../client/dist');

@@ -1,9 +1,11 @@
 import { Router, Request, Response } from 'express';
 import db from '../db/connection';
-import { 
-  getWeeklyKPI, 
-  getMonthlyKPI, 
-  getChampionsLeague, 
+import {
+  getWeeklyKPI,
+  getMonthlyKPI,
+  getChampionsLeague,
+  getChampionsLeagueWeekly,
+  getChampionsLeagueAllTimePerDay,
   getTrends,
   getAvailableWeeks,
   getAvailableMonths
@@ -50,10 +52,32 @@ router.get('/champions', (req: Request, res: Response) => {
   }
 });
 
+router.get('/champions/weekly', (req: Request, res: Response) => {
+  try {
+    const { week } = req.query;
+    const data = getChampionsLeagueWeekly(week as string);
+    res.json(data);
+  } catch (error) {
+    console.error('Champions League Weekly error:', error);
+    res.status(500).json({ error: 'Failed to fetch weekly Champions League data' });
+  }
+});
+
+router.get('/champions/all-time-per-day', (req: Request, res: Response) => {
+  try {
+    const data = getChampionsLeagueAllTimePerDay();
+    res.json(data);
+  } catch (error) {
+    console.error('Champions League All-Time Per Day error:', error);
+    res.status(500).json({ error: 'Failed to fetch all-time per day Champions League data' });
+  }
+});
+
 router.get('/trends', (req: Request, res: Response) => {
   try {
     const { weeks } = req.query;
-    const data = getTrends(weeks ? parseInt(weeks as string) : 12);
+    // If weeks is specified, limit; otherwise fetch all data
+    const data = getTrends(weeks ? parseInt(weeks as string) : undefined);
     res.json(data);
   } catch (error) {
     console.error('Trends error:', error);
@@ -100,23 +124,71 @@ router.get('/employee/:id', (req: Request, res: Response) => {
     const { id } = req.params;
     const { weeks } = req.query;
     const weeksCount = weeks ? parseInt(weeks as string) : 12;
-    
+
     const employee = db.prepare('SELECT * FROM employees WHERE id = ?').get(id);
     if (!employee) {
       return res.status(404).json({ error: 'Employee not found' });
     }
-    
+
     const kpiData = db.prepare(`
       SELECT * FROM weekly_kpi
       WHERE employee_id = ?
       ORDER BY week_start DESC
       LIMIT ?
     `).all(id, weeksCount);
-    
+
     res.json({ employee, kpiData });
   } catch (error) {
     console.error('Employee KPI error:', error);
     res.status(500).json({ error: 'Failed to fetch employee KPI data' });
+  }
+});
+
+// Individual employee trend data (all time)
+router.get('/employee/:id/trends', (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const employee = db.prepare('SELECT * FROM employees WHERE id = ?').get(id);
+    if (!employee) {
+      return res.status(404).json({ error: 'Employee not found' });
+    }
+
+    const kpiData = db.prepare(`
+      SELECT
+        week_start,
+        week_end,
+        year,
+        week_number,
+        month,
+        verifications,
+        cv_added,
+        recommendations,
+        interviews,
+        placements,
+        days_worked
+      FROM weekly_kpi
+      WHERE employee_id = ?
+      ORDER BY week_start ASC
+    `).all(id);
+
+    // Calculate team averages for comparison
+    const teamAverages = db.prepare(`
+      SELECT
+        week_start,
+        AVG(verifications) as avg_verifications,
+        AVG(cv_added) as avg_cv,
+        AVG(interviews) as avg_interviews,
+        AVG(placements) as avg_placements
+      FROM weekly_kpi
+      GROUP BY week_start
+      ORDER BY week_start ASC
+    `).all();
+
+    res.json({ employee, kpiData, teamAverages });
+  } catch (error) {
+    console.error('Employee trends error:', error);
+    res.status(500).json({ error: 'Failed to fetch employee trend data' });
   }
 });
 
@@ -186,6 +258,307 @@ router.get('/summary', (req: Request, res: Response) => {
   } catch (error) {
     console.error('Summary error:', error);
     res.status(500).json({ error: 'Failed to fetch summary data' });
+  }
+});
+
+// Monthly conversion trend data
+router.get('/monthly-trend', (req: Request, res: Response) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        year,
+        month,
+        COALESCE(SUM(verifications), 0) as total_verifications,
+        COALESCE(SUM(interviews), 0) as total_interviews,
+        COALESCE(SUM(placements), 0) as total_placements
+      FROM weekly_kpi
+      GROUP BY year, month
+      ORDER BY year DESC, month DESC
+      LIMIT 12
+    `).all() as any[];
+
+    const result = rows.map(row => ({
+      year: row.year,
+      month: row.month,
+      totalVerifications: row.total_verifications,
+      totalInterviews: row.total_interviews,
+      totalPlacements: row.total_placements,
+      verificationsPerPlacement: row.total_placements > 0
+        ? Number((row.total_verifications / row.total_placements).toFixed(1))
+        : null,
+      interviewsPerPlacement: row.total_placements > 0
+        ? Number((row.total_interviews / row.total_placements).toFixed(1))
+        : null
+    })).reverse(); // Reverse to show oldest first
+
+    res.json(result);
+  } catch (error) {
+    console.error('Monthly trend error:', error);
+    res.status(500).json({ error: 'Failed to fetch monthly trend data' });
+  }
+});
+
+// Weekly verification trend data (all-time)
+router.get('/weekly-verification-trend', (req: Request, res: Response) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        week_start,
+        year,
+        week_number,
+        COALESCE(SUM(verifications), 0) as total_verifications,
+        COUNT(DISTINCT employee_id) as employee_count
+      FROM weekly_kpi
+      GROUP BY week_start, year, week_number
+      ORDER BY week_start ASC
+    `).all() as any[];
+
+    const result = rows.map(row => ({
+      weekStart: row.week_start,
+      year: row.year,
+      weekNumber: row.week_number,
+      totalVerifications: row.total_verifications,
+      employeeCount: row.employee_count,
+      avgVerificationsPerPerson: row.employee_count > 0
+        ? Number((row.total_verifications / row.employee_count).toFixed(1))
+        : 0
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error('Weekly verification trend error:', error);
+    res.status(500).json({ error: 'Failed to fetch weekly verification trend data' });
+  }
+});
+
+// Weekly CV trend data (all-time)
+router.get('/weekly-cv-trend', (req: Request, res: Response) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        week_start,
+        year,
+        week_number,
+        COALESCE(SUM(cv_added), 0) as total_cv,
+        COUNT(DISTINCT employee_id) as employee_count
+      FROM weekly_kpi
+      GROUP BY week_start, year, week_number
+      ORDER BY week_start ASC
+    `).all() as any[];
+
+    const result = rows.map(row => ({
+      weekStart: row.week_start,
+      year: row.year,
+      weekNumber: row.week_number,
+      totalCv: row.total_cv,
+      employeeCount: row.employee_count,
+      avgCvPerPerson: row.employee_count > 0
+        ? Number((row.total_cv / row.employee_count).toFixed(1))
+        : 0
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error('Weekly CV trend error:', error);
+    res.status(500).json({ error: 'Failed to fetch weekly CV trend data' });
+  }
+});
+
+// Weekly interviews trend data (all-time)
+router.get('/weekly-interviews-trend', (req: Request, res: Response) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        week_start,
+        year,
+        week_number,
+        COALESCE(SUM(interviews), 0) as total_interviews,
+        COUNT(DISTINCT employee_id) as employee_count
+      FROM weekly_kpi
+      GROUP BY week_start, year, week_number
+      ORDER BY week_start ASC
+    `).all() as any[];
+
+    const result = rows.map(row => ({
+      weekStart: row.week_start,
+      year: row.year,
+      weekNumber: row.week_number,
+      totalInterviews: row.total_interviews,
+      employeeCount: row.employee_count,
+      avgInterviewsPerPerson: row.employee_count > 0
+        ? Number((row.total_interviews / row.employee_count).toFixed(1))
+        : 0
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error('Weekly interviews trend error:', error);
+    res.status(500).json({ error: 'Failed to fetch weekly interviews trend data' });
+  }
+});
+
+// Weekly placements trend data (all-time)
+router.get('/weekly-placements-trend', (req: Request, res: Response) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        week_start,
+        year,
+        week_number,
+        COALESCE(SUM(placements), 0) as total_placements,
+        COUNT(DISTINCT employee_id) as employee_count
+      FROM weekly_kpi
+      GROUP BY week_start, year, week_number
+      ORDER BY week_start ASC
+    `).all() as any[];
+
+    const result = rows.map(row => ({
+      weekStart: row.week_start,
+      year: row.year,
+      weekNumber: row.week_number,
+      totalPlacements: row.total_placements,
+      employeeCount: row.employee_count,
+      avgPlacementsPerPerson: row.employee_count > 0
+        ? Number((row.total_placements / row.employee_count).toFixed(1))
+        : 0
+    }));
+
+    res.json(result);
+  } catch (error) {
+    console.error('Weekly placements trend error:', error);
+    res.status(500).json({ error: 'Failed to fetch weekly placements trend data' });
+  }
+});
+
+// Yearly KPI data
+router.get('/yearly', (req: Request, res: Response) => {
+  try {
+    const { year } = req.query;
+    const targetYear = year ? parseInt(year as string) : new Date().getFullYear();
+
+    const rows = db.prepare(`
+      SELECT
+        e.id as employee_id,
+        e.name,
+        e.position,
+        ? as year,
+        COALESCE(SUM(w.verifications), 0) as total_verifications,
+        COALESCE(SUM(w.cv_added), 0) as total_cv_added,
+        COALESCE(SUM(w.recommendations), 0) as total_recommendations,
+        COALESCE(SUM(w.interviews), 0) as total_interviews,
+        COALESCE(SUM(w.placements), 0) as total_placements,
+        COALESCE(SUM(w.days_worked), 0) as total_days_worked
+      FROM employees e
+      LEFT JOIN weekly_kpi w ON e.id = w.employee_id AND w.year = ?
+      WHERE e.is_active = 1
+      GROUP BY e.id, e.name, e.position
+      ORDER BY e.position, e.name
+    `).all(targetYear, targetYear) as any[];
+
+    const result = rows.map(row => {
+      const daysWorked = row.total_days_worked || 1;
+      let targetAchievement = 0;
+
+      if (row.position === 'Sourcer') {
+        const target = daysWorked * 4;
+        targetAchievement = target > 0 ? Math.round((row.total_verifications / target) * 100) : 0;
+      } else if (row.position === 'Rekruter') {
+        const target = daysWorked * 5;
+        targetAchievement = target > 0 ? Math.round((row.total_cv_added / target) * 100) : 0;
+      } else {
+        // TAC - 1 placement per month, so 12 per year
+        targetAchievement = row.total_placements >= 12 ? 100 : Math.round((row.total_placements / 12) * 100);
+      }
+
+      return {
+        employeeId: row.employee_id,
+        name: row.name,
+        position: row.position,
+        year: row.year,
+        totalVerifications: row.total_verifications,
+        totalCvAdded: row.total_cv_added,
+        totalRecommendations: row.total_recommendations,
+        totalInterviews: row.total_interviews,
+        totalPlacements: row.total_placements,
+        totalDaysWorked: row.total_days_worked,
+        verificationsPerDay: daysWorked > 0 ? Number((row.total_verifications / daysWorked).toFixed(2)) : 0,
+        cvPerDay: daysWorked > 0 ? Number((row.total_cv_added / daysWorked).toFixed(2)) : 0,
+        targetAchievement
+      };
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error('Yearly KPI error:', error);
+    res.status(500).json({ error: 'Failed to fetch yearly KPI data' });
+  }
+});
+
+// All-time placements leaderboard
+router.get('/all-time-placements', (req: Request, res: Response) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        e.id as employee_id,
+        e.name,
+        e.position,
+        COALESCE(SUM(w.placements), 0) as total_placements,
+        COALESCE(SUM(w.interviews), 0) as total_interviews,
+        COALESCE(SUM(w.recommendations), 0) as total_recommendations,
+        MIN(w.week_start) as first_week,
+        MAX(w.week_start) as last_week
+      FROM employees e
+      LEFT JOIN weekly_kpi w ON e.id = w.employee_id
+      WHERE e.is_active = 1
+      GROUP BY e.id, e.name, e.position
+      ORDER BY total_placements DESC, total_interviews DESC
+    `).all();
+    res.json(rows);
+  } catch (error) {
+    console.error('All-time placements error:', error);
+    res.status(500).json({ error: 'Failed to fetch all-time placements' });
+  }
+});
+
+// All-time verifications per working day
+router.get('/all-time-verifications', (req: Request, res: Response) => {
+  try {
+    const rows = db.prepare(`
+      SELECT
+        e.id as employee_id,
+        e.name,
+        e.position,
+        COALESCE(SUM(w.verifications), 0) as total_verifications,
+        COALESCE(SUM(w.cv_added), 0) as total_cv_added,
+        COALESCE(SUM(w.days_worked), 0) as total_days_worked
+      FROM employees e
+      LEFT JOIN weekly_kpi w ON e.id = w.employee_id
+      WHERE e.is_active = 1
+      GROUP BY e.id, e.name, e.position
+      ORDER BY e.position, e.name
+    `).all() as any[];
+
+    const result = rows.map(row => {
+      const daysWorked = row.total_days_worked || 1;
+      return {
+        employeeId: row.employee_id,
+        name: row.name,
+        position: row.position,
+        totalVerifications: row.total_verifications,
+        totalCvAdded: row.total_cv_added,
+        totalDaysWorked: row.total_days_worked,
+        verificationsPerDay: daysWorked > 0 ? Number((row.total_verifications / daysWorked).toFixed(2)) : 0,
+        cvPerDay: daysWorked > 0 ? Number((row.total_cv_added / daysWorked).toFixed(2)) : 0
+      };
+    });
+
+    // Sort by verifications per day descending
+    result.sort((a, b) => b.verificationsPerDay - a.verificationsPerDay);
+
+    res.json(result);
+  } catch (error) {
+    console.error('All-time verifications error:', error);
+    res.status(500).json({ error: 'Failed to fetch all-time verifications' });
   }
 });
 
