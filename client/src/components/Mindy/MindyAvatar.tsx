@@ -439,12 +439,15 @@ export default function MindyAvatar({
       )}
 
       {/* Main Content - Compact */}
-      <div className="p-3">
-        <div className="flex gap-2">
-          {/* Mindy Robot */}
-          <div className="flex-shrink-0">
+      <div className="p-2 md:p-3">
+        <div className="flex flex-col lg:flex-row gap-2">
+          {/* Mindy Robot - centered on mobile */}
+          <div className="flex-shrink-0 flex justify-center lg:justify-start">
             <MindyRobot />
           </div>
+
+          {/* Stats Panels Container - stacks on mobile, side by side on tablet+ */}
+          <div className="flex flex-col sm:flex-row lg:flex-row flex-1 gap-2">
 
           {/* Stats Panel - Ten tydzien */}
           <div className="flex-1 min-w-0 space-y-1">
@@ -539,27 +542,31 @@ export default function MindyAvatar({
               </div>
             </div>
           </div>
-          {/* Employee Count Panel */}
-          <div className={`flex-shrink-0 w-20 p-2 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-slate-50'} border ${isDark ? 'border-gray-700' : 'border-slate-200'}`}>
-            <div className="flex items-center gap-1 mb-2">
+
+          </div> {/* End Stats Panels Container */}
+
+          {/* Employee Count Panel - horizontal on mobile, vertical on desktop */}
+          <div className={`flex-shrink-0 w-full sm:w-auto lg:w-20 p-2 rounded-lg ${isDark ? 'bg-gray-800/50' : 'bg-slate-50'} border ${isDark ? 'border-gray-700' : 'border-slate-200'}`}>
+            <div className="flex items-center gap-1 mb-2 lg:mb-2">
               <Users className={`w-3 h-3 ${isDark ? 'text-blue-400' : 'text-blue-600'}`} />
               <span className={`text-[10px] font-semibold ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>Zespół</span>
             </div>
-            <div className="space-y-1.5">
-              <div className={`text-center p-1.5 rounded ${isDark ? 'bg-blue-900/30' : 'bg-blue-100'}`}>
-                <div className={`text-xl font-bold ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>{stats.teamSize}</div>
+            {/* Horizontal layout on mobile, vertical on desktop */}
+            <div className="flex flex-row sm:flex-row lg:flex-col gap-1.5">
+              <div className={`text-center p-1.5 rounded flex-1 lg:flex-none ${isDark ? 'bg-blue-900/30' : 'bg-blue-100'}`}>
+                <div className={`text-lg lg:text-xl font-bold ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>{stats.teamSize}</div>
                 <div className={`text-[8px] ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>TOTAL</div>
               </div>
-              <div className={`flex items-center justify-between p-1 rounded ${isDark ? 'bg-cyan-900/30' : 'bg-cyan-50'}`}>
+              <div className={`flex items-center justify-between p-1 rounded flex-1 lg:flex-none ${isDark ? 'bg-cyan-900/30' : 'bg-cyan-50'}`}>
                 <span className={`text-[9px] ${isDark ? 'text-cyan-400' : 'text-cyan-700'}`}>Sourcer</span>
                 <span className={`text-sm font-bold ${isDark ? 'text-cyan-300' : 'text-cyan-700'}`}>{stats.sourcers}</span>
               </div>
-              <div className={`flex items-center justify-between p-1 rounded ${isDark ? 'bg-green-900/30' : 'bg-green-50'}`}>
+              <div className={`flex items-center justify-between p-1 rounded flex-1 lg:flex-none ${isDark ? 'bg-green-900/30' : 'bg-green-50'}`}>
                 <span className={`text-[9px] ${isDark ? 'text-green-400' : 'text-green-700'}`}>Rekruter</span>
                 <span className={`text-sm font-bold ${isDark ? 'text-green-300' : 'text-green-700'}`}>{stats.recruiters}</span>
               </div>
               {stats.tacs > 0 && (
-                <div className={`flex items-center justify-between p-1 rounded ${isDark ? 'bg-purple-900/30' : 'bg-purple-50'}`}>
+                <div className={`flex items-center justify-between p-1 rounded flex-1 lg:flex-none ${isDark ? 'bg-purple-900/30' : 'bg-purple-50'}`}>
                   <span className={`text-[9px] ${isDark ? 'text-purple-400' : 'text-purple-700'}`}>TAC</span>
                   <span className={`text-sm font-bold ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>{stats.tacs}</span>
                 </div>

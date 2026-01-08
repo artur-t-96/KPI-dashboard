@@ -356,7 +356,7 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
   }
 
   return (
-    <div className="flex flex-col gap-4 pl-6">
+    <div className="flex flex-col gap-3 md:gap-4 px-3 sm:px-4 md:pl-6 md:pr-0">
       {/* Filters - always on top */}
       <div className="bg-white rounded-xl shadow-sm p-4">
         <div className="flex flex-wrap items-center gap-4">
@@ -486,7 +486,7 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
               <span>🏆</span> Liga Mistrzow - Ranking Overall (srednia dzienna)
             </h2>
             <p className="text-xs text-gray-500 mb-4">Ranking oparty o srednie wyniki per dzien</p>
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6">
               {/* Top 3 */}
               <div>
                 <h3 className="text-sm font-semibold text-green-700 mb-3 flex items-center gap-2">
@@ -800,7 +800,7 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
       <DraggableSection id="category-cv-weryfikacje">
         <Category id="category-cv-weryfikacje" title="Weryfikacje, Interviews, Rekomendacje & Placements" icon="✓" color="bg-gradient-to-r from-violet-500 to-purple-600">
           {/* Verifications Tables Grid */}
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
             {/* Weekly Verifications */}
             <CollapsibleSection
               title={`Weryfikacje - Tydzien`}
@@ -1349,22 +1349,22 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                           {employeeTrendData.employee.position}
                         </span>
                       </div>
-                      <div className="ml-auto grid grid-cols-4 gap-4 text-center">
+                      <div className="ml-auto grid grid-cols-3 gap-2 md:gap-4 text-center">
                         <div>
-                          <div className="text-xs text-gray-500">Weryfikacje</div>
-                          <div className="text-lg font-bold text-blue-600">
+                          <div className="text-[10px] md:text-xs text-gray-500">Weryfikacje</div>
+                          <div className="text-base md:text-lg font-bold text-blue-600">
                             {employeeTrendData.kpiData.reduce((sum, d) => sum + d.verifications, 0)}
                           </div>
                         </div>
                         <div>
-                          <div className="text-xs text-gray-500">Interviews</div>
-                          <div className="text-lg font-bold text-orange-600">
+                          <div className="text-[10px] md:text-xs text-gray-500">Interviews</div>
+                          <div className="text-base md:text-lg font-bold text-orange-600">
                             {employeeTrendData.kpiData.reduce((sum, d) => sum + d.interviews, 0)}
                           </div>
                         </div>
                         <div>
-                          <div className="text-xs text-gray-500">Placements</div>
-                          <div className="text-lg font-bold text-green-600">
+                          <div className="text-[10px] md:text-xs text-gray-500">Placements</div>
+                          <div className="text-base md:text-lg font-bold text-green-600">
                             {employeeTrendData.kpiData.reduce((sum, d) => sum + d.placements, 0)}
                           </div>
                         </div>
@@ -1525,27 +1525,27 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                     />
                   </LineChart>
                 </ResponsiveContainer>
-                <div className="mt-4 grid grid-cols-3 gap-4 text-center">
-                  <div className="bg-blue-50 rounded-lg p-3">
-                    <div className="text-xs text-gray-500">Ostatni tydzien</div>
-                    <div className="text-xl font-bold text-blue-600">
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-4 text-center">
+                  <div className="bg-blue-50 rounded-lg p-2 md:p-3">
+                    <div className="text-[10px] md:text-xs text-gray-500">Ostatni tydzien</div>
+                    <div className="text-lg md:text-xl font-bold text-blue-600">
                       {weeklyVerificationTrend[weeklyVerificationTrend.length - 1]?.totalVerifications || 0}
                     </div>
-                    <div className="text-xs text-gray-500">weryfikacji</div>
+                    <div className="text-[10px] md:text-xs text-gray-500">weryfikacji</div>
                   </div>
-                  <div className="bg-green-50 rounded-lg p-3">
-                    <div className="text-xs text-gray-500">Srednia/osoba</div>
-                    <div className="text-xl font-bold text-green-600">
+                  <div className="bg-green-50 rounded-lg p-2 md:p-3">
+                    <div className="text-[10px] md:text-xs text-gray-500">Srednia/osoba</div>
+                    <div className="text-lg md:text-xl font-bold text-green-600">
                       {weeklyVerificationTrend[weeklyVerificationTrend.length - 1]?.avgVerificationsPerPerson || 0}
                     </div>
-                    <div className="text-xs text-gray-500">ostatni tydzien</div>
+                    <div className="text-[10px] md:text-xs text-gray-500">ostatni tydzien</div>
                   </div>
-                  <div className="bg-purple-50 rounded-lg p-3">
-                    <div className="text-xs text-gray-500">Liczba tygodni</div>
-                    <div className="text-xl font-bold text-purple-600">
+                  <div className="bg-purple-50 rounded-lg p-2 md:p-3">
+                    <div className="text-[10px] md:text-xs text-gray-500">Liczba tygodni</div>
+                    <div className="text-lg md:text-xl font-bold text-purple-600">
                       {weeklyVerificationTrend.length}
                     </div>
-                    <div className="text-xs text-gray-500">w danych</div>
+                    <div className="text-[10px] md:text-xs text-gray-500">w danych</div>
                   </div>
                 </div>
               </div>
@@ -1617,27 +1617,27 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                     />
                   </LineChart>
                 </ResponsiveContainer>
-                <div className="mt-4 grid grid-cols-3 gap-4 text-center">
-                  <div className="bg-amber-50 rounded-lg p-3">
-                    <div className="text-xs text-gray-500">Ostatni tydzien</div>
-                    <div className="text-xl font-bold text-amber-600">
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-4 text-center">
+                  <div className="bg-amber-50 rounded-lg p-2 md:p-3">
+                    <div className="text-[10px] md:text-xs text-gray-500">Ostatni tydzien</div>
+                    <div className="text-lg md:text-xl font-bold text-amber-600">
                       {weeklyInterviewsTrend[weeklyInterviewsTrend.length - 1]?.totalInterviews || 0}
                     </div>
-                    <div className="text-xs text-gray-500">interviews</div>
+                    <div className="text-[10px] md:text-xs text-gray-500">interviews</div>
                   </div>
-                  <div className="bg-orange-50 rounded-lg p-3">
-                    <div className="text-xs text-gray-500">Srednia/osoba</div>
-                    <div className="text-xl font-bold text-orange-600">
+                  <div className="bg-orange-50 rounded-lg p-2 md:p-3">
+                    <div className="text-[10px] md:text-xs text-gray-500">Srednia/osoba</div>
+                    <div className="text-lg md:text-xl font-bold text-orange-600">
                       {weeklyInterviewsTrend[weeklyInterviewsTrend.length - 1]?.avgInterviewsPerPerson || 0}
                     </div>
-                    <div className="text-xs text-gray-500">ostatni tydzien</div>
+                    <div className="text-[10px] md:text-xs text-gray-500">ostatni tydzien</div>
                   </div>
-                  <div className="bg-yellow-50 rounded-lg p-3">
-                    <div className="text-xs text-gray-500">Liczba tygodni</div>
-                    <div className="text-xl font-bold text-yellow-600">
+                  <div className="bg-yellow-50 rounded-lg p-2 md:p-3">
+                    <div className="text-[10px] md:text-xs text-gray-500">Liczba tygodni</div>
+                    <div className="text-lg md:text-xl font-bold text-yellow-600">
                       {weeklyInterviewsTrend.length}
                     </div>
-                    <div className="text-xs text-gray-500">w danych</div>
+                    <div className="text-[10px] md:text-xs text-gray-500">w danych</div>
                   </div>
                 </div>
               </div>
@@ -1709,27 +1709,27 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                     />
                   </LineChart>
                 </ResponsiveContainer>
-                <div className="mt-4 grid grid-cols-3 gap-4 text-center">
-                  <div className="bg-rose-50 rounded-lg p-3">
-                    <div className="text-xs text-gray-500">Ostatni tydzien</div>
-                    <div className="text-xl font-bold text-rose-600">
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-4 text-center">
+                  <div className="bg-rose-50 rounded-lg p-2 md:p-3">
+                    <div className="text-[10px] md:text-xs text-gray-500">Ostatni tydzien</div>
+                    <div className="text-lg md:text-xl font-bold text-rose-600">
                       {weeklyPlacementsTrend[weeklyPlacementsTrend.length - 1]?.totalPlacements || 0}
                     </div>
-                    <div className="text-xs text-gray-500">placements</div>
+                    <div className="text-[10px] md:text-xs text-gray-500">placements</div>
                   </div>
-                  <div className="bg-pink-50 rounded-lg p-3">
-                    <div className="text-xs text-gray-500">Srednia/osoba</div>
-                    <div className="text-xl font-bold text-pink-600">
+                  <div className="bg-pink-50 rounded-lg p-2 md:p-3">
+                    <div className="text-[10px] md:text-xs text-gray-500">Srednia/osoba</div>
+                    <div className="text-lg md:text-xl font-bold text-pink-600">
                       {weeklyPlacementsTrend[weeklyPlacementsTrend.length - 1]?.avgPlacementsPerPerson || 0}
                     </div>
-                    <div className="text-xs text-gray-500">ostatni tydzien</div>
+                    <div className="text-[10px] md:text-xs text-gray-500">ostatni tydzien</div>
                   </div>
-                  <div className="bg-fuchsia-50 rounded-lg p-3">
-                    <div className="text-xs text-gray-500">Liczba tygodni</div>
-                    <div className="text-xl font-bold text-fuchsia-600">
+                  <div className="bg-fuchsia-50 rounded-lg p-2 md:p-3">
+                    <div className="text-[10px] md:text-xs text-gray-500">Liczba tygodni</div>
+                    <div className="text-lg md:text-xl font-bold text-fuchsia-600">
                       {weeklyPlacementsTrend.length}
                     </div>
-                    <div className="text-xs text-gray-500">w danych</div>
+                    <div className="text-[10px] md:text-xs text-gray-500">w danych</div>
                   </div>
                 </div>
               </div>
