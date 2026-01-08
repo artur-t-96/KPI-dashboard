@@ -140,11 +140,20 @@ function saveKPIData(kpi: KPIRow, uploadedBy: number): void {
   const weekStartStr = kpi.weekStart.toISOString().split('T')[0];
   const weekEndStr = kpi.weekEnd.toISOString().split('T')[0];
 
-  // Insert or update KPI data
+  // Insert new KPI data or accumulate to existing data (incremental/append mode)
+  // Historical data is never overwritten - new values are added to existing values
   db.prepare(`
-    INSERT OR REPLACE INTO weekly_kpi 
+    INSERT INTO weekly_kpi
     (employee_id, week_start, week_end, year, week_number, month, verifications, cv_added, recommendations, interviews, placements, days_worked, uploaded_by)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(employee_id, week_start) DO UPDATE SET
+      verifications = verifications + excluded.verifications,
+      cv_added = cv_added + excluded.cv_added,
+      recommendations = recommendations + excluded.recommendations,
+      interviews = interviews + excluded.interviews,
+      placements = placements + excluded.placements,
+      days_worked = days_worked + excluded.days_worked,
+      uploaded_by = excluded.uploaded_by
   `).run(
     employee.id, weekStartStr, weekEndStr, year, weekNumber, month,
     kpi.verifications, kpi.cvAdded, kpi.recommendations, kpi.interviews, kpi.placements, kpi.daysWorked, uploadedBy

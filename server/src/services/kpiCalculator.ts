@@ -197,6 +197,7 @@ export function getChampionsLeague(year?: number, month?: number) {
   }));
 }
 
+// CV excluded from points calculation per scoring rules update
 export function getChampionsLeagueWeekly(weekStart?: string) {
   let query = `
     SELECT
@@ -212,8 +213,7 @@ export function getChampionsLeagueWeekly(weekStart?: string) {
       COALESCE(w.interviews * 10, 0) as interview_points,
       COALESCE(w.recommendations * 2, 0) as recommendation_points,
       COALESCE(w.verifications, 0) as verification_points,
-      COALESCE(w.cv_added, 0) as cv_points,
-      COALESCE(w.placements * 100 + w.interviews * 10 + w.recommendations * 2 + w.verifications + w.cv_added, 0) as total_points
+      COALESCE(w.placements * 100 + w.interviews * 10 + w.recommendations * 2 + w.verifications, 0) as total_points
     FROM employees e
     LEFT JOIN weekly_kpi w ON e.id = w.employee_id
   `;
@@ -248,11 +248,12 @@ export function getChampionsLeagueWeekly(weekStart?: string) {
     interviewPoints: row.interview_points || 0,
     recommendationPoints: row.recommendation_points || 0,
     verificationPoints: row.verification_points || 0,
-    cvPoints: row.cv_points || 0,
+    cvPoints: 0, // CV excluded from scoring
     totalPoints: row.total_points || 0
   }));
 }
 
+// CV excluded from points calculation per scoring rules update
 export function getChampionsLeagueAllTimePerDay() {
   const query = `
     SELECT
@@ -265,7 +266,7 @@ export function getChampionsLeagueAllTimePerDay() {
       COALESCE(SUM(w.verifications), 0) as verifications,
       COALESCE(SUM(w.cv_added), 0) as cv_added,
       COALESCE(SUM(w.days_worked), 0) as total_days_worked,
-      COALESCE(SUM(w.placements * 100 + w.interviews * 10 + w.recommendations * 2 + w.verifications + w.cv_added), 0) as total_points
+      COALESCE(SUM(w.placements * 100 + w.interviews * 10 + w.recommendations * 2 + w.verifications), 0) as total_points
     FROM employees e
     LEFT JOIN weekly_kpi w ON e.id = w.employee_id
     WHERE e.is_active = 1

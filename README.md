@@ -124,7 +124,12 @@ cd client && npm run dev
 | Interview | 10 |
 | Rekomendacja | 2 |
 | Weryfikacja | 1 |
-| CV dodane | 1 |
+
+> **Uwaga:** Wolumen CV został wykluczony z punktacji - nie przyznaje się punktów za ilość dodanych CV.
+
+## 📊 Persystencja Danych
+
+Dane są przechowywane w trybie przyrostowym (incremental). Nowe uploady **dodają wartości** do istniejących rekordów zamiast je nadpisywać. Historyczne dane nigdy nie są resetowane ani usuwane.
 
 ---
 
