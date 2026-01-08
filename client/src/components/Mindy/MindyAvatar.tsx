@@ -100,6 +100,9 @@ export default function MindyAvatar({
     const allTimePlacementsPerMonth = allTimeMonths > 0 ? (allTimeTotalPlacements / allTimeMonths).toFixed(2) : '0';
     const allTimePlacementTarget = weeklyData.length;
 
+    // All-time interviews (needed for achievement calculation)
+    const allTimeTotalInterviews = allTimePlacements.reduce((sum, d) => sum + d.total_interviews, 0);
+
     // All-time targets and achievements for consistent display
     const allTimeSourcerDays = allTimeVerifications.filter(d => d.position === 'Sourcer').reduce((sum, d) => sum + d.totalDaysWorked, 0);
     const allTimeRecruiterDays = allTimeVerifications.filter(d => d.position === 'Rekruter').reduce((sum, d) => sum + d.totalDaysWorked, 0);
@@ -118,7 +121,6 @@ export default function MindyAvatar({
       ? (allTimeTotalVerifications / allTimeTotalPlacements).toFixed(1)
       : '∞';
 
-    const allTimeTotalInterviews = allTimePlacements.reduce((sum, d) => sum + d.total_interviews, 0);
     const allTimeAvgIntPerDay = allTimeTotalDays > 0 ? (allTimeTotalInterviews / allTimeTotalDays).toFixed(2) : '0';
     const teamInterviewsPerPlacement = allTimeTotalPlacements > 0
       ? (allTimeTotalInterviews / allTimeTotalPlacements).toFixed(1)
