@@ -2,6 +2,16 @@ import db from '../db/connection';
 
 // CV data completely excluded from system - not tracked, not reported, not used for any metrics
 
+// Activity filter: Only include employees with data in the last 21 days (3 weeks)
+// This excludes "dead souls" and former employees from current statistics
+const ACTIVITY_FILTER = `
+  AND e.id IN (
+    SELECT DISTINCT employee_id
+    FROM weekly_kpi
+    WHERE week_start >= date('now', '-21 days')
+  )
+`;
+
 export interface WeeklyKPIData {
   employeeId: number;
   name: string;
@@ -55,6 +65,7 @@ export function getWeeklyKPI(weekStart?: string): WeeklyKPIData[] {
     FROM weekly_kpi w
     JOIN employees e ON w.employee_id = e.id
     WHERE e.is_active = 1
+    ${ACTIVITY_FILTER}
   `;
 
   const params: any[] = [];
@@ -97,6 +108,7 @@ export function getMonthlyKPI(year?: number, month?: number): MonthlyKPIData[] {
 
   // Dynamic employee filtering: Only include employees who have data in the selected month
   // Employees without data in this period are excluded (not assigned zero values)
+  // Activity filter: Exclude employees with no activity in last 21 days
   const query = `
     SELECT
       e.id as employee_id,
@@ -112,6 +124,7 @@ export function getMonthlyKPI(year?: number, month?: number): MonthlyKPIData[] {
     FROM weekly_kpi w
     JOIN employees e ON w.employee_id = e.id
     WHERE e.is_active = 1 AND w.year = ? AND w.month = ?
+    ${ACTIVITY_FILTER}
     GROUP BY e.id, e.name, e.position
     ORDER BY e.position, e.name
   `;
@@ -145,6 +158,7 @@ export function getChampionsLeague(year?: number, month?: number) {
 
   // Dynamic employee filtering: Only include employees who have data in the selected month
   // Employees who ended work (no data in current period) are excluded from rankings
+  // Activity filter: Exclude employees with no activity in last 21 days
   const query = `
     SELECT
       e.id as employee_id,
@@ -162,6 +176,7 @@ export function getChampionsLeague(year?: number, month?: number) {
     FROM weekly_kpi w
     JOIN employees e ON w.employee_id = e.id
     WHERE e.is_active = 1 AND w.year = ? AND w.month = ?
+    ${ACTIVITY_FILTER}
     GROUP BY e.id, e.name, e.position
     ORDER BY total_points DESC
   `;
@@ -186,6 +201,7 @@ export function getChampionsLeague(year?: number, month?: number) {
 }
 
 export function getChampionsLeagueWeekly(weekStart?: string) {
+  // Activity filter: Exclude employees with no activity in last 21 days
   let query = `
     SELECT
       e.id as employee_id,
@@ -215,6 +231,7 @@ export function getChampionsLeagueWeekly(weekStart?: string) {
 
   query += `
     WHERE e.is_active = 1
+    ${ACTIVITY_FILTER}
     ORDER BY total_points DESC
   `;
 
@@ -238,6 +255,7 @@ export function getChampionsLeagueWeekly(weekStart?: string) {
 }
 
 export function getChampionsLeagueAllTimePerDay() {
+  // Activity filter: Exclude employees with no activity in last 21 days
   const query = `
     SELECT
       e.id as employee_id,
@@ -252,6 +270,7 @@ export function getChampionsLeagueAllTimePerDay() {
     FROM employees e
     LEFT JOIN weekly_kpi w ON e.id = w.employee_id
     WHERE e.is_active = 1
+    ${ACTIVITY_FILTER}
     GROUP BY e.id, e.name, e.position
     ORDER BY total_points DESC
   `;
@@ -291,6 +310,7 @@ export function getChampionsLeagueAllTimePerDay() {
 
 export function getTrends(weeks?: number) {
   // If no weeks specified, fetch all available data
+  // Activity filter: Exclude employees with no activity in last 21 days
   const query = weeks
     ? `
       SELECT
@@ -307,6 +327,7 @@ export function getTrends(weeks?: number) {
       FROM weekly_kpi w
       JOIN employees e ON w.employee_id = e.id
       WHERE e.is_active = 1
+      ${ACTIVITY_FILTER}
       AND w.week_start >= date((SELECT MAX(week_start) FROM weekly_kpi), '-' || ? || ' weeks')
       GROUP BY w.week_start, w.week_number, w.year, e.position
       ORDER BY w.week_start, e.position
@@ -326,6 +347,7 @@ export function getTrends(weeks?: number) {
       FROM weekly_kpi w
       JOIN employees e ON w.employee_id = e.id
       WHERE e.is_active = 1
+      ${ACTIVITY_FILTER}
       GROUP BY w.week_start, w.week_number, w.year, e.position
       ORDER BY w.week_start, e.position
     `;
