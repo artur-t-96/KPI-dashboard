@@ -11,6 +11,8 @@ import {
   getAvailableMonths
 } from '../services/kpiCalculator';
 
+// CV data completely excluded from system - no CV endpoints, no CV fields in responses
+
 const router = Router();
 
 router.get('/weekly', (req: Request, res: Response) => {
@@ -131,7 +133,11 @@ router.get('/employee/:id', (req: Request, res: Response) => {
     }
 
     const kpiData = db.prepare(`
-      SELECT * FROM weekly_kpi
+      SELECT
+        id, employee_id, week_start, week_end, year, week_number, month,
+        verifications, recommendations, interviews, placements, days_worked,
+        uploaded_at, uploaded_by
+      FROM weekly_kpi
       WHERE employee_id = ?
       ORDER BY week_start DESC
       LIMIT ?
@@ -162,7 +168,6 @@ router.get('/employee/:id/trends', (req: Request, res: Response) => {
         week_number,
         month,
         verifications,
-        cv_added,
         recommendations,
         interviews,
         placements,
@@ -177,7 +182,6 @@ router.get('/employee/:id/trends', (req: Request, res: Response) => {
       SELECT
         week_start,
         AVG(verifications) as avg_verifications,
-        AVG(cv_added) as avg_cv,
         AVG(interviews) as avg_interviews,
         AVG(placements) as avg_placements
       FROM weekly_kpi
@@ -197,11 +201,10 @@ router.get('/summary', (req: Request, res: Response) => {
     const currentDate = new Date();
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
-    
+
     const monthlyTotals = db.prepare(`
-      SELECT 
+      SELECT
         COALESCE(SUM(verifications), 0) as verifications,
-        COALESCE(SUM(cv_added), 0) as cv_added,
         COALESCE(SUM(recommendations), 0) as recommendations,
         COALESCE(SUM(interviews), 0) as interviews,
         COALESCE(SUM(placements), 0) as placements,
@@ -209,7 +212,7 @@ router.get('/summary', (req: Request, res: Response) => {
       FROM weekly_kpi
       WHERE year = ? AND month = ?
     `).get(year, month);
-    
+
     // Dynamic employee filtering: Only count employees who have data in the current month
     // Employees who ended work (no data in current period) are excluded from position breakdown
     const positionBreakdown = db.prepare(`
@@ -217,7 +220,6 @@ router.get('/summary', (req: Request, res: Response) => {
         e.position,
         COUNT(DISTINCT e.id) as employee_count,
         SUM(w.verifications) as verifications,
-        SUM(w.cv_added) as cv_added,
         SUM(w.recommendations) as recommendations,
         SUM(w.interviews) as interviews,
         SUM(w.placements) as placements
@@ -226,34 +228,30 @@ router.get('/summary', (req: Request, res: Response) => {
       WHERE e.is_active = 1 AND w.year = ? AND w.month = ?
       GROUP BY e.position
     `).all(year, month);
-    
+
     const weeklyChange = db.prepare(`
       WITH current_week AS (
-        SELECT 
+        SELECT
           COALESCE(SUM(verifications), 0) as verifications,
-          COALESCE(SUM(cv_added), 0) as cv_added,
           COALESCE(SUM(placements), 0) as placements
         FROM weekly_kpi
         WHERE week_start = (SELECT MAX(week_start) FROM weekly_kpi)
       ),
       previous_week AS (
-        SELECT 
+        SELECT
           COALESCE(SUM(verifications), 0) as verifications,
-          COALESCE(SUM(cv_added), 0) as cv_added,
           COALESCE(SUM(placements), 0) as placements
         FROM weekly_kpi
         WHERE week_start = (SELECT MAX(week_start) FROM weekly_kpi WHERE week_start < (SELECT MAX(week_start) FROM weekly_kpi))
       )
-      SELECT 
+      SELECT
         cw.verifications as current_verifications,
-        cw.cv_added as current_cv,
         cw.placements as current_placements,
         pw.verifications as previous_verifications,
-        pw.cv_added as previous_cv,
         pw.placements as previous_placements
       FROM current_week cw, previous_week pw
     `).get();
-    
+
     res.json({ monthlyTotals, positionBreakdown, weeklyChange });
   } catch (error) {
     console.error('Summary error:', error);
@@ -328,39 +326,6 @@ router.get('/weekly-verification-trend', (req: Request, res: Response) => {
   } catch (error) {
     console.error('Weekly verification trend error:', error);
     res.status(500).json({ error: 'Failed to fetch weekly verification trend data' });
-  }
-});
-
-// Weekly CV trend data (all-time)
-router.get('/weekly-cv-trend', (req: Request, res: Response) => {
-  try {
-    const rows = db.prepare(`
-      SELECT
-        week_start,
-        year,
-        week_number,
-        COALESCE(SUM(cv_added), 0) as total_cv,
-        COUNT(DISTINCT employee_id) as employee_count
-      FROM weekly_kpi
-      GROUP BY week_start, year, week_number
-      ORDER BY week_start ASC
-    `).all() as any[];
-
-    const result = rows.map(row => ({
-      weekStart: row.week_start,
-      year: row.year,
-      weekNumber: row.week_number,
-      totalCv: row.total_cv,
-      employeeCount: row.employee_count,
-      avgCvPerPerson: row.employee_count > 0
-        ? Number((row.total_cv / row.employee_count).toFixed(1))
-        : 0
-    }));
-
-    res.json(result);
-  } catch (error) {
-    console.error('Weekly CV trend error:', error);
-    res.status(500).json({ error: 'Failed to fetch weekly CV trend data' });
   }
 });
 
@@ -443,7 +408,6 @@ router.get('/yearly', (req: Request, res: Response) => {
         e.position,
         ? as year,
         COALESCE(SUM(w.verifications), 0) as total_verifications,
-        COALESCE(SUM(w.cv_added), 0) as total_cv_added,
         COALESCE(SUM(w.recommendations), 0) as total_recommendations,
         COALESCE(SUM(w.interviews), 0) as total_interviews,
         COALESCE(SUM(w.placements), 0) as total_placements,
@@ -463,8 +427,9 @@ router.get('/yearly', (req: Request, res: Response) => {
         const target = daysWorked * 4;
         targetAchievement = target > 0 ? Math.round((row.total_verifications / target) * 100) : 0;
       } else if (row.position === 'Rekruter') {
-        const target = daysWorked * 5;
-        targetAchievement = target > 0 ? Math.round((row.total_cv_added / target) * 100) : 0;
+        // Rekruter target: 2 interviews per day
+        const target = daysWorked * 2;
+        targetAchievement = target > 0 ? Math.round((row.total_interviews / target) * 100) : 0;
       } else {
         // TAC - 1 placement per month, so 12 per year
         targetAchievement = row.total_placements >= 12 ? 100 : Math.round((row.total_placements / 12) * 100);
@@ -476,13 +441,11 @@ router.get('/yearly', (req: Request, res: Response) => {
         position: row.position,
         year: row.year,
         totalVerifications: row.total_verifications,
-        totalCvAdded: row.total_cv_added,
         totalRecommendations: row.total_recommendations,
         totalInterviews: row.total_interviews,
         totalPlacements: row.total_placements,
         totalDaysWorked: row.total_days_worked,
         verificationsPerDay: daysWorked > 0 ? Number((row.total_verifications / daysWorked).toFixed(2)) : 0,
-        cvPerDay: daysWorked > 0 ? Number((row.total_cv_added / daysWorked).toFixed(2)) : 0,
         targetAchievement
       };
     });
@@ -529,7 +492,6 @@ router.get('/all-time-verifications', (req: Request, res: Response) => {
         e.name,
         e.position,
         COALESCE(SUM(w.verifications), 0) as total_verifications,
-        COALESCE(SUM(w.cv_added), 0) as total_cv_added,
         COALESCE(SUM(w.days_worked), 0) as total_days_worked
       FROM employees e
       LEFT JOIN weekly_kpi w ON e.id = w.employee_id
@@ -545,10 +507,8 @@ router.get('/all-time-verifications', (req: Request, res: Response) => {
         name: row.name,
         position: row.position,
         totalVerifications: row.total_verifications,
-        totalCvAdded: row.total_cv_added,
         totalDaysWorked: row.total_days_worked,
-        verificationsPerDay: daysWorked > 0 ? Number((row.total_verifications / daysWorked).toFixed(2)) : 0,
-        cvPerDay: daysWorked > 0 ? Number((row.total_cv_added / daysWorked).toFixed(2)) : 0
+        verificationsPerDay: daysWorked > 0 ? Number((row.total_verifications / daysWorked).toFixed(2)) : 0
       };
     });
 

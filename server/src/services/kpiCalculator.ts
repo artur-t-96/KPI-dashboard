@@ -1,5 +1,7 @@
 import db from '../db/connection';
 
+// CV data completely excluded from system - not tracked, not reported, not used for any metrics
+
 export interface WeeklyKPIData {
   employeeId: number;
   name: string;
@@ -9,13 +11,11 @@ export interface WeeklyKPIData {
   year: number;
   weekNumber: number;
   verifications: number;
-  cvAdded: number;
   recommendations: number;
   interviews: number;
   placements: number;
   daysWorked: number;
   verificationsPerDay: number;
-  cvPerDay: number;
   recommendationsPerDay: number;
   targetAchievement: number;
   points: number;
@@ -28,20 +28,18 @@ export interface MonthlyKPIData {
   year: number;
   month: number;
   totalVerifications: number;
-  totalCvAdded: number;
   totalRecommendations: number;
   totalInterviews: number;
   totalPlacements: number;
   totalDaysWorked: number;
   verificationsPerDay: number;
-  cvPerDay: number;
   targetAchievement: number;
   points: number;
 }
 
 export function getWeeklyKPI(weekStart?: string): WeeklyKPIData[] {
   let query = `
-    SELECT 
+    SELECT
       e.id as employee_id,
       e.name,
       e.position,
@@ -50,7 +48,6 @@ export function getWeeklyKPI(weekStart?: string): WeeklyKPIData[] {
       w.year,
       w.week_number,
       w.verifications,
-      w.cv_added,
       w.recommendations,
       w.interviews,
       w.placements,
@@ -59,20 +56,20 @@ export function getWeeklyKPI(weekStart?: string): WeeklyKPIData[] {
     JOIN employees e ON w.employee_id = e.id
     WHERE e.is_active = 1
   `;
-  
+
   const params: any[] = [];
-  
+
   if (weekStart) {
     query += ' AND w.week_start = ?';
     params.push(weekStart);
   } else {
     query += ' AND w.week_start = (SELECT MAX(week_start) FROM weekly_kpi)';
   }
-  
+
   query += ' ORDER BY e.position, e.name';
-  
+
   const rows = db.prepare(query).all(...params) as any[];
-  
+
   return rows.map(row => ({
     employeeId: row.employee_id,
     name: row.name,
@@ -82,13 +79,11 @@ export function getWeeklyKPI(weekStart?: string): WeeklyKPIData[] {
     year: row.year,
     weekNumber: row.week_number,
     verifications: row.verifications,
-    cvAdded: row.cv_added,
     recommendations: row.recommendations,
     interviews: row.interviews,
     placements: row.placements,
     daysWorked: row.days_worked,
     verificationsPerDay: row.days_worked > 0 ? Number((row.verifications / row.days_worked).toFixed(2)) : 0,
-    cvPerDay: row.days_worked > 0 ? Number((row.cv_added / row.days_worked).toFixed(2)) : 0,
     recommendationsPerDay: row.days_worked > 0 ? Number((row.recommendations / row.days_worked).toFixed(2)) : 0,
     targetAchievement: calculateTargetAchievement(row),
     points: calculatePoints(row)
@@ -110,7 +105,6 @@ export function getMonthlyKPI(year?: number, month?: number): MonthlyKPIData[] {
       ? as year,
       ? as month,
       SUM(w.verifications) as total_verifications,
-      SUM(w.cv_added) as total_cv_added,
       SUM(w.recommendations) as total_recommendations,
       SUM(w.interviews) as total_interviews,
       SUM(w.placements) as total_placements,
@@ -123,7 +117,7 @@ export function getMonthlyKPI(year?: number, month?: number): MonthlyKPIData[] {
   `;
 
   const rows = db.prepare(query).all(targetYear, targetMonth, targetYear, targetMonth) as any[];
-  
+
   return rows.map(row => {
     const daysWorked = row.total_days_worked || 1;
     return {
@@ -133,13 +127,11 @@ export function getMonthlyKPI(year?: number, month?: number): MonthlyKPIData[] {
       year: row.year,
       month: row.month,
       totalVerifications: row.total_verifications,
-      totalCvAdded: row.total_cv_added,
       totalRecommendations: row.total_recommendations,
       totalInterviews: row.total_interviews,
       totalPlacements: row.total_placements,
       totalDaysWorked: row.total_days_worked,
       verificationsPerDay: daysWorked > 0 ? Number((row.total_verifications / daysWorked).toFixed(2)) : 0,
-      cvPerDay: daysWorked > 0 ? Number((row.total_cv_added / daysWorked).toFixed(2)) : 0,
       targetAchievement: calculateMonthlyTargetAchievement(row),
       points: calculateMonthlyPoints(row)
     };
@@ -153,7 +145,6 @@ export function getChampionsLeague(year?: number, month?: number) {
 
   // Dynamic employee filtering: Only include employees who have data in the selected month
   // Employees who ended work (no data in current period) are excluded from rankings
-  // CV excluded from points calculation per scoring rules update
   const query = `
     SELECT
       e.id as employee_id,
@@ -163,7 +154,6 @@ export function getChampionsLeague(year?: number, month?: number) {
       SUM(w.interviews) as interviews,
       SUM(w.recommendations) as recommendations,
       SUM(w.verifications) as verifications,
-      SUM(w.cv_added) as cv_added,
       SUM(w.placements * 100) as placement_points,
       SUM(w.interviews * 10) as interview_points,
       SUM(w.recommendations * 2) as recommendation_points,
@@ -187,17 +177,14 @@ export function getChampionsLeague(year?: number, month?: number) {
     interviews: row.interviews,
     recommendations: row.recommendations,
     verifications: row.verifications,
-    cvAdded: row.cv_added,
     placementPoints: row.placement_points,
     interviewPoints: row.interview_points,
     recommendationPoints: row.recommendation_points,
     verificationPoints: row.verification_points,
-    cvPoints: 0, // CV excluded from scoring
     totalPoints: row.total_points
   }));
 }
 
-// CV excluded from points calculation per scoring rules update
 export function getChampionsLeagueWeekly(weekStart?: string) {
   let query = `
     SELECT
@@ -208,7 +195,6 @@ export function getChampionsLeagueWeekly(weekStart?: string) {
       COALESCE(w.interviews, 0) as interviews,
       COALESCE(w.recommendations, 0) as recommendations,
       COALESCE(w.verifications, 0) as verifications,
-      COALESCE(w.cv_added, 0) as cv_added,
       COALESCE(w.placements * 100, 0) as placement_points,
       COALESCE(w.interviews * 10, 0) as interview_points,
       COALESCE(w.recommendations * 2, 0) as recommendation_points,
@@ -243,17 +229,14 @@ export function getChampionsLeagueWeekly(weekStart?: string) {
     interviews: row.interviews || 0,
     recommendations: row.recommendations || 0,
     verifications: row.verifications || 0,
-    cvAdded: row.cv_added || 0,
     placementPoints: row.placement_points || 0,
     interviewPoints: row.interview_points || 0,
     recommendationPoints: row.recommendation_points || 0,
     verificationPoints: row.verification_points || 0,
-    cvPoints: 0, // CV excluded from scoring
     totalPoints: row.total_points || 0
   }));
 }
 
-// CV excluded from points calculation per scoring rules update
 export function getChampionsLeagueAllTimePerDay() {
   const query = `
     SELECT
@@ -264,7 +247,6 @@ export function getChampionsLeagueAllTimePerDay() {
       COALESCE(SUM(w.interviews), 0) as interviews,
       COALESCE(SUM(w.recommendations), 0) as recommendations,
       COALESCE(SUM(w.verifications), 0) as verifications,
-      COALESCE(SUM(w.cv_added), 0) as cv_added,
       COALESCE(SUM(w.days_worked), 0) as total_days_worked,
       COALESCE(SUM(w.placements * 100 + w.interviews * 10 + w.recommendations * 2 + w.verifications), 0) as total_points
     FROM employees e
@@ -282,7 +264,6 @@ export function getChampionsLeagueAllTimePerDay() {
     const interviewsPerDay = row.interviews / days;
     const recommendationsPerDay = row.recommendations / days;
     const verificationsPerDay = row.verifications / days;
-    const cvPerDay = row.cv_added / days;
     const pointsPerDay = row.total_points / days;
 
     return {
@@ -294,13 +275,11 @@ export function getChampionsLeagueAllTimePerDay() {
       interviews: row.interviews,
       recommendations: row.recommendations,
       verifications: row.verifications,
-      cvAdded: row.cv_added,
       totalDaysWorked: row.total_days_worked,
       placementsPerDay: Number(placementsPerDay.toFixed(3)),
       interviewsPerDay: Number(interviewsPerDay.toFixed(3)),
       recommendationsPerDay: Number(recommendationsPerDay.toFixed(3)),
       verificationsPerDay: Number(verificationsPerDay.toFixed(2)),
-      cvPerDay: Number(cvPerDay.toFixed(2)),
       totalPoints: row.total_points,
       pointsPerDay: Number(pointsPerDay.toFixed(2))
     };
@@ -320,7 +299,6 @@ export function getTrends(weeks?: number) {
         w.year,
         e.position,
         SUM(w.verifications) as total_verifications,
-        SUM(w.cv_added) as total_cv_added,
         SUM(w.recommendations) as total_recommendations,
         SUM(w.interviews) as total_interviews,
         SUM(w.placements) as total_placements,
@@ -340,7 +318,6 @@ export function getTrends(weeks?: number) {
         w.year,
         e.position,
         SUM(w.verifications) as total_verifications,
-        SUM(w.cv_added) as total_cv_added,
         SUM(w.recommendations) as total_recommendations,
         SUM(w.interviews) as total_interviews,
         SUM(w.placements) as total_placements,
@@ -378,13 +355,14 @@ export function getAvailableMonths() {
 
 function calculateTargetAchievement(row: any): number {
   const daysWorked = row.days_worked || 1;
-  
+
   if (row.position === 'Sourcer') {
     const target = daysWorked * 4;
     return target > 0 ? Math.round((row.verifications / target) * 100) : 0;
   } else if (row.position === 'Rekruter') {
-    const target = daysWorked * 5;
-    return target > 0 ? Math.round((row.cv_added / target) * 100) : 0;
+    // Rekruter target: 2 interviews per day
+    const target = daysWorked * 2;
+    return target > 0 ? Math.round((row.interviews / target) * 100) : 0;
   } else {
     return row.placements > 0 ? 100 : 0;
   }
@@ -392,19 +370,19 @@ function calculateTargetAchievement(row: any): number {
 
 function calculateMonthlyTargetAchievement(row: any): number {
   const daysWorked = row.total_days_worked || 1;
-  
+
   if (row.position === 'Sourcer') {
     const target = daysWorked * 4;
     return target > 0 ? Math.round((row.total_verifications / target) * 100) : 0;
   } else if (row.position === 'Rekruter') {
-    const target = daysWorked * 5;
-    return target > 0 ? Math.round((row.total_cv_added / target) * 100) : 0;
+    // Rekruter target: 2 interviews per day
+    const target = daysWorked * 2;
+    return target > 0 ? Math.round((row.total_interviews / target) * 100) : 0;
   } else {
     return row.total_placements >= 1 ? 100 : Math.round(row.total_placements * 100);
   }
 }
 
-// CV excluded from points calculation per scoring rules update
 function calculatePoints(row: any): number {
   return (
     (row.placements || 0) * 100 +
@@ -414,7 +392,6 @@ function calculatePoints(row: any): number {
   );
 }
 
-// CV excluded from points calculation per scoring rules update
 function calculateMonthlyPoints(row: any): number {
   return (
     (row.total_placements || 0) * 100 +

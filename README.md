@@ -1,16 +1,16 @@
-# 📊 KPI Dashboard - B2B Network
+# KPI Dashboard - B2B Network
 
 System webowy do prezentacji i zarządzania danymi KPI dla firmy rekrutacyjnej B2B Network S.A.
 
-## ✨ Funkcjonalności
+## Funkcjonalności
 
 - **Body Leasing KPI** - wyniki tygodniowe/miesięczne dla Sourcerów, Rekruterów i TAC
-- **Liga Mistrzów** - ranking punktowy (100 pkt placement, 10 pkt interview, 2 pkt rekomendacja)
+- **Liga Mistrzów** - ranking punktowy (100 pkt placement, 10 pkt interview, 2 pkt rekomendacja, 1 pkt weryfikacja)
 - **Mindy AI** - inteligentna maskotka z Claude API
 - **Panel Admina** - upload Excel, zarządzanie pracownikami
 - **Wykresy** - trendy, porównania, gauges
 
-## 🛠️ Stack
+## Stack
 
 - **Frontend:** React + TypeScript + Tailwind CSS + Recharts
 - **Backend:** Node.js + Express
@@ -19,15 +19,15 @@ System webowy do prezentacji i zarządzania danymi KPI dla firmy rekrutacyjnej B
 
 ---
 
-## 🚀 Deployment na Render (jeden Web Service)
+## Deployment na Render (jeden Web Service)
 
 ### 1. Utwórz Web Service
 
-1. [render.com](https://render.com) → **New** → **Web Service**
-2. Połącz z repozytorium GitHub
+1. [render.com](https://render.com) -> **New** -> **Web Service**
+2. Polacz z repozytorium GitHub
 3. Ustawienia:
 
-| Pole | Wartość |
+| Pole | Wartosc |
 |------|---------|
 | **Name** | `kpi-dashboard` |
 | **Root Directory** | `server` |
@@ -37,30 +37,30 @@ System webowy do prezentacji i zarządzania danymi KPI dla firmy rekrutacyjnej B
 
 ### 2. Dodaj Disk (dla SQLite)
 
-W zakładce **Disks**:
+W zakladce **Disks**:
 - **Name:** `kpi-data`
 - **Mount Path:** `/data`
 - **Size:** `1 GB`
 
 ### 3. Ustaw Environment Variables
 
-| Zmienna | Wartość |
+| Zmienna | Wartosc |
 |---------|---------|
 | `NODE_ENV` | `production` |
 | `DATA_DIR` | `/data` |
 | `JWT_SECRET` | *(wygeneruj losowy string)* |
-| `ANTHROPIC_API_KEY` | *(twój klucz Claude - opcjonalny)* |
-| `ADMIN_PASSWORD` | *(hasło admina)* |
+| `ANTHROPIC_API_KEY` | *(twoj klucz Claude - opcjonalny)* |
+| `ADMIN_PASSWORD` | *(haslo admina)* |
 
 ### 4. Deploy!
 
-Render automatycznie zbuduje i uruchomi aplikację.
+Render automatycznie zbuduje i uruchomi aplikacje.
 
-**Pierwszy start:** Baza danych zostanie automatycznie utworzona z przykładowymi danymi.
+**Pierwszy start:** Baza danych zostanie automatycznie utworzona z przykladowymi danymi.
 
 ---
 
-## 💻 Instalacja lokalna
+## Instalacja lokalna
 
 ```bash
 # 1. Sklonuj i zainstaluj
@@ -74,49 +74,51 @@ cd ../server
 cp .env.example .env
 # Edytuj .env
 
-# 3. Uruchom (w dwóch terminalach)
+# 3. Uruchom (w dwoch terminalach)
 # Terminal 1 - backend:
 cd server && npm run dev
 
 # Terminal 2 - frontend:
 cd client && npm run dev
 
-# 4. Otwórz http://localhost:5173
+# 4. Otworz http://localhost:5173
 ```
 
-## 🔑 Logowanie
+## Logowanie
 
 - **Login:** `admin`
-- **Hasło:** `admin123` (lub wartość `ADMIN_PASSWORD`)
+- **Haslo:** `admin123` (lub wartosc `ADMIN_PASSWORD`)
 
 ---
 
-## 📊 Format Excel
+## Format Excel
 
-| Kolumna | Przykład |
-|---------|----------|
-| Imię i nazwisko | Anna Kowalska |
-| Stanowisko | Sourcer / Rekruter / TAC |
-| Tydzień od | 2025-01-13 |
-| Tydzień do | 2025-01-19 |
-| Dni przepracowane | 5 |
-| Weryfikacje | 22 |
-| CV dodane | 0 |
-| Rekomendacje | 5 |
-| Interviews | 2 |
-| Placements | 1 |
+| Kolumna | Przyklad | Uwagi |
+|---------|----------|-------|
+| Imie i nazwisko | Anna Kowalska | |
+| Stanowisko | Sourcer / Rekruter / TAC | |
+| Tydzien od | 2025-01-13 | |
+| Tydzien do | 2025-01-19 | |
+| Dni przepracowane | 5 | |
+| Weryfikacje | 22 | |
+| CV dodane | - | **IGNOROWANE** |
+| Rekomendacje | 5 | |
+| Interviews | 2 | |
+| Placements | 1 | |
+
+> **UWAGA:** Kolumna "CV dodane" jest calkowicie ignorowana przez system. Dane CV nie sa przetwarzane, przechowywane ani raportowane.
 
 ---
 
-## 🎯 Targety
+## Targety
 
-| Stanowisko | Dzienny | Miesięczny |
+| Stanowisko | Dzienny | Miesieczny |
 |------------|---------|------------|
 | Sourcer | 4 weryfikacje | 1 placement |
-| Rekruter | 5 CV | 1 placement |
+| Rekruter | 2 interviews | 1 placement |
 | TAC | - | 1 placement |
 
-## 🏆 Punktacja Ligi Mistrzów
+## Punktacja Ligi Mistrzow
 
 | Akcja | Punkty |
 |-------|--------|
@@ -125,12 +127,15 @@ cd client && npm run dev
 | Rekomendacja | 2 |
 | Weryfikacja | 1 |
 
-> **Uwaga:** Wolumen CV został wykluczony z punktacji - nie przyznaje się punktów za ilość dodanych CV.
+> **WAZNE:** Wolumen CV jest calkowicie wykluczony z systemu - dane CV nie sa przetwarzane, nie sa wyswietlane w raportach i nie wplywaja na zadne metryki.
 
-## 📊 Persystencja Danych
+## Persystencja Danych
 
-Dane są przechowywane w trybie przyrostowym (incremental). Nowe uploady **dodają wartości** do istniejących rekordów zamiast je nadpisywać. Historyczne dane nigdy nie są resetowane ani usuwane.
+Dane sa przechowywane w trybie przyrostowym (incremental):
+- Nowe uploady **dodaja wartosci** do istniejacych rekordow zamiast je nadpisywac
+- Historyczne dane nigdy nie sa resetowane ani usuwane
+- Kazdy upload tworzy pelny obraz od poczatku projektu
 
 ---
 
-© 2025 B2B Network S.A.
+(c) 2025 B2B Network S.A.

@@ -1,6 +1,8 @@
 import * as XLSX from 'xlsx';
 import db from '../db/connection';
 
+// CV data completely excluded from system - Excel CV column is ignored during import
+
 interface KPIRow {
   name: string;
   position: string;
@@ -8,7 +10,6 @@ interface KPIRow {
   weekEnd: Date;
   daysWorked: number;
   verifications: number;
-  cvAdded: number;
   recommendations: number;
   interviews: number;
   placements: number;
@@ -64,7 +65,8 @@ export function processExcelFile(buffer: Buffer, uploadedBy: number): ProcessRes
 }
 
 function parseRow(row: any[], rowIndex: number): KPIRow {
-  const [name, position, weekStart, weekEnd, daysWorked, verifications, cvAdded, recommendations, interviews, placements] = row;
+  // Excel columns: name, position, weekStart, weekEnd, daysWorked, verifications, cvAdded (IGNORED), recommendations, interviews, placements
+  const [name, position, weekStart, weekEnd, daysWorked, verifications, _cvIgnored, recommendations, interviews, placements] = row;
 
   if (!name || typeof name !== 'string') {
     throw new Error('Missing or invalid name');
@@ -115,7 +117,6 @@ function parseRow(row: any[], rowIndex: number): KPIRow {
     weekEnd: endDate,
     daysWorked: days,
     verifications: Math.max(0, parseInt(verifications) || 0),
-    cvAdded: Math.max(0, parseInt(cvAdded) || 0),
     recommendations: Math.max(0, parseInt(recommendations) || 0),
     interviews: Math.max(0, parseInt(interviews) || 0),
     placements: Math.max(0, parseInt(placements) || 0)
@@ -125,7 +126,7 @@ function parseRow(row: any[], rowIndex: number): KPIRow {
 function saveKPIData(kpi: KPIRow, uploadedBy: number): void {
   // Get or create employee
   let employee = db.prepare('SELECT id FROM employees WHERE name = ?').get(kpi.name) as { id: number } | undefined;
-  
+
   if (!employee) {
     const result = db.prepare('INSERT INTO employees (name, position) VALUES (?, ?)').run(kpi.name, kpi.position);
     employee = { id: result.lastInsertRowid as number };
@@ -142,13 +143,13 @@ function saveKPIData(kpi: KPIRow, uploadedBy: number): void {
 
   // Insert new KPI data or accumulate to existing data (incremental/append mode)
   // Historical data is never overwritten - new values are added to existing values
+  // CV column set to 0 - CV data is excluded from the system
   db.prepare(`
     INSERT INTO weekly_kpi
     (employee_id, week_start, week_end, year, week_number, month, verifications, cv_added, recommendations, interviews, placements, days_worked, uploaded_by)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?)
     ON CONFLICT(employee_id, week_start) DO UPDATE SET
       verifications = verifications + excluded.verifications,
-      cv_added = cv_added + excluded.cv_added,
       recommendations = recommendations + excluded.recommendations,
       interviews = interviews + excluded.interviews,
       placements = placements + excluded.placements,
@@ -156,7 +157,7 @@ function saveKPIData(kpi: KPIRow, uploadedBy: number): void {
       uploaded_by = excluded.uploaded_by
   `).run(
     employee.id, weekStartStr, weekEndStr, year, weekNumber, month,
-    kpi.verifications, kpi.cvAdded, kpi.recommendations, kpi.interviews, kpi.placements, kpi.daysWorked, uploadedBy
+    kpi.verifications, kpi.recommendations, kpi.interviews, kpi.placements, kpi.daysWorked, uploadedBy
   );
 }
 
