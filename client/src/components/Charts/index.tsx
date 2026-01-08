@@ -32,7 +32,6 @@ export function TrendLineChart({ data }: { data: TrendData[] }) {
       acc.push(week);
     }
     week[`${item.position}_verifications`] = Number(item.total_verifications) || 0;
-    week[`${item.position}_cv`] = Number(item.total_cv_added) || 0;
     week[`${item.position}_placements`] = Number(item.total_placements) || 0;
     return acc;
   }, []).sort((a, b) => a.weekStart.localeCompare(b.weekStart));
@@ -50,7 +49,7 @@ export function TrendLineChart({ data }: { data: TrendData[] }) {
           />
           <Legend />
           <Line type="monotone" dataKey="Sourcer_verifications" name="Sourcer - Weryfikacje" stroke={COLORS.sourcer} strokeWidth={2} dot={{ r: 4 }} />
-          <Line type="monotone" dataKey="Rekruter_cv" name="Rekruter - CV" stroke={COLORS.rekruter} strokeWidth={2} dot={{ r: 4 }} />
+          <Line type="monotone" dataKey="Rekruter_interviews" name="Rekruter - Interviews" stroke={COLORS.rekruter} strokeWidth={2} dot={{ r: 4 }} />
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -63,7 +62,6 @@ export function TeamComparisonChart({ data }: { data: WeeklyKPI[] }) {
     name: d.name.split(' ')[0],
     position: d.position,
     verifications: d.verifications,
-    cv: d.cvAdded,
     recommendations: d.recommendations,
     interviews: d.interviews,
     targetAchievement: d.targetAchievement
@@ -82,7 +80,7 @@ export function TeamComparisonChart({ data }: { data: WeeklyKPI[] }) {
           />
           <Legend />
           <Bar dataKey="verifications" name="Weryfikacje" fill={COLORS.sourcer} radius={[0, 4, 4, 0]} />
-          <Bar dataKey="cv" name="CV" fill={COLORS.rekruter} radius={[0, 4, 4, 0]} />
+          <Bar dataKey="interviews" name="Interviews" fill={COLORS.rekruter} radius={[0, 4, 4, 0]} />
           <Bar dataKey="recommendations" name="Rekomendacje" fill={COLORS.tac} radius={[0, 4, 4, 0]} />
         </BarChart>
       </ResponsiveContainer>
@@ -182,7 +180,6 @@ export function TargetGauge({ value, target, label, color: _color }: { value: nu
 export function PerformanceRadar({ data }: { data: WeeklyKPI }) {
   const radarData = [
     { subject: 'Weryfikacje', value: data.verifications, fullMark: 30 },
-    { subject: 'CV', value: data.cvAdded, fullMark: 35 },
     { subject: 'Rekomendacje', value: data.recommendations, fullMark: 10 },
     { subject: 'Interviews', value: data.interviews, fullMark: 5 },
     { subject: 'Placements', value: data.placements * 10, fullMark: 10 },

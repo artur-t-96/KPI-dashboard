@@ -1,9 +1,9 @@
 import axios from 'axios';
-import type { 
-  WeeklyKPI, 
-  MonthlyKPI, 
-  ChampionEntry, 
-  MindyResponse, 
+import type {
+  WeeklyKPI,
+  MonthlyKPI,
+  ChampionEntry,
+  MindyResponse,
   Employee,
   TrendData,
   SummaryData,
@@ -90,13 +90,11 @@ export interface ChampionEntryPerDay {
   interviews: number;
   recommendations: number;
   verifications: number;
-  cvAdded: number;
   totalDaysWorked: number;
   placementsPerDay: number;
   interviewsPerDay: number;
   recommendationsPerDay: number;
   verificationsPerDay: number;
-  cvPerDay: number;
   totalPoints: number;
   pointsPerDay: number;
 }
@@ -153,10 +151,8 @@ export interface AllTimeVerifications {
   name: string;
   position: string;
   totalVerifications: number;
-  totalCvAdded: number;
   totalDaysWorked: number;
   verificationsPerDay: number;
-  cvPerDay: number;
 }
 
 export const getAllTimeVerifications = async (): Promise<AllTimeVerifications[]> => {
@@ -170,13 +166,11 @@ export interface YearlyKPI {
   position: string;
   year: number;
   totalVerifications: number;
-  totalCvAdded: number;
   totalRecommendations: number;
   totalInterviews: number;
   totalPlacements: number;
   totalDaysWorked: number;
   verificationsPerDay: number;
-  cvPerDay: number;
   targetAchievement: number;
 }
 
@@ -213,20 +207,6 @@ export interface WeeklyVerificationTrend {
 
 export const getWeeklyVerificationTrend = async (): Promise<WeeklyVerificationTrend[]> => {
   const response = await api.get('/kpi/weekly-verification-trend');
-  return response.data;
-};
-
-export interface WeeklyCvTrend {
-  weekStart: string;
-  year: number;
-  weekNumber: number;
-  totalCv: number;
-  employeeCount: number;
-  avgCvPerPerson: number;
-}
-
-export const getWeeklyCvTrend = async (): Promise<WeeklyCvTrend[]> => {
-  const response = await api.get('/kpi/weekly-cv-trend');
   return response.data;
 };
 
@@ -273,7 +253,6 @@ export interface EmployeeTrendData {
     week_number: number;
     month: number;
     verifications: number;
-    cv_added: number;
     recommendations: number;
     interviews: number;
     placements: number;
@@ -282,7 +261,6 @@ export interface EmployeeTrendData {
   teamAverages: Array<{
     week_start: string;
     avg_verifications: number;
-    avg_cv: number;
     avg_interviews: number;
     avg_placements: number;
   }>;

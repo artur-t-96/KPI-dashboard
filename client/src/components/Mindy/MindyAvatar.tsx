@@ -60,8 +60,8 @@ export default function MindyAvatar({
       sum + (viewMode === 'week' ? d.daysWorked : d.totalDaysWorked), 0);
     const totalVerifications = currentData.reduce((sum, d: any) =>
       sum + (viewMode === 'week' ? d.verifications : d.totalVerifications), 0);
-    const totalCV = currentData.reduce((sum, d: any) =>
-      sum + (viewMode === 'week' ? d.cvAdded : d.totalCvAdded), 0);
+    const totalInterviewsForTarget = currentData.reduce((sum, d: any) =>
+      sum + (viewMode === 'week' ? d.interviews : d.totalInterviews), 0);
     const totalPlacements = currentData.reduce((sum, d: any) =>
       sum + (viewMode === 'week' ? d.placements : d.totalPlacements), 0);
     const totalInterviews = currentData.reduce((sum, d: any) =>
@@ -75,18 +75,16 @@ export default function MindyAvatar({
       sum + (viewMode === 'week' ? d.daysWorked : (monthlyData.find(m => m.employeeId === d.employeeId)?.totalDaysWorked || 0)), 0);
 
     const verificationTarget = sourcerDays * 4;
-    const cvTarget = recruiterDays * 5;
+    const interviewTarget = recruiterDays * 2;
     const placementTarget = weeklyData.length;
 
     const verificationAchievement = verificationTarget > 0 ? Math.round((totalVerifications / verificationTarget) * 100) : 0;
-    const cvAchievement = cvTarget > 0 ? Math.round((totalCV / cvTarget) * 100) : 0;
+    const interviewAchievement = interviewTarget > 0 ? Math.round((totalInterviewsForTarget / interviewTarget) * 100) : 0;
     const placementAchievement = placementTarget > 0 ? Math.round((totalPlacements / placementTarget) * 100) : 0;
 
     const allTimeTotalDays = allTimeVerifications.reduce((sum, d) => sum + d.totalDaysWorked, 0);
     const allTimeTotalVerifications = allTimeVerifications.reduce((sum, d) => sum + d.totalVerifications, 0);
-    const allTimeTotalCV = allTimeVerifications.reduce((sum, d) => sum + d.totalCvAdded, 0);
     const allTimeVerPerDay = allTimeTotalDays > 0 ? (allTimeTotalVerifications / allTimeTotalDays).toFixed(2) : '0';
-    const allTimeCVPerDay = allTimeTotalDays > 0 ? (allTimeTotalCV / allTimeTotalDays).toFixed(2) : '0';
 
     const allTimeTotalPlacements = allTimePlacements.reduce((sum, d) => sum + d.total_placements, 0);
     let allTimeMonths = 1;
@@ -106,15 +104,14 @@ export default function MindyAvatar({
     const allTimeSourcerDays = allTimeVerifications.filter(d => d.position === 'Sourcer').reduce((sum, d) => sum + d.totalDaysWorked, 0);
     const allTimeRecruiterDays = allTimeVerifications.filter(d => d.position === 'Rekruter').reduce((sum, d) => sum + d.totalDaysWorked, 0);
     const allTimeVerificationTarget = allTimeSourcerDays * 4;
-    const allTimeCVTarget = allTimeRecruiterDays * 5;
+    const allTimeInterviewTarget = allTimeRecruiterDays * 2;
     const allTimePlacementTargetTotal = allTimeMonths * weeklyData.length;
     const allTimeVerificationAchievement = allTimeVerificationTarget > 0 ? Math.round((allTimeTotalVerifications / allTimeVerificationTarget) * 100) : 0;
-    const allTimeCVAchievement = allTimeCVTarget > 0 ? Math.round((allTimeTotalCV / allTimeCVTarget) * 100) : 0;
+    const allTimeInterviewAchievement = allTimeInterviewTarget > 0 ? Math.round((allTimeTotalInterviews / allTimeInterviewTarget) * 100) : 0;
     const allTimePlacementAchievement = allTimePlacementTargetTotal > 0 ? Math.round((allTimeTotalPlacements / allTimePlacementTargetTotal) * 100) : 0;
 
     // All-time averages per working day
     const allTimeAvgVerPerDay = allTimeTotalDays > 0 ? (allTimeTotalVerifications / allTimeTotalDays).toFixed(2) : '0';
-    const allTimeAvgCVPerDay = allTimeTotalDays > 0 ? (allTimeTotalCV / allTimeTotalDays).toFixed(2) : '0';
     const allTimeAvgPlacPerDay = allTimeTotalDays > 0 ? (allTimeTotalPlacements / allTimeTotalDays).toFixed(3) : '0';
 
     const teamVerificationsPerPlacement = allTimeTotalPlacements > 0
@@ -127,12 +124,11 @@ export default function MindyAvatar({
       ? (allTimeTotalInterviews / allTimeTotalPlacements).toFixed(1)
       : '∞';
 
-    const overallAchievement = Math.round((verificationAchievement + cvAchievement + placementAchievement) / 3);
+    const overallAchievement = Math.round((verificationAchievement + interviewAchievement + placementAchievement) / 3);
 
     // Current period averages per working day
     const daysForAvg = totalDaysWorked || 1;
     const avgVerificationsPerDay = (totalVerifications / daysForAvg).toFixed(2);
-    const avgCVPerDay = (totalCV / daysForAvg).toFixed(2);
     const avgPlacementsPerDay = (totalPlacements / daysForAvg).toFixed(3);
     const avgInterviewsPerDay = (totalInterviews / daysForAvg).toFixed(2);
     const avgRecommendationsPerDay = (totalRecommendations / daysForAvg).toFixed(2);
@@ -148,26 +144,22 @@ export default function MindyAvatar({
       tacs: tacs.length,
       totalDaysWorked,
       totalVerifications,
-      totalCV,
       totalPlacements,
       totalInterviews,
       totalRecommendations,
       verificationTarget,
-      cvTarget,
+      interviewTarget,
       placementTarget,
       verificationAchievement,
-      cvAchievement,
+      interviewAchievement,
       placementAchievement,
       overallAchievement,
       avgVerificationsPerDay,
-      avgCVPerDay,
       avgPlacementsPerDay,
       avgInterviewsPerDay,
       avgRecommendationsPerDay,
       allTimeTotalDays,
       allTimeVerPerDay,
-      allTimeCVPerDay,
-      allTimeTotalCV,
       allTimeTotalPlacements,
       allTimeTotalVerifications,
       allTimeTotalInterviews,
@@ -179,13 +171,12 @@ export default function MindyAvatar({
       teamVerificationsPerPlacement,
       teamInterviewsPerPlacement,
       allTimeVerificationTarget,
-      allTimeCVTarget,
+      allTimeInterviewTarget,
       allTimePlacementTargetTotal,
       allTimeVerificationAchievement,
-      allTimeCVAchievement,
+      allTimeInterviewAchievement,
       allTimePlacementAchievement,
       allTimeAvgVerPerDay,
-      allTimeAvgCVPerDay,
       allTimeAvgPlacPerDay
     };
   };
@@ -464,7 +455,7 @@ export default function MindyAvatar({
 
             <div className="space-y-1">
               <StatusCard title="WER" icon={Brain} value={stats.totalVerifications} target={stats.verificationTarget} achievement={stats.verificationAchievement} avg={stats.avgVerificationsPerDay} color={isDark ? 'text-cyan-400' : 'text-cyan-600'} />
-              <StatusCard title="CV" icon={Target} value={stats.totalCV} target={stats.cvTarget} achievement={stats.cvAchievement} avg={stats.avgCVPerDay} color={isDark ? 'text-purple-400' : 'text-purple-600'} />
+              <StatusCard title="INT" icon={Target} value={stats.totalInterviews} target={stats.interviewTarget} achievement={stats.interviewAchievement} avg={stats.avgInterviewsPerDay} color={isDark ? 'text-purple-400' : 'text-purple-600'} />
               <StatusCard title="PLAC" icon={Trophy} value={stats.totalPlacements} target={stats.placementTarget} achievement={stats.placementAchievement} avg={stats.avgPlacementsPerDay} color={isDark ? 'text-amber-400' : 'text-amber-600'} />
             </div>
 
@@ -501,7 +492,7 @@ export default function MindyAvatar({
 
             <div className="space-y-1">
               <StatusCard title="WER" icon={Brain} value={stats.allTimeTotalVerifications} target={stats.allTimeVerificationTarget} achievement={stats.allTimeVerificationAchievement} avg={stats.allTimeAvgVerPerDay} color={isDark ? 'text-cyan-400' : 'text-cyan-600'} />
-              <StatusCard title="CV" icon={Target} value={stats.allTimeTotalCV} target={stats.allTimeCVTarget} achievement={stats.allTimeCVAchievement} avg={stats.allTimeAvgCVPerDay} color={isDark ? 'text-purple-400' : 'text-purple-600'} />
+              <StatusCard title="INT" icon={Target} value={stats.allTimeTotalInterviews} target={stats.allTimeInterviewTarget} achievement={stats.allTimeInterviewAchievement} avg={stats.allTimeAvgIntPerDay} color={isDark ? 'text-purple-400' : 'text-purple-600'} />
               <StatusCard title="PLAC" icon={Trophy} value={stats.allTimeTotalPlacements} target={stats.allTimePlacementTargetTotal} achievement={stats.allTimePlacementAchievement} avg={stats.allTimeAvgPlacPerDay} color={isDark ? 'text-amber-400' : 'text-amber-600'} />
             </div>
 

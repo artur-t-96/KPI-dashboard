@@ -19,7 +19,6 @@ interface KPIRecord {
   week_start: string;
   week_end: string;
   verifications: number;
-  cv_added: number;
   recommendations: number;
   interviews: number;
   placements: number;
@@ -369,7 +368,6 @@ export default function AdminPanel() {
                           <tr>
                             <th className={`px-3 py-2 text-left text-xs ${mutedTextClass}`}>Pracownik</th>
                             <th className={`px-3 py-2 text-center text-xs ${mutedTextClass}`}>Wer.</th>
-                            <th className={`px-3 py-2 text-center text-xs ${mutedTextClass}`}>CV</th>
                             <th className={`px-3 py-2 text-center text-xs ${mutedTextClass}`}>Rek.</th>
                             <th className={`px-3 py-2 text-center text-xs ${mutedTextClass}`}>Int.</th>
                             <th className={`px-3 py-2 text-center text-xs ${mutedTextClass}`}>Plac.</th>
@@ -385,7 +383,6 @@ export default function AdminPanel() {
                                 <span className={`ml-2 text-xs ${mutedTextClass}`}>({record.position})</span>
                               </td>
                               <td className={`px-3 py-2 text-center ${textClass}`}>{record.verifications}</td>
-                              <td className={`px-3 py-2 text-center ${textClass}`}>{record.cv_added}</td>
                               <td className={`px-3 py-2 text-center ${textClass}`}>{record.recommendations}</td>
                               <td className={`px-3 py-2 text-center ${textClass}`}>{record.interviews}</td>
                               <td className={`px-3 py-2 text-center ${textClass}`}>{record.placements}</td>

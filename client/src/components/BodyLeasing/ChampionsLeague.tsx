@@ -46,7 +46,6 @@ export default function ChampionsLeagueTable({ data, embedded = false }: Props) 
             <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">🎤</th>
             <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">📤</th>
             <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">✓</th>
-            <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">📄</th>
             <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">SUMA</th>
           </tr>
         </thead>
@@ -93,12 +92,6 @@ export default function ChampionsLeagueTable({ data, embedded = false }: Props) 
                   <span className="text-xs text-gray-500 block">{entry.verificationPoints}p</span>
                 </div>
               </td>
-              <td className="px-4 py-3 text-center">
-                <div>
-                  <span className="font-semibold text-gray-900">{entry.cvAdded}</span>
-                  <span className="text-xs text-gray-500 block">{entry.cvPoints}p</span>
-                </div>
-              </td>
               <td className="px-4 py-3 text-right">
                 <span className={`font-bold text-lg ${index === 0 ? 'text-yellow-600' : index < 3 ? 'text-amber-600' : 'text-gray-900'}`}>
                   {entry.totalPoints}
@@ -110,7 +103,7 @@ export default function ChampionsLeagueTable({ data, embedded = false }: Props) 
       </table>
       <div className="bg-gray-50 px-4 py-3 border-t">
         <p className="text-xs text-gray-500">
-          💼 Placements | 🎤 Interviews | 📤 Rekomendacje | ✓ Weryfikacje | 📄 CV dodane
+          💼 Placements | 🎤 Interviews | 📤 Rekomendacje | ✓ Weryfikacje
         </p>
       </div>
     </>
@@ -127,7 +120,7 @@ export default function ChampionsLeagueTable({ data, embedded = false }: Props) 
           🏆 Liga Mistrzow
         </h3>
         <p className="text-yellow-100 text-sm mt-1">
-          100 pkt = Placement | 10 pkt = Interview | 2 pkt = Rekomendacja | 1 pkt = Weryfikacja/CV
+          100 pkt = Placement | 10 pkt = Interview | 2 pkt = Rekomendacja | 1 pkt = Weryfikacja
         </p>
       </div>
       <div className="overflow-x-auto">

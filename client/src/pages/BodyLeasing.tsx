@@ -149,7 +149,6 @@ export default function BodyLeasing() {
     allTimeVerifications,
     monthlyTrendData,
     weeklyVerificationTrend,
-    weeklyCvTrend,
     weeklyInterviewsTrend,
     weeklyPlacementsTrend,
     employees,
@@ -204,18 +203,15 @@ export default function BodyLeasing() {
 
       // Calculate employee totals
       const totalVerifications = kpiData.reduce((sum, d) => sum + d.verifications, 0);
-      const totalCv = kpiData.reduce((sum, d) => sum + d.cv_added, 0);
       const totalInterviews = kpiData.reduce((sum, d) => sum + d.interviews, 0);
       const totalPlacements = kpiData.reduce((sum, d) => sum + d.placements, 0);
       const totalDays = kpiData.reduce((sum, d) => sum + d.days_worked, 0);
 
       // Calculate averages
       const avgVerPerDay = totalDays > 0 ? (totalVerifications / totalDays).toFixed(2) : 0;
-      const avgCvPerDay = totalDays > 0 ? (totalCv / totalDays).toFixed(2) : 0;
 
       // Team comparison
       const teamTotalVer = teamAvg.reduce((sum, d) => sum + d.avg_verifications, 0);
-      const teamTotalCv = teamAvg.reduce((sum, d) => sum + d.avg_cv, 0);
       const teamTotalInt = teamAvg.reduce((sum, d) => sum + d.avg_interviews, 0);
       const teamTotalPlac = teamAvg.reduce((sum, d) => sum + d.avg_placements, 0);
 
@@ -223,14 +219,12 @@ export default function BodyLeasing() {
 
 Dane pracownika (od poczatku):
 - Weryfikacje: ${totalVerifications} (srednia ${avgVerPerDay}/dzien)
-- CV dodane: ${totalCv} (srednia ${avgCvPerDay}/dzien)
 - Interviews: ${totalInterviews}
 - Placements: ${totalPlacements}
 - Dni pracy: ${totalDays}
 
 Porownanie do zespolu (srednie na tydzien * liczba tygodni):
 - Srednia weryfikacji zespolu: ${(teamTotalVer / teamAvg.length).toFixed(1)} na tydzien
-- Srednia CV zespolu: ${(teamTotalCv / teamAvg.length).toFixed(1)} na tydzien
 - Srednia interviews zespolu: ${(teamTotalInt / teamAvg.length).toFixed(1)} na tydzien
 - Srednia placements zespolu: ${(teamTotalPlac / teamAvg.length).toFixed(2)} na tydzien
 
@@ -262,12 +256,10 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
     position: d.position,
     daysWorked: viewMode === 'week' ? d.daysWorked : d.totalDaysWorked,
     verifications: viewMode === 'week' ? d.verifications : d.totalVerifications,
-    cvAdded: viewMode === 'week' ? d.cvAdded : d.totalCvAdded,
     recommendations: viewMode === 'week' ? d.recommendations : d.totalRecommendations,
     interviews: viewMode === 'week' ? d.interviews : d.totalInterviews,
     placements: viewMode === 'week' ? d.placements : d.totalPlacements,
     verificationsPerDay: d.verificationsPerDay,
-    cvPerDay: d.cvPerDay,
     targetAchievement: d.targetAchievement
   });
 
@@ -285,8 +277,9 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
       const target = data.daysWorked * 4;
       return target > 0 ? Math.round((data.verifications / target) * 100) : 0;
     } else if (data.position === 'Rekruter') {
-      const target = data.daysWorked * 5;
-      return target > 0 ? Math.round((data.cvAdded / target) * 100) : 0;
+      // Rekruter target: 2 interviews per day
+      const target = data.daysWorked * 2;
+      return target > 0 ? Math.round((data.interviews / target) * 100) : 0;
     }
     return 100;
   };
@@ -294,20 +287,20 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
   const getActivityValue = (d: any) => {
     const data = getData(d);
     if (data.position === 'Sourcer') return data.verifications;
-    if (data.position === 'Rekruter') return data.cvAdded;
+    if (data.position === 'Rekruter') return data.interviews;
     return data.recommendations;
   };
 
   const getActivityLabel = (position: string) => {
     if (position === 'Sourcer') return 'Weryfikacje';
-    if (position === 'Rekruter') return 'CV';
+    if (position === 'Rekruter') return 'Interviews';
     return 'Rekomendacje';
   };
 
   const getActivityPerDay = (d: any) => {
     const data = getData(d);
     if (data.position === 'Sourcer') return data.verificationsPerDay;
-    if (data.position === 'Rekruter') return data.cvPerDay;
+    if (data.position === 'Rekruter') return data.daysWorked > 0 ? Number((data.interviews / data.daysWorked).toFixed(2)) : 0;
     return data.daysWorked > 0 ? Number((data.recommendations / data.daysWorked).toFixed(2)) : 0;
   };
 
@@ -521,7 +514,7 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                       <div className="text-right">
                         <div className="text-xl font-bold text-amber-600">{entry.pointsPerDay.toFixed(1)} pkt/dzien</div>
                         <div className="text-xs text-gray-500">
-                          Wer: {entry.verificationsPerDay.toFixed(1)} | CV: {entry.cvPerDay.toFixed(1)} | Rek: {entry.recommendationsPerDay.toFixed(2)} | Int: {entry.interviewsPerDay.toFixed(2)} | Plac: {entry.placementsPerDay.toFixed(2)}
+                          Wer: {entry.verificationsPerDay.toFixed(1)} | Rek: {entry.recommendationsPerDay.toFixed(2)} | Int: {entry.interviewsPerDay.toFixed(2)} | Plac: {entry.placementsPerDay.toFixed(2)}
                         </div>
                       </div>
                     </div>
@@ -552,7 +545,7 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                         <div className="text-right">
                           <div className="text-xl font-bold text-red-500">{entry.pointsPerDay.toFixed(1)} pkt/dzien</div>
                           <div className="text-xs text-gray-500">
-                            Wer: {entry.verificationsPerDay.toFixed(1)} | CV: {entry.cvPerDay.toFixed(1)} | Rek: {entry.recommendationsPerDay.toFixed(2)} | Int: {entry.interviewsPerDay.toFixed(2)} | Plac: {entry.placementsPerDay.toFixed(2)}
+                            Wer: {entry.verificationsPerDay.toFixed(1)} | Rek: {entry.recommendationsPerDay.toFixed(2)} | Int: {entry.interviewsPerDay.toFixed(2)} | Plac: {entry.placementsPerDay.toFixed(2)}
                           </div>
                         </div>
                       </div>
@@ -607,7 +600,6 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                   <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">🎤</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">📤</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">✓</th>
-                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">📄</th>
                   <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Dni</th>
                   <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">PKT/DZIEN</th>
                 </tr>
@@ -659,12 +651,6 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                         <span className="text-xs text-gray-500 block">{entry.verificationsPerDay}/d</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-center">
-                      <div>
-                        <span className="font-semibold text-gray-900">{entry.cvAdded}</span>
-                        <span className="text-xs text-gray-500 block">{entry.cvPerDay}/d</span>
-                      </div>
-                    </td>
                     <td className="px-4 py-3 text-center text-gray-600">{entry.totalDaysWorked}</td>
                     <td className="px-4 py-3 text-right">
                       <span className={`font-bold text-lg ${index === 0 ? 'text-yellow-600' : index < 3 ? 'text-amber-600' : 'text-gray-900'}`}>
@@ -677,7 +663,7 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
             </table>
             <div className="bg-gray-50 px-4 py-3 border-t">
               <p className="text-xs text-gray-500">
-                💼 Placements (100pkt) | 🎤 Interviews (10pkt) | 📤 Rekomendacje (2pkt) | ✓ Weryfikacje (1pkt) | 📄 CV dodane (1pkt)
+                💼 Placements (100pkt) | 🎤 Interviews (10pkt) | 📤 Rekomendacje (2pkt) | ✓ Weryfikacje (1pkt)
               </p>
             </div>
           </CollapsibleSection>
@@ -691,7 +677,7 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
           {displayData.length > 0 && (
             <CollapsibleSection
               title={`Podsumowanie ${getPeriodLabel()}`}
-              subtitle={`Targety: Sourcer 4 wer./dzien | Rekruter 5 CV/dzien | Wszyscy ${viewMode === 'year' ? '12 placements/rok' : '1 placement/mies.'}`}
+              subtitle={`Targety: Sourcer 4 wer./dzien | Rekruter 2 int./dzien | Wszyscy ${viewMode === 'year' ? '12 placements/rok' : '1 placement/mies.'}`}
               icon="📊"
               headerClassName="bg-gradient-to-r from-blue-600 to-purple-600 text-white"
               defaultOpen={true}
@@ -768,7 +754,6 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Stanowisko</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Dni pracy</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Weryfikacje</th>
-                    <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">CV</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Rekomendacje</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Interviews</th>
                     <th className="px-4 py-3 text-center text-xs font-semibold text-gray-600">Placements</th>
@@ -790,7 +775,6 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                       </td>
                       <td className="px-4 py-3 text-center">{d.totalDaysWorked}</td>
                       <td className="px-4 py-3 text-center">{d.totalVerifications}</td>
-                      <td className="px-4 py-3 text-center">{d.totalCvAdded}</td>
                       <td className="px-4 py-3 text-center">{d.totalRecommendations}</td>
                       <td className="px-4 py-3 text-center">{d.totalInterviews}</td>
                       <td className="px-4 py-3 text-center font-bold text-green-600">{d.totalPlacements}</td>
@@ -812,121 +796,9 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
         </Category>
       </DraggableSection>
 
-      {/* ===== CATEGORY 4: CV, WERYFIKACJE, INTERVIEWS & REKOMENDACJE ===== */}
+      {/* ===== CATEGORY 4: WERYFIKACJE, INTERVIEWS & REKOMENDACJE ===== */}
       <DraggableSection id="category-cv-weryfikacje">
-        <Category id="category-cv-weryfikacje" title="CV, Weryfikacje, Interviews, Rekomendacje & Placements" icon="📄" color="bg-gradient-to-r from-violet-500 to-purple-600">
-          {/* CV Tables Grid */}
-          <div className="grid md:grid-cols-3 gap-4">
-            {/* Weekly CV */}
-            <CollapsibleSection
-              title={`CV dodane - Tydzien`}
-              subtitle="CV dodane w wybranym tygodniu"
-              icon="📄"
-              headerClassName="bg-gradient-to-r from-violet-500 to-purple-600 text-white"
-            >
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">#</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Pracownik</th>
-                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">CV</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {[...weeklyData]
-                    .sort((a, b) => b.cvAdded - a.cvAdded)
-                    .map((d, index) => (
-                      <tr key={d.employeeId} className={`hover:bg-gray-50 ${index < 3 ? 'bg-violet-50' : ''}`}>
-                        <td className="px-3 py-2 text-center text-sm">
-                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
-                        </td>
-                        <td className="px-3 py-2 font-medium text-sm">{d.name}</td>
-                        <td className="px-3 py-2 text-center">
-                          <span className={`font-bold ${d.cvAdded >= 5 ? 'text-green-600' : d.cvAdded > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
-                            {d.cvAdded}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </CollapsibleSection>
-
-            {/* Monthly CV */}
-            <CollapsibleSection
-              title={`CV dodane - ${MONTHS_PL[selectedMonth]}`}
-              subtitle="CV dodane w wybranym miesiacu"
-              icon="📋"
-              headerClassName="bg-gradient-to-r from-purple-500 to-pink-600 text-white"
-            >
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">#</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Pracownik</th>
-                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">CV</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {[...monthlyData]
-                    .sort((a, b) => b.totalCvAdded - a.totalCvAdded)
-                    .map((d, index) => (
-                      <tr key={d.employeeId} className={`hover:bg-gray-50 ${index < 3 ? 'bg-purple-50' : ''}`}>
-                        <td className="px-3 py-2 text-center text-sm">
-                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
-                        </td>
-                        <td className="px-3 py-2 font-medium text-sm">{d.name}</td>
-                        <td className="px-3 py-2 text-center">
-                          <span className={`font-bold ${d.totalCvAdded >= 20 ? 'text-green-600' : d.totalCvAdded > 0 ? 'text-yellow-600' : 'text-gray-400'}`}>
-                            {d.totalCvAdded}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </CollapsibleSection>
-
-            {/* All-Time CV */}
-            <CollapsibleSection
-              title="CV dodane - Od poczatku"
-              subtitle="Lacznie wszystkie CV"
-              icon="📚"
-              headerClassName="bg-gradient-to-r from-pink-500 to-rose-600 text-white"
-            >
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">#</th>
-                    <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600">Pracownik</th>
-                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">CV</th>
-                    <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600">CV/dzien</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {[...allTimeVerifications]
-                    .sort((a, b) => b.totalCvAdded - a.totalCvAdded)
-                    .map((d, index) => (
-                      <tr key={d.employeeId} className={`hover:bg-gray-50 ${index < 3 ? 'bg-pink-50' : ''}`}>
-                        <td className="px-3 py-2 text-center text-sm">
-                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : index + 1}
-                        </td>
-                        <td className="px-3 py-2 font-medium text-sm">{d.name}</td>
-                        <td className="px-3 py-2 text-center">
-                          <span className="font-bold text-gray-700">{d.totalCvAdded}</span>
-                        </td>
-                        <td className="px-3 py-2 text-center">
-                          <span className={`font-bold ${d.cvPerDay >= 5 ? 'text-green-600' : d.cvPerDay >= 3 ? 'text-yellow-600' : 'text-red-600'}`}>
-                            {d.cvPerDay}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </CollapsibleSection>
-          </div>
-
+        <Category id="category-cv-weryfikacje" title="Weryfikacje, Interviews, Rekomendacje & Placements" icon="✓" color="bg-gradient-to-r from-violet-500 to-purple-600">
           {/* Verifications Tables Grid */}
           <div className="grid md:grid-cols-3 gap-4">
             {/* Weekly Verifications */}
@@ -1485,12 +1357,6 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                           </div>
                         </div>
                         <div>
-                          <div className="text-xs text-gray-500">CV</div>
-                          <div className="text-lg font-bold text-purple-600">
-                            {employeeTrendData.kpiData.reduce((sum, d) => sum + d.cv_added, 0)}
-                          </div>
-                        </div>
-                        <div>
                           <div className="text-xs text-gray-500">Interviews</div>
                           <div className="text-lg font-bold text-orange-600">
                             {employeeTrendData.kpiData.reduce((sum, d) => sum + d.interviews, 0)}
@@ -1544,16 +1410,6 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                           stroke="#3b82f6"
                           strokeWidth={2}
                           dot={{ fill: '#3b82f6', r: 3 }}
-                          activeDot={{ r: 6 }}
-                        />
-                        <Line
-                          yAxisId="left"
-                          type="monotone"
-                          dataKey="cv_added"
-                          name="CV dodane"
-                          stroke="#8b5cf6"
-                          strokeWidth={2}
-                          dot={{ fill: '#8b5cf6', r: 3 }}
                           activeDot={{ r: 6 }}
                         />
                         <Line
@@ -1688,98 +1544,6 @@ Odpowiedz w formacie raportu po polsku, zwiezle i konkretnie.`;
                     <div className="text-xs text-gray-500">Liczba tygodni</div>
                     <div className="text-xl font-bold text-purple-600">
                       {weeklyVerificationTrend.length}
-                    </div>
-                    <div className="text-xs text-gray-500">w danych</div>
-                  </div>
-                </div>
-              </div>
-            </CollapsibleSection>
-          )}
-
-          {/* Weekly CV Trend Chart */}
-          {weeklyCvTrend.length > 0 && (
-            <CollapsibleSection
-              title="Trend dodanych CV - tygodniowo"
-              subtitle="Ilosc dodanych CV zespolu od poczatku (niezalezne od wybranego okresu)"
-              icon="📄"
-              headerClassName="bg-gradient-to-r from-emerald-500 to-teal-600 text-white"
-            >
-              <div className="p-4">
-                <ResponsiveContainer width="100%" height={350}>
-                  <LineChart
-                    data={weeklyCvTrend.map(d => ({
-                      ...d,
-                      label: `W${d.weekNumber}/${d.year}`
-                    }))}
-                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                    <XAxis
-                      dataKey="label"
-                      tick={{ fontSize: 11 }}
-                      interval={Math.max(0, Math.floor(weeklyCvTrend.length / 10) - 1)}
-                    />
-                    <YAxis
-                      yAxisId="left"
-                      tick={{ fontSize: 11 }}
-                      label={{ value: 'Total', angle: -90, position: 'insideLeft', fontSize: 12 }}
-                    />
-                    <YAxis
-                      yAxisId="right"
-                      orientation="right"
-                      tick={{ fontSize: 11 }}
-                      label={{ value: 'Avg/osoba', angle: 90, position: 'insideRight', fontSize: 12 }}
-                    />
-                    <Tooltip
-                      contentStyle={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                      labelStyle={{ fontWeight: 'bold', marginBottom: '4px' }}
-                      formatter={(value: number, name: string) => [
-                        value.toLocaleString(),
-                        name === 'totalCv' ? 'CV total' : 'Srednia/osoba'
-                      ]}
-                    />
-                    <Legend
-                      formatter={(value) => value === 'totalCv' ? 'CV total' : 'Srednia na osobe'}
-                    />
-                    <Line
-                      yAxisId="left"
-                      type="monotone"
-                      dataKey="totalCv"
-                      stroke="#10b981"
-                      strokeWidth={2}
-                      dot={{ fill: '#10b981', r: 3 }}
-                      activeDot={{ r: 6 }}
-                    />
-                    <Line
-                      yAxisId="right"
-                      type="monotone"
-                      dataKey="avgCvPerPerson"
-                      stroke="#14b8a6"
-                      strokeWidth={2}
-                      dot={{ fill: '#14b8a6', r: 3 }}
-                      activeDot={{ r: 6 }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-                <div className="mt-4 grid grid-cols-3 gap-4 text-center">
-                  <div className="bg-emerald-50 rounded-lg p-3">
-                    <div className="text-xs text-gray-500">Ostatni tydzien</div>
-                    <div className="text-xl font-bold text-emerald-600">
-                      {weeklyCvTrend[weeklyCvTrend.length - 1]?.totalCv || 0}
-                    </div>
-                    <div className="text-xs text-gray-500">dodanych CV</div>
-                  </div>
-                  <div className="bg-teal-50 rounded-lg p-3">
-                    <div className="text-xs text-gray-500">Srednia/osoba</div>
-                    <div className="text-xl font-bold text-teal-600">
-                      {weeklyCvTrend[weeklyCvTrend.length - 1]?.avgCvPerPerson || 0}
-                    </div>
-                    <div className="text-xs text-gray-500">ostatni tydzien</div>
-                  </div>
-                  <div className="bg-cyan-50 rounded-lg p-3">
-                    <div className="text-xs text-gray-500">Liczba tygodni</div>
-                    <div className="text-xl font-bold text-cyan-600">
-                      {weeklyCvTrend.length}
                     </div>
                     <div className="text-xs text-gray-500">w danych</div>
                   </div>
